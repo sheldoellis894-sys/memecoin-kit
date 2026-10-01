@@ -1,0 +1,15 @@
+# Dependencies and builds
+node_modules/
+dist/
+.astro/
+.vercel/
+
+# Secrets — never commit
+.env
+.env.*
+*.key
+*seed*
+
+# System files
+Thumbs.db
+.DS_Store
