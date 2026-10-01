@@ -3,7 +3,7 @@
   "ticker": "MOLTY",
   "tagline": "Molty knows where the gold is buried",
   "description": "Molty is a hard-working mole digging under Solana while you sleep. $MOLTY — a community memecoin.",
-  "url": "",
+  "url": "https://molty-ten.vercel.app",
   "chain": "Solana",
   "ca": "",
   "theme": "mine",
@@ -100,10 +100,6 @@
     {
       "src": "gallery/molty_g06.jpg",
       "alt": "Molty peeks out of his hole at night"
-    },
-    {
-      "src": "banners/molty_banner.jpg",
-      "alt": "Molty found the mother lode"
     }
   ],
   "roadmap": [
