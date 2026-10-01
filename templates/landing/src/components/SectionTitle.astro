@@ -1,0 +1,8 @@
+---
+interface Props { kicker?: string }
+const { kicker } = Astro.props;
+---
+<div class="mb-10 text-center">
+  {kicker && <p class="mb-2 font-black uppercase tracking-[0.2em] text-secondary">{kicker}</p>}
+  <h2 class="text-4xl text-primary md:text-5xl"><slot /></h2>
+</div>

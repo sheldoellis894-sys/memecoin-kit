@@ -1,0 +1,41 @@
+---
+import '../styles/global.css';
+import { config, theme, asset } from '../lib/project';
+import Effects from './Effects.astro';
+
+const c = theme.colors;
+const vars = [
+  `--t-bg:${c.bg}`, `--t-surface:${c.surface}`, `--t-text:${c.text}`, `--t-muted:${c.muted}`,
+  `--t-primary:${c.primary}`, `--t-on-primary:${c.onPrimary}`, `--t-secondary:${c.secondary}`, `--t-accent:${c.accent}`,
+  `--t-font-heading:'${theme.fonts.heading}'`, `--t-font-body:'${theme.fonts.body}'`,
+  `--t-radius-button:${theme.radius.button}`, `--t-radius-card:${theme.radius.card}`,
+].join(';');
+
+const title = `${config.name} ($${config.ticker})`;
+const og = config.assets.og ? (config.url ? new URL(asset(config.assets.og), config.url).href : asset(config.assets.og)) : '';
+---
+<!doctype html>
+<html lang="en" style={vars}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} — {config.tagline}</title>
+    <meta name="description" content={config.description} />
+    <meta name="theme-color" content={c.bg} />
+    <link rel="icon" href={asset(config.assets.favicon || config.assets.logo)} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={config.description} />
+    {og && <meta property="og:image" content={og} />}
+    {config.url && <meta property="og:url" content={config.url} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    {og && <meta name="twitter:image" content={og} />}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?${theme.fonts.googleFonts}&display=swap`} />
+  </head>
+  <body class="antialiased">
+    <slot />
+    <Effects />
+  </body>
+</html>

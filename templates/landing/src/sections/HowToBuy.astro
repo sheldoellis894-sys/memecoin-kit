@@ -1,0 +1,20 @@
+---
+import { config } from '../lib/project';
+import SectionTitle from '../components/SectionTitle.astro';
+---
+<section id="how-to-buy" data-reveal class="scroll-mt-20 bg-surface px-4 py-24">
+  <div class="mx-auto max-w-6xl">
+    <SectionTitle kicker={`Get your $${config.ticker}`}>How to buy</SectionTitle>
+    <ol class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {config.howToBuy.map((step, i) => (
+        <li class="rounded-card border border-white/10 bg-bg p-6">
+          <span class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary font-heading text-2xl text-on-primary">
+            {i + 1}
+          </span>
+          <h3 class="mb-2 text-2xl text-ink">{step.title}</h3>
+          <p class="text-muted">{step.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

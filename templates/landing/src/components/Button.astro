@@ -1,0 +1,14 @@
+---
+interface Props { href: string; variant?: 'primary' | 'outline'; external?: boolean }
+const { href, variant = 'primary', external = href.startsWith('http') } = Astro.props;
+const styles = {
+  primary: 'bg-primary text-on-primary font-heading text-lg hover:brightness-110',
+  outline: 'border-2 border-secondary text-secondary font-body font-black hover:bg-secondary hover:text-bg',
+};
+---
+<a
+  href={href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+  class={`inline-flex items-center justify-center rounded-btn px-6 py-3 transition ${styles[variant]}`}
+><slot /></a>

@@ -1,0 +1,20 @@
+---
+// Floating coins and gems for the hero. Positions are fixed per build (no randomness on load).
+const seed = (n: number) => { const x = Math.sin(n * 9301 + 49297) * 233280; return x - Math.floor(x); };
+// Keep them away from the headline (left) and the character's face (center-right)
+const inFace = (l: number, t: number) => l > 55 && l < 85 && t > 25 && t < 75;
+const items = Array.from({ length: 40 }, (_, i) => ({
+  kind: i % 3 === 0 ? 'gem' : 'coin',
+  left: 42 + seed(i) * 56,
+  top: 5 + seed(i + 50) * 85,
+  size: 14 + seed(i + 100) * 22,
+  delay: -seed(i + 150) * 8,
+  duration: 6 + seed(i + 200) * 6,
+})).filter((p) => !inFace(p.left, p.top)).slice(0, 12);
+---
+<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+  {items.map((p) => (
+    <span class={`particle particle-${p.kind}`}
+          style={`left:${p.left}%;top:${p.top}%;width:${p.size}px;height:${p.size}px;animation-delay:${p.delay}s;animation-duration:${p.duration}s`} />
+  ))}
+</div>

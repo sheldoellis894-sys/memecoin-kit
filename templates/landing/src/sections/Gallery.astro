@@ -1,0 +1,29 @@
+---
+// Infinite moving gallery: two rows drifting in opposite directions, pause on hover.
+import { config, asset } from '../lib/project';
+import SectionTitle from '../components/SectionTitle.astro';
+const items = config.gallery;
+// Repeat images so a row is always wider than the screen
+const fill = (arr: typeof items) => Array.from({ length: Math.max(2, Math.ceil(8 / Math.max(arr.length, 1))) }, () => arr).flat();
+const rowA = fill(items);
+const rowB = fill([...items].reverse());
+---
+{items.length > 0 && (
+  <section id="gallery" class="scroll-mt-20 overflow-hidden bg-surface py-24" data-reveal>
+    <div class="px-4"><SectionTitle kicker="Fresh from the mine">Gallery</SectionTitle></div>
+    <div class="gallery flex flex-col gap-6">
+      {[rowA, rowB].map((row, i) => (
+        <div class={`marquee-track flex w-max gap-6 ${i === 1 ? 'marquee-reverse' : ''}`} style="--marquee-duration: 60s">
+          {[0, 1].map((copy) => (
+            <div class="flex shrink-0 gap-6" aria-hidden={copy === 1 ? 'true' : undefined}>
+              {row.map((g) => (
+                <img src={asset(g.src)} alt={copy === 0 ? g.alt : ''} loading="lazy"
+                     class="h-56 w-auto rounded-card border border-white/10 object-cover transition duration-300 hover:scale-105 hover:border-primary md:h-72" />
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </section>
+)}

@@ -1,0 +1,36 @@
+---
+import { config, asset, buyUrl } from '../lib/project';
+import Button from '../components/Button.astro';
+import ContractAddress from '../components/ContractAddress.astro';
+import Particles from '../components/Particles.astro';
+---
+<section class="relative overflow-hidden">
+  <!-- Wide scene: character on the right, empty sky on the left for text -->
+  <img
+    src={asset(config.assets.hero)}
+    alt=""
+    data-parallax
+    class="absolute inset-0 h-full w-full scale-[1.08] object-cover object-[70%_center] will-change-transform"
+  />
+  <div class="absolute inset-0 bg-gradient-to-r from-bg via-bg/80 to-transparent md:via-bg/40"></div>
+  <Particles />
+  <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-bg to-transparent"></div>
+
+  <div class="relative mx-auto flex min-h-[82vh] max-w-6xl flex-col justify-center gap-6 px-4 py-20">
+    {config.hero.kicker && (
+      <p class="font-black uppercase tracking-[0.2em] text-secondary">{config.hero.kicker}</p>
+    )}
+    <h1 class="max-w-xl text-5xl leading-[1.05] text-primary drop-shadow-[0_4px_12px_rgba(0,0,0,.6)] md:text-7xl">
+      {config.tagline}
+    </h1>
+    <p class="font-body text-4xl font-black text-secondary drop-shadow-[0_4px_12px_rgba(0,0,0,.6)]">
+      ${config.ticker}
+    </p>
+    <p class="max-w-md text-lg text-ink/90">{config.hero.text}</p>
+    <div class="flex flex-wrap gap-3">
+      <Button href={buyUrl}>Buy ${config.ticker}</Button>
+      {config.links.x && <Button href={config.links.x} variant="outline">Follow on X</Button>}
+    </div>
+    <ContractAddress />
+  </div>
+</section>

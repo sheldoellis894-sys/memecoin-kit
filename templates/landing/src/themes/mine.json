@@ -1,0 +1,19 @@
+{
+  "name": "mine",
+  "colors": {
+    "bg": "#1A1410",
+    "surface": "#251C16",
+    "text": "#F3E9DC",
+    "muted": "#B5A596",
+    "primary": "#FFC93C",
+    "onPrimary": "#1A1410",
+    "secondary": "#FF7AA8",
+    "accent": "#9B5CFF"
+  },
+  "fonts": {
+    "heading": "Lilita One",
+    "body": "Nunito",
+    "googleFonts": "family=Lilita+One&family=Nunito:wght@400;700;900"
+  },
+  "radius": { "button": "9999px", "card": "24px" }
+}

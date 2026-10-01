@@ -1,0 +1,26 @@
+---
+// The page = the list of sections from the chosen layout (src/layouts/<name>.json).
+// To add a new section type: create it in src/sections/ and register it below.
+import Base from '../components/Base.astro';
+import { layout } from '../lib/project';
+import Header from '../sections/Header.astro';
+import Hero from '../sections/Hero.astro';
+import About from '../sections/About.astro';
+import HowToBuy from '../sections/HowToBuy.astro';
+import Tokenomics from '../sections/Tokenomics.astro';
+import Gallery from '../sections/Gallery.astro';
+import Roadmap from '../sections/Roadmap.astro';
+import Footer from '../sections/Footer.astro';
+import Marquee from '../sections/Marquee.astro';
+import DigGame from '../sections/DigGame.astro';
+
+const registry: Record<string, any> = {
+  header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
+  tokenomics: Tokenomics, gallery: Gallery, roadmap: Roadmap, footer: Footer, marquee: Marquee, digGame: DigGame,
+};
+const unknown = layout.sections.filter((s) => !registry[s]);
+if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);
+---
+<Base>
+  {layout.sections.map((name) => { const Section = registry[name]; return <Section />; })}
+</Base>

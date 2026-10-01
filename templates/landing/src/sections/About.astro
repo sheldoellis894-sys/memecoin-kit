@@ -1,0 +1,18 @@
+---
+import { config, asset } from '../lib/project';
+const { about } = config;
+---
+<section id="about" data-reveal class="scroll-mt-20 px-4 py-24">
+  <div class="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2">
+    {about.image && (
+      <img src={asset(about.image)} alt={config.name} class="mx-auto w-full max-w-md rounded-card" loading="lazy" />
+    )}
+    <div>
+      <p class="mb-2 font-black uppercase tracking-[0.2em] text-secondary">Who is {config.name}</p>
+      <h2 class="mb-6 text-4xl text-primary md:text-5xl">{about.title}</h2>
+      <div class="space-y-4 text-lg text-ink/90">
+        {about.text.map((p) => <p>{p}</p>)}
+      </div>
+    </div>
+  </div>
+</section>

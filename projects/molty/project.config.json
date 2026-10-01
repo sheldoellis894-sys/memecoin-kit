@@ -1,0 +1,180 @@
+{
+  "name": "Molty",
+  "ticker": "MOLTY",
+  "tagline": "Molty knows where the gold is buried",
+  "description": "Molty is a hard-working mole digging under Solana while you sleep. $MOLTY — a community memecoin.",
+  "url": "",
+  "chain": "Solana",
+  "ca": "",
+  "theme": "mine",
+  "layout": "longread",
+  "links": {
+    "x": "https://x.com/moltymole",
+    "telegram": "https://t.me/moltymole",
+    "pumpfun": "",
+    "dexscreener": ""
+  },
+  "assets": {
+    "logo": "exports/molty_avatar_circle.png",
+    "favicon": "exports/molty_avatar_circle.png",
+    "hero": "banners/molty_banner.jpg",
+    "og": "exports/molty_og.png"
+  },
+  "hero": {
+    "kicker": "The hardest-working mole on Solana",
+    "text": "While the whole town sleeps, Molty digs. Shift after shift, deeper than your bags."
+  },
+  "about": {
+    "title": "A miner, not a moon boy",
+    "text": [
+      "Molty lives deep under the Solana blockchain. He can barely see, but he can smell gold through three layers of rock.",
+      "No charts, no panic, no FUD. Just a helmet, a headlamp and a pickaxe. Every night he goes down for another shift.",
+      "WAGMI — We All Go Mining."
+    ],
+    "image": "references/molty_main.jpg"
+  },
+  "howToBuy": [
+    {
+      "title": "Get a wallet",
+      "text": "Install Phantom or Solflare from the official website or app store."
+    },
+    {
+      "title": "Get some SOL",
+      "text": "Buy SOL on an exchange and send it to your wallet."
+    },
+    {
+      "title": "Open pump.fun",
+      "text": "Connect your wallet and paste the $MOLTY contract address."
+    },
+    {
+      "title": "Swap for $MOLTY",
+      "text": "Choose the amount, confirm the swap and join the shift."
+    }
+  ],
+  "tokenomics": {
+    "supply": "1,000,000,000",
+    "items": [
+      {
+        "label": "Fair launch on pump.fun",
+        "value": "100%"
+      },
+      {
+        "label": "Buy and sell tax",
+        "value": "0%"
+      },
+      {
+        "label": "Network",
+        "value": "Solana"
+      },
+      {
+        "label": "Ticker",
+        "value": "$MOLTY"
+      }
+    ]
+  },
+  "gallery": [
+    {
+      "src": "gallery/molty_g01.jpg",
+      "alt": "Molty sleeps on a pile of gold"
+    },
+    {
+      "src": "gallery/molty_g02.jpg",
+      "alt": "Molty sips coffee while the chart burns"
+    },
+    {
+      "src": "gallery/molty_g03.jpg",
+      "alt": "Molty rides a mine cart full of treasure"
+    },
+    {
+      "src": "logo/molty_logo.jpg",
+      "alt": "Molty bites a gold coin"
+    },
+    {
+      "src": "gallery/molty_g04.jpg",
+      "alt": "Molty shows off a giant gem"
+    },
+    {
+      "src": "gallery/molty_g05.jpg",
+      "alt": "Molty in sunglasses: told you so"
+    },
+    {
+      "src": "gallery/molty_g06.jpg",
+      "alt": "Molty peeks out of his hole at night"
+    },
+    {
+      "src": "banners/molty_banner.jpg",
+      "alt": "Molty found the mother lode"
+    }
+  ],
+  "roadmap": [
+    {
+      "phase": "Phase 1",
+      "title": "First shift",
+      "items": [
+        "Launch on pump.fun",
+        "X and Telegram open",
+        "First 100 miners"
+      ]
+    },
+    {
+      "phase": "Phase 2",
+      "title": "Deeper",
+      "items": [
+        "DexScreener profile",
+        "Meme contests",
+        "Molty sticker pack"
+      ]
+    },
+    {
+      "phase": "Phase 3",
+      "title": "Mother lode",
+      "items": [
+        "Community-made lore",
+        "Animated Molty shorts",
+        "More shifts, more gold"
+      ]
+    }
+  ],
+  "disclaimer": "$MOLTY is a memecoin with no intrinsic value or expectation of financial return. It is not an investment. Nothing on this site is financial advice. Crypto is risky — never spend more than you can afford to lose.",
+  "marquee": [
+    "$MOLTY",
+    "WAGMI",
+    "WE ALL GO MINING",
+    "DIG DEEPER",
+    "GOLD IS BURIED"
+  ],
+  "effects": {
+    "reveal": true,
+    "parallax": true,
+    "cursor": true,
+    "sparks": true
+  },
+  "game": {
+    "enabled": true,
+    "kicker": "Take a shift",
+    "title": "Dig with Molty",
+    "digs": 8,
+    "cols": 4,
+    "rows": 3,
+    "odds": {
+      "gold": 60,
+      "gem": 20,
+      "rug": 20
+    },
+    "rugPenalty": 2,
+    "stickers": {
+      "idle": "stickers/molty_idle.png",
+      "gold": "stickers/molty_gold.png",
+      "gem": "stickers/molty_gem.png",
+      "rug": "stickers/molty_rug.png"
+    },
+    "lines": {
+      "idle": "Pick a spot. I'll dig.",
+      "gold": "Gold! Into the bag it goes.",
+      "gem": "A GEM! Don't tell anyone.",
+      "rug": "Rugged... lost some gold.",
+      "end": "Shift over! Gold: {gold}. Gems: {gems}. Rugged: {rugs}."
+    },
+    "share": "Just finished a shift with Molty ⛏ Gold: {gold}. Gems: {gems}. Rugged: {rugs}. ${ticker}"
+  }
+}

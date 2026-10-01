@@ -1,0 +1,4 @@
+{
+  "name": "longread",
+  "sections": ["header", "hero", "marquee", "about", "digGame", "howToBuy", "marquee", "tokenomics", "gallery", "roadmap", "footer"]
+}

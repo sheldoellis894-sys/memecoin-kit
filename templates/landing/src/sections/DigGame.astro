@@ -1,0 +1,110 @@
+---
+// Mini-game "Dig!": click dirt tiles, find gold, gems or a rug. Share the result on X.
+// Everything (texts, stickers, odds, number of digs) comes from config.game — reusable for any mascot.
+import { config, asset } from '../lib/project';
+import SectionTitle from '../components/SectionTitle.astro';
+const g = config.game;
+const stickers = Object.fromEntries(Object.entries(g?.stickers ?? {}).map(([k, v]) => [k, asset(v as string)]));
+const data = JSON.stringify({ ...g, stickers, name: config.name, ticker: config.ticker, url: config.url });
+const tiles = Array.from({ length: (g?.cols ?? 4) * (g?.rows ?? 3) });
+---
+{g?.enabled && (
+  <section id="dig" class="scroll-mt-20 px-4 py-24" data-reveal>
+    <div class="mx-auto max-w-6xl">
+      <SectionTitle kicker={g.kicker}>{g.title}</SectionTitle>
+      <div class="dig-game grid items-center gap-10 md:grid-cols-[2fr_3fr]" data-game={data}>
+        <!-- Mascot + speech bubble -->
+        <div class="flex flex-col items-center gap-4">
+          <div class="dig-bubble relative max-w-xs rounded-card bg-ink px-5 py-3 text-center font-black text-bg" data-bubble>
+            {g.lines.idle}
+          </div>
+          <img src={stickers.idle} alt={config.name} data-mascot class="dig-mascot w-44 drop-shadow-[0_20px_30px_rgba(0,0,0,.5)] sm:w-64 md:w-80" />
+        </div>
+
+        <!-- Board -->
+        <div>
+          <div class="mb-4 grid grid-cols-3 gap-3 text-center">
+            <div class="rounded-card bg-surface p-3"><p class="font-heading text-3xl text-primary" data-score="gold">0</p><p class="text-sm text-muted">Gold</p></div>
+            <div class="rounded-card bg-surface p-3"><p class="font-heading text-3xl text-accent" data-score="gem">0</p><p class="text-sm text-muted">Gems</p></div>
+            <div class="rounded-card bg-surface p-3"><p class="font-heading text-3xl text-secondary" data-score="digs">{g.digs}</p><p class="text-sm text-muted">Digs left</p></div>
+          </div>
+          <div class="grid gap-3" style={`grid-template-columns:repeat(${g.cols ?? 4},minmax(0,1fr))`}>
+            {tiles.map(() => (
+              <button type="button" class="dig-tile aspect-square rounded-2xl" aria-label="Dig here"><span class="dig-find"></span></button>
+            ))}
+          </div>
+          <div class="mt-6 hidden flex-wrap items-center justify-center gap-3" data-end>
+            <a data-share target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center rounded-btn bg-primary px-6 py-3 font-heading text-lg text-on-primary transition hover:brightness-110">Share on X</a>
+            <button type="button" data-restart
+               class="rounded-btn border-2 border-secondary px-6 py-3 font-black text-secondary transition hover:bg-secondary hover:text-bg">New shift</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  type Game = {
+    digs: number; odds: { gold: number; gem: number; rug: number }; rugPenalty: number;
+    stickers: Record<string, string>; lines: Record<string, string>; share: string;
+    name: string; ticker: string; url?: string;
+  };
+  document.querySelectorAll<HTMLElement>('.dig-game').forEach((root) => {
+    const g: Game = JSON.parse(root.dataset.game!);
+    // Preload stickers so the face swap is instant
+    Object.values(g.stickers).forEach((src) => { const i = new Image(); i.src = src; });
+    const mascot = root.querySelector<HTMLImageElement>('[data-mascot]')!;
+    const bubble = root.querySelector<HTMLElement>('[data-bubble]')!;
+    const tiles = [...root.querySelectorAll<HTMLButtonElement>('.dig-tile')];
+    const end = root.querySelector<HTMLElement>('[data-end]')!;
+    const share = root.querySelector<HTMLAnchorElement>('[data-share]')!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-score="${k}"]`)!;
+    let s = { gold: 0, gem: 0, rug: 0, digs: g.digs };
+
+    const say = (face: string, line: string) => {
+      mascot.src = g.stickers[face] || g.stickers.idle;
+      bubble.textContent = line;
+      mascot.classList.remove('dig-pop'); void mascot.offsetWidth; mascot.classList.add('dig-pop');
+    };
+    const roll = () => {
+      const total = g.odds.gold + g.odds.gem + g.odds.rug;
+      let r = Math.random() * total;
+      if ((r -= g.odds.gold) < 0) return 'gold';
+      if ((r -= g.odds.gem) < 0) return 'gem';
+      return 'rug';
+    };
+    const render = () => { out('gold').textContent = String(s.gold); out('gem').textContent = String(s.gem); out('digs').textContent = String(s.digs); };
+    const fill = (t: string) => t.replace('{gold}', String(s.gold)).replace('{gems}', String(s.gem)).replace('{rugs}', String(s.rug))
+      .replace('{ticker}', g.ticker).replace('{name}', g.name);
+
+    tiles.forEach((tile) => tile.addEventListener('click', () => {
+      if (tile.dataset.found || s.digs <= 0) return;
+      const found = roll();
+      tile.dataset.found = found;
+      s.digs--;
+      if (found === 'gold') s.gold += 1;
+      if (found === 'gem') s.gem += 1;
+      if (found === 'rug') { s.rug += 1; s.gold = Math.max(0, s.gold - g.rugPenalty); }
+      render();
+      say(found, g.lines[found]);
+      if (s.digs <= 0) {
+        tiles.forEach((t) => (t.disabled = true));
+        setTimeout(() => {
+          say(s.gem > 0 || s.gold >= 3 ? 'gem' : 'idle', fill(g.lines.end));
+          const url = g.url || location.href.split('#')[0];
+          share.href = `https://x.com/intent/post?text=${encodeURIComponent(fill(g.share))}&url=${encodeURIComponent(url)}`;
+          end.classList.replace('hidden', 'flex');
+        }, 900);
+      }
+    }));
+
+    root.querySelector('[data-restart]')!.addEventListener('click', () => {
+      s = { gold: 0, gem: 0, rug: 0, digs: g.digs };
+      tiles.forEach((t) => { delete t.dataset.found; t.disabled = false; });
+      end.classList.replace('flex', 'hidden');
+      render(); say('idle', g.lines.idle);
+    });
+  });
+</script>

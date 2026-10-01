@@ -1,0 +1,19 @@
+---
+// Tilted running ticker band. Words come from config.marquee (or a default with the ticker).
+import { config } from '../lib/project';
+const words = config.marquee?.length ? config.marquee : [`$${config.ticker}`, 'WAGMI', 'WE ALL GO MINING'];
+const row = Array.from({ length: 4 }, () => words).flat();
+---
+<div class="relative z-10 -my-2 overflow-hidden bg-primary py-4 -rotate-1 shadow-[0_10px_30px_rgba(0,0,0,.4)]" aria-hidden="true">
+  <div class="marquee-track flex w-max gap-10">
+    {[0, 1].map(() => (
+      <div class="flex shrink-0 gap-10">
+        {row.map((w) => (
+          <span class="flex items-center gap-10 whitespace-nowrap font-heading text-3xl text-on-primary md:text-4xl">
+            {w}<span class="text-2xl">⛏</span>
+          </span>
+        ))}
+      </div>
+    ))}
+  </div>
+</div>
