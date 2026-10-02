@@ -14,7 +14,7 @@ brand/exports/molty_dex_header.png (1500x500)
 ## Links
 - Website: https://molty-ten.vercel.app
 - X: https://x.com/moltymole
-- Telegram: (add after step 9)
+- Telegram: (https://t.me/moltymole)
 
 ## Pre-launch checklist
 - [ ] Name and ticker checked letter by letter by two people
