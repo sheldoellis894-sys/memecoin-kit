@@ -22,7 +22,7 @@ WAGMI — We All Go Mining.
 
 ## Links
 - Website: https://molty-ten.vercel.app
-- X: (add after step 3)
+- X: https://x.com/moltymole
 - Telegram: (add after step 9)
 
 ## Locked supply wallets

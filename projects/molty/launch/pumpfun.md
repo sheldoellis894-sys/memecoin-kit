@@ -13,7 +13,7 @@ brand/exports/molty_dex_header.png (1500x500)
 
 ## Links
 - Website: https://molty-ten.vercel.app
-- X: (add after step 3)
+- X: https://x.com/moltymole
 - Telegram: (add after step 9)
 
 ## Pre-launch checklist
