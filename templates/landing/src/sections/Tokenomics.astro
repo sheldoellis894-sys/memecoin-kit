@@ -1,12 +1,12 @@
 ---
-import { config } from '../lib/project';
+import { config, ui } from '../lib/project';
 import SectionTitle from '../components/SectionTitle.astro';
 import ContractAddress from '../components/ContractAddress.astro';
 const { tokenomics } = config;
 ---
 <section id="tokenomics" data-reveal class="scroll-mt-20 px-4 py-24">
   <div class="mx-auto max-w-6xl">
-    <SectionTitle kicker="Simple and fair">Tokenomics</SectionTitle>
+    <SectionTitle kicker={ui.tokenomicsKicker}>Tokenomics</SectionTitle>
     <div class="mb-8 rounded-card border border-accent/40 bg-accent/10 p-8 text-center">
       <p class="mb-2 font-black uppercase tracking-[0.2em] text-muted">Total supply</p>
       <p class="font-heading text-5xl text-primary md:text-7xl">{tokenomics.supply}</p>

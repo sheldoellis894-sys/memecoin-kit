@@ -1,6 +1,6 @@
 ---
 // Tilted running ticker band. Words come from config.marquee (or a default with the ticker).
-import { config } from '../lib/project';
+import { config, ui, asset } from '../lib/project';
 const words = config.marquee?.length ? config.marquee : [`$${config.ticker}`, 'WAGMI', 'WE ALL GO MINING'];
 const row = Array.from({ length: 4 }, () => words).flat();
 ---
@@ -10,7 +10,9 @@ const row = Array.from({ length: 4 }, () => words).flat();
       <div class="flex shrink-0 gap-10">
         {row.map((w) => (
           <span class="flex items-center gap-10 whitespace-nowrap font-heading text-3xl text-on-primary md:text-4xl">
-            {w}<span class="text-2xl">⛏</span>
+            {w}{ui.iconImage
+              ? <img src={asset(ui.iconImage)} alt="" class="h-8 w-8 object-contain md:h-10 md:w-10" />
+              : <span class="text-2xl">{ui.icon}</span>}
           </span>
         ))}
       </div>

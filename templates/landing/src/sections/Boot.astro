@@ -1,0 +1,75 @@
+---
+// Intro screen in the style of an old console starting up: lines appear one by one, then a start button.
+// Texts come from config.boot. Shown once per browser tab; without JavaScript it never appears.
+import { config } from '../lib/project';
+const b = config.boot;
+---
+{b && b.lines.length > 0 && (
+  <div id="boot" class="boot" hidden role="dialog" aria-label={`${config.name} intro`}>
+    <div class="boot-inner">
+      <div class="boot-lines" aria-live="polite">
+        {b.lines.map((l) => <p class="boot-line">{l}</p>)}
+      </div>
+      <button type="button" class="boot-start blink" data-boot-start>{b.button}</button>
+    </div>
+  </div>
+  <script is:inline>
+    (() => {
+      const el = document.getElementById('boot');
+      if (!el) return;
+      let seen = false;
+      try { seen = sessionStorage.getItem('boot-seen') === '1'; } catch (e) {}
+      if (seen) { el.remove(); return; }
+
+      const root = document.documentElement;
+      const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const lines = [...el.querySelectorAll('.boot-line')];
+      const start = el.querySelector('[data-boot-start]');
+      let done = false;
+      const timers = [];
+
+      const finish = () => { lines.forEach((l) => l.classList.add('on')); start.classList.add('on'); done = true; start.focus(); };
+      const close = () => {
+        try { sessionStorage.setItem('boot-seen', '1'); } catch (e) {}
+        timers.forEach(clearTimeout);
+        el.classList.add('off');
+        root.classList.remove('booting');
+        removeEventListener('keydown', onKey);
+        setTimeout(() => el.remove(), calm ? 0 : 260);
+      };
+      // First press skips the typing, second press enters the site
+      const press = () => (done ? close() : (timers.forEach(clearTimeout), finish()));
+      const onKey = (e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); press(); } };
+
+      el.hidden = false;
+      root.classList.add('booting');
+      el.addEventListener('click', press);
+      addEventListener('keydown', onKey);
+
+      if (calm) finish();
+      else {
+        lines.forEach((l, i) => timers.push(setTimeout(() => l.classList.add('on'), 250 + i * 330)));
+        timers.push(setTimeout(finish, 250 + lines.length * 330 + 200));
+      }
+    })();
+  </script>
+)}
+
+<style is:global>
+  .booting, .booting body { overflow: hidden; }
+  .boot { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 1.5rem;
+    background: #050208; color: var(--t-accent); cursor: pointer; transition: opacity .25s; }
+  .boot[hidden] { display: none; }
+  .boot.off { opacity: 0; pointer-events: none; }
+  .boot::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(to bottom, transparent 0 3px, rgb(255 255 255 / .04) 3px 4px); }
+  .boot-inner { width: min(100%, 44rem); }
+  .boot-lines { font-family: var(--font-body); font-size: clamp(1.15rem, 3.6vw, 1.75rem); line-height: 1.35; }
+  .boot-line { visibility: hidden; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .boot-line.on { visibility: visible; }
+  .boot-start { visibility: hidden; margin-top: 2.25rem; padding: 1rem 1.25rem; border: 3px solid var(--t-primary);
+    background: transparent; color: var(--t-primary); font-family: var(--font-heading); font-size: clamp(.8rem, 2.6vw, 1.15rem);
+    text-transform: uppercase; cursor: pointer; }
+  .boot-start.on { visibility: visible; }
+  .boot-start:hover, .boot-start:focus-visible { background: var(--t-primary); color: var(--t-on-primary); outline: none; animation: none; }
+</style>

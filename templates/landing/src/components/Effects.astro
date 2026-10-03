@@ -1,9 +1,10 @@
 ---
-// Site-wide "alive" effects: reveal on scroll, hero parallax, pickaxe cursor, click sparks.
+// Site-wide "alive" effects: reveal on scroll, hero parallax, emoji cursor (effects.cursorIcon, default pickaxe), click sparks.
 // Each can be switched off in project.config.json → "effects". All respect "reduce motion".
 import { config } from '../lib/project';
 const fx = { reveal: true, parallax: true, cursor: true, sparks: true, ...config.effects };
-const cursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='26' font-size='26'%3E%E2%9B%8F%3C/text%3E%3C/svg%3E") 4 4, auto`;
+const icon = encodeURIComponent(fx.cursorIcon || '⛏');
+const cursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='26' font-size='26'%3E${icon}%3C/text%3E%3C/svg%3E") 4 4, auto`;
 ---
 {fx.cursor && <style set:html={`@media (pointer:fine){html,a,button{cursor:${cursor}}}`} />}
 <script is:inline define:vars={{ fx }}>

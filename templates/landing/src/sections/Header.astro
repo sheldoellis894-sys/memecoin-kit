@@ -4,6 +4,7 @@ import Button from '../components/Button.astro';
 const nav = [
   { label: 'About', href: '#about' },
   ...(layout.sections.includes('digGame') && config.game?.enabled ? [{ label: 'Dig!', href: '#dig' }] : []),
+  ...(layout.sections.includes('chaseGame') && config.chase?.enabled ? [{ label: config.chase.nav || 'Play', href: '#play' }] : []),
   { label: 'How to buy', href: '#how-to-buy' },
   { label: 'Tokenomics', href: '#tokenomics' },
   { label: 'Roadmap', href: '#roadmap' },
@@ -13,7 +14,7 @@ const nav = [
   <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
     <a href="#" class="flex items-center gap-3">
       <img src={asset(config.assets.logo)} alt="" class="h-10 w-10 rounded-full" />
-      <span class="font-heading text-2xl text-primary">{config.name}</span>
+      <span class="font-heading text-2xl text-primary">{config.shortName || config.name}</span>
     </a>
     <nav class="hidden gap-6 font-bold text-muted md:flex">
       {nav.map((n) => <a href={n.href} class="transition hover:text-ink">{n.label}</a>)}

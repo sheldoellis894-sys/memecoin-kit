@@ -1,0 +1,361 @@
+---
+// Mini-game "Chase": a one-button side-scrolling runner. The hero runs after a rival,
+// jumps over obstacles and collects pickups. Space, arrow up or a tap = jump.
+// Sprites and all texts come from config.chase, colors from the theme — reusable for any mascot.
+import { config, theme, asset } from '../lib/project';
+import SectionTitle from '../components/SectionTitle.astro';
+const g = config.chase;
+const data = g && JSON.stringify({
+  sprites: {
+    run: g.sprites.run.map((p) => asset(p)),
+    jump: asset(g.sprites.jump),
+    crash: asset(g.sprites.crash),
+    rival: asset(g.sprites.rival),
+    pickup: asset(g.sprites.pickup),
+    obstacles: g.sprites.obstacles.map((p) => asset(p)),
+  },
+  lines: g.lines,
+  shareText: g.shareText,
+  ticker: config.ticker,
+  name: config.name,
+  url: config.url,
+  colors: theme.colors,
+});
+---
+{g?.enabled && (
+  <section id="play" class="scroll-mt-20 px-4 py-24" data-reveal>
+    <div class="mx-auto max-w-6xl">
+      <SectionTitle kicker={g.kicker}>{g.title}</SectionTitle>
+      <div class="chase scanlines" data-chase={data} tabindex="-1">
+        <canvas class="chase-canvas" aria-label={`${g.title}: ${g.lines.hint}`}></canvas>
+
+        <div class="chase-panel" data-start>
+          <button type="button" class="chase-btn blink" data-play>{g.lines.start}</button>
+          <p class="chase-hint">{g.lines.hint}</p>
+        </div>
+
+        <div class="chase-panel" data-over hidden>
+          <p class="chase-result" data-result></p>
+          <div class="flex flex-wrap items-center justify-center gap-4">
+            <button type="button" class="chase-btn" data-retry>{g.lines.retry}</button>
+            <a class="chase-btn chase-btn-alt" data-share target="_blank" rel="noopener noreferrer">{g.lines.share}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  type Cfg = {
+    sprites: { run: string[]; jump: string; crash: string; rival: string; pickup: string; obstacles: string[] };
+    lines: Record<string, string>; shareText: string; ticker: string; name: string; url?: string;
+    colors: Record<string, string>;
+  };
+  type Img = HTMLImageElement | null;
+  type Thing = { x: number; y: number; w: number; h: number; img: Img; taken?: boolean };
+
+  const VH = 360;            // logical height of the game world, px
+  const GROUND = VH - 54;    // y of the street
+  const HERO_H = 132;        // height of a running hero
+  const JUMP_V = 760;        // jump speed, px/s
+  const GRAVITY = 2300;      // px/s²
+  const SPEED_0 = 340;       // start speed, px/s
+  const SPEED_UP = 9;        // speed gain per second
+  const PX_PER_M = 30;       // score: pixels in one "meter"
+  const LOW = 3;             // background is drawn 3x smaller and scaled up for chunky pixels
+
+  const load = (src: string) => new Promise<Img>((res) => {
+    if (!src) return res(null);
+    const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src;
+  });
+  const rgb = (v: string) => {
+    if (v.startsWith('#')) { const n = parseInt(v.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+    return (v.match(/\d+/g) || [0, 0, 0]).slice(0, 3).map(Number);
+  };
+  const mix = (a: string, b: string, t: number) => {
+    const x = rgb(a), y = rgb(b); return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`;
+  };
+  // Small repeatable random generator: the skyline looks the same on every visit
+  const seeded = (s: number) => () => (s = (s * 16807) % 2147483647) / 2147483647;
+
+  document.querySelectorAll<HTMLElement>('.chase').forEach(async (root) => {
+    const cfg: Cfg = JSON.parse(root.dataset.chase!);
+    const c = cfg.colors;
+    const canvas = root.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const startUI = root.querySelector<HTMLElement>('[data-start]')!;
+    const overUI = root.querySelector<HTMLElement>('[data-over]')!;
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const result = root.querySelector<HTMLElement>('[data-result]')!;
+    const share = root.querySelector<HTMLAnchorElement>('[data-share]')!;
+    const headingFont = getComputedStyle(root).getPropertyValue('--t-font-heading') || 'monospace';
+
+    const [run, jump, crash, rival, pickup, obstacleImgs] = await Promise.all([
+      Promise.all(cfg.sprites.run.map(load)), load(cfg.sprites.jump), load(cfg.sprites.crash),
+      load(cfg.sprites.rival), load(cfg.sprites.pickup), Promise.all(cfg.sprites.obstacles.map(load)),
+    ]);
+    const k = HERO_H / (run[0]?.height || 400);   // one scale for every character sprite
+    const box = (i: Img, scale = k) => ({ w: (i?.width || 100) * scale, h: (i?.height || 100) * scale });
+
+    let VW = 900, heroX = 100, rivalX = 700, speedMax = 720;
+    let sky: HTMLCanvasElement, far: HTMLCanvasElement, near: HTMLCanvasElement;
+
+    // ---------- world state ----------
+    let state: 'idle' | 'run' | 'pause' | 'over' = 'idle';
+    let t = 0, dist = 0, speed = 0, y = 0, vy = 0, pickups = 0, best = 0, toSpawn = 0, scroll = 0, rivalOff = 0;
+    let obstacles: Thing[] = [], items: Thing[] = [], pops: { x: number; y: number; age: number }[] = [];
+    try { best = Number(localStorage.getItem('chase-best')) || 0; } catch {}
+
+    // ---------- background, drawn once per size ----------
+    const layer = (w: number, h: number, draw: (g: CanvasRenderingContext2D) => void) => {
+      const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(w)); cv.height = Math.max(1, Math.round(h));
+      draw(cv.getContext('2d')!); return cv;
+    };
+    const buildBackground = () => {
+      const w = Math.ceil(VW / LOW), h = Math.ceil(VH / LOW), ground = Math.round(GROUND / LOW);
+      sky = layer(w, h, (g) => {
+        const bands = 16;                                   // stepped gradient, like a 16-bit sky
+        for (let i = 0; i < bands; i++) {
+          const p = i / (bands - 1);
+          g.fillStyle = p < 0.5 ? mix(c.bg, c.secondary, p / 0.5 * 0.85)
+            : p < 0.85 ? mix(mix(c.bg, c.secondary, 0.85), c.primary, (p - 0.5) / 0.35)
+            : mix(c.primary, '#FFD23F', (p - 0.85) / 0.15 * 0.7);
+          g.fillRect(0, Math.floor(i * ground / bands), w, Math.ceil(ground / bands) + 1);
+        }
+        const rnd = seeded(7);
+        g.fillStyle = c.accent;
+        for (let i = 0; i < 26; i++) g.fillRect(Math.floor(rnd() * w), Math.floor(rnd() * ground * 0.4), 1, 1);
+        // striped sun on the horizon
+        const cx = Math.round(w * 0.5), r = Math.round(h * 0.36), cy = ground - Math.round(r * 0.5);
+        for (let yy = -r; yy <= r; yy++) {
+          const half = Math.floor(Math.sqrt(r * r - yy * yy));
+          const p = (yy + r) / (2 * r);
+          if (p > 0.48 && Math.floor((p - 0.48) * 18) % 2 === 1) continue;   // dark stripes in the lower half
+          g.fillStyle = mix('#FFE27A', c.secondary, Math.max(0, p - 0.2) / 0.8);
+          g.fillRect(cx - half, cy + yy, half * 2, 1);
+        }
+      });
+      const skyline = (seed: number, color: string, minH: number, maxH: number, lit: string | null, palms: boolean) =>
+        layer(200, h, (g) => {
+          const rnd = seeded(seed);
+          let x = 0;
+          while (x < 200) {
+            const bw = 8 + Math.floor(rnd() * 16), bh = minH + Math.floor(rnd() * (maxH - minH));
+            if (palms && rnd() < 0.28) {                     // a palm instead of a building
+              const px = x + 9, top = ground - 30 - Math.floor(rnd() * 12);
+              g.fillStyle = color;
+              g.fillRect(px, top, 2, ground - top);           // trunk
+              // five drooping fronds, each a short stair of pixels
+              const frond = (dir: number, rise: number) => {
+                for (let i = 0; i < 9; i++) g.fillRect(px + (dir > 0 ? 1 + i : -i), top + Math.round(rise * i + 0.09 * i * i), 2, 2);
+              };
+              frond(1, -0.5); frond(-1, -0.5); frond(1, 0.25); frond(-1, 0.25);
+              g.fillRect(px - 1, top - 4, 4, 4);
+              x += 20; continue;
+            }
+            g.fillStyle = color;
+            g.fillRect(x, ground - bh, bw, bh);
+            if (rnd() < 0.3) g.fillRect(x + Math.floor(bw / 2), ground - bh - 6, 1, 6);   // antenna
+            if (lit) {
+              g.fillStyle = lit;
+              for (let wy = ground - bh + 3; wy < ground - 3; wy += 4)
+                for (let wx = x + 2; wx < x + bw - 2; wx += 3) if (rnd() < 0.35) g.fillRect(wx, wy, 1, 2);
+            }
+            x += bw + (rnd() < 0.25 ? 3 : 0);
+          }
+        });
+      far = skyline(11, mix(c.bg, c.secondary, 0.3), 10, 34, mix(c.primary, '#FFD23F', 0.5), false);
+      near = skyline(29, mix(c.bg, '#000000', 0.3), 8, 22, c.secondary, true);
+    };
+
+    const resize = () => {
+      const r = canvas.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      VW = VH * (r.width / r.height);
+      canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+      ctx.setTransform(canvas.width / VW, 0, 0, canvas.height / VH, 0, 0);
+      heroX = Math.max(28, VW * 0.1);
+      rivalX = VW * 0.76;
+      speedMax = Math.min(720, Math.max(480, VW * 1.05));   // narrow screens leave less time to react
+      buildBackground();
+    };
+    new ResizeObserver(resize).observe(canvas);
+    resize();
+
+    // ---------- game rules ----------
+    const jumpLength = (v: number) => v * (2 * JUMP_V / GRAVITY);
+    const reset = () => { t = 0; dist = 0; speed = SPEED_0; y = 0; vy = 0; pickups = 0; obstacles = []; items = []; pops = []; rivalOff = 0; toSpawn = VW * 0.9; };
+    const fill = (s: string) => s.replace('{score}', String(Math.floor(dist / PX_PER_M))).replace('{pickups}', String(pickups))
+      .replace('{best}', String(best)).replace('{ticker}', cfg.ticker).replace('{name}', cfg.name);
+
+    const spawn = () => {
+      const x0 = VW + 60;
+      const count = t > 25 && Math.random() < 0.28 ? 2 : 1;
+      let x = x0, tallest = 0;
+      for (let i = 0; i < count; i++) {
+        const img = obstacleImgs[Math.floor(Math.random() * obstacleImgs.length)];
+        const b = box(img);
+        obstacles.push({ x, y: GROUND - b.h, w: b.w, h: b.h, img });
+        x += b.w + 6; tallest = Math.max(tallest, b.h);
+      }
+      const p = box(pickup, 44 / (pickup?.height || 140));
+      if (Math.random() < 0.6) items.push({ x: (x0 + x) / 2 - p.w / 2, y: GROUND - tallest - 78, w: p.w, h: p.h, img: pickup });
+      const gap = Math.max(jumpLength(speed) * 1.15 + 150, speed * (0.95 + Math.random() * 0.8));
+      if (Math.random() < 0.55) {
+        const n = 2 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < n; i++) items.push({ x: x + gap * 0.42 + i * 56, y: GROUND - p.h - 12, w: p.w, h: p.h, img: pickup });
+      }
+      toSpawn = (x - x0) + gap;
+    };
+
+    const heroSprite = () => (state === 'over' ? crash : y < -2 ? jump : run[Math.floor(scroll / 46) % run.length]) || run[0];
+
+    const update = (dt: number) => {
+      if (state === 'idle' || state === 'pause') { if (state === 'idle') scroll += 150 * dt; return; }
+      if (state === 'over') { rivalOff += 320 * dt; pops.forEach((p) => (p.age += dt)); return; }
+      t += dt;
+      speed = Math.min(speedMax, SPEED_0 + SPEED_UP * t);
+      const dx = speed * dt;
+      dist += dx; scroll += dx;
+      vy += GRAVITY * dt; y += vy * dt;
+      if (y > 0) { y = 0; vy = 0; }
+      toSpawn -= dx;
+      if (toSpawn <= 0) spawn();
+      for (const o of obstacles) o.x -= dx;
+      for (const i of items) i.x -= dx;
+      obstacles = obstacles.filter((o) => o.x + o.w > -40);
+      items = items.filter((i) => i.x + i.w > -40 && !i.taken);
+      pops.forEach((p) => (p.age += dt)); pops = pops.filter((p) => p.age < 0.6);
+
+      // forgiving hit boxes: the hero's body, not his tail or raised fist
+      const hb = box(run[0]);
+      const hx = heroX + hb.w * 0.3, hw = hb.w * 0.4, hy = GROUND + y - hb.h * 0.9, hh = hb.h * 0.86;
+      for (const i of items) {
+        if (i.x < hx + hw + 10 && i.x + i.w > hx - 10 && i.y < hy + hh && i.y + i.h > hy - 10) {
+          i.taken = true; pickups++; pops.push({ x: i.x + i.w / 2, y: i.y, age: 0 });
+        }
+      }
+      for (const o of obstacles) {
+        const ox = o.x + o.w * 0.16, ow = o.w * 0.68, oy = o.y + o.h * 0.12;
+        if (ox < hx + hw && ox + ow > hx && oy < hy + hh) return gameOver();
+      }
+    };
+
+    // ---------- drawing ----------
+    const tile = (img: HTMLCanvasElement, factor: number) => {
+      const w = img.width * LOW, off = -((scroll * factor) % w);
+      for (let x = off; x < VW; x += w) ctx.drawImage(img, x, 0, w, img.height * LOW);
+    };
+    const sprite = (img: Img, x: number, yy: number, w: number, h: number) => { if (img) ctx.drawImage(img, x, yy, w, h); };
+    const label = (text: string, x: number, yy: number, align: CanvasTextAlign, color: string) => {
+      ctx.textAlign = align; ctx.fillStyle = c.bg; ctx.fillText(text, x + 2, yy + 2); ctx.fillStyle = color; ctx.fillText(text, x, yy);
+    };
+
+    const draw = () => {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(sky, 0, 0, sky.width * LOW, sky.height * LOW);
+      tile(far, 0.08); tile(near, 0.22);
+
+      // street: dark ground with a neon grid running towards the viewer
+      ctx.fillStyle = mix(c.bg, '#000000', 0.45);
+      ctx.fillRect(0, GROUND, VW, VH - GROUND);
+      ctx.strokeStyle = c.secondary; ctx.lineWidth = 2; ctx.globalAlpha = 0.75;
+      ctx.beginPath();
+      for (const gy of [0, 9, 22, 40]) { ctx.moveTo(0, GROUND + gy); ctx.lineTo(VW, GROUND + gy); }
+      const step = 90, mid = VW / 2;
+      for (let gx = -((scroll * 0.9) % step) - step * 4; gx < VW + step * 4; gx += step) {
+        ctx.moveTo(gx, GROUND); ctx.lineTo(mid + (gx - mid) * 1.9, VH);
+      }
+      ctx.stroke(); ctx.globalAlpha = 1;
+
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      const bob = Math.sin(scroll / 30) * 3;
+      for (const i of items) sprite(i.img, i.x, i.y + Math.sin((scroll + i.x) / 40) * 4, i.w, i.h);
+      for (const o of obstacles) sprite(o.img, o.x, o.y, o.w, o.h);
+
+      // the rival hops over anything in his way and escapes when the game ends
+      const rb = box(rival);
+      let hop = 0;
+      for (const o of obstacles) {
+        const d = Math.abs(o.x + o.w / 2 - (rivalX + rb.w / 2)), reach = 110;
+        if (d < reach) hop = Math.max(hop, (o.h + 26) * (1 - (d / reach) ** 2));
+      }
+      sprite(rival, rivalX + rivalOff, GROUND - rb.h - hop + (hop ? 0 : bob), rb.w, rb.h);
+
+      const hs = heroSprite(), hb = box(hs);
+      sprite(hs, heroX, GROUND - hb.h + (state === 'over' ? 6 : y), hb.w, hb.h);
+
+      ctx.font = `12px ${headingFont}, monospace`; ctx.textBaseline = 'top';
+      for (const p of pops) { ctx.globalAlpha = 1 - p.age / 0.6; label('+1', p.x, p.y - p.age * 60, 'center', '#FFD23F'); }
+      ctx.globalAlpha = 1;
+      if (state !== 'idle') {
+        const score = String(Math.floor(dist / PX_PER_M)).padStart(5, '0');
+        label(`${cfg.lines.score} ${score}`, 14, 14, 'left', c.text);
+        label(`${cfg.lines.pickups} ${String(pickups).padStart(2, '0')}`, VW - 14, 14, 'right', c.primary);
+        if (best) label(`${cfg.lines.best} ${String(best).padStart(5, '0')}`, 14, 34, 'left', c.accent);
+      }
+    };
+
+    // ---------- flow ----------
+    const show = (el: HTMLElement, on: boolean) => { el.hidden = !on; };
+    const start = () => {
+      if (state !== 'pause') reset();
+      state = 'run'; show(startUI, false); show(overUI, false);
+      root.classList.add('is-running'); root.focus({ preventScroll: true });
+    };
+    const pause = () => { if (state !== 'run') return; state = 'pause'; root.classList.remove('is-running'); show(startUI, true); };
+    const gameOver = () => {
+      state = 'over'; root.classList.remove('is-running');
+      const score = Math.floor(dist / PX_PER_M);
+      if (score > best) { best = score; try { localStorage.setItem('chase-best', String(best)); } catch {} }
+      result.textContent = fill(cfg.lines.over);
+      const url = cfg.url || location.href.split('#')[0];
+      share.href = `https://x.com/intent/post?text=${encodeURIComponent(fill(cfg.shareText))}&url=${encodeURIComponent(url)}`;
+      setTimeout(() => { show(overUI, true); root.querySelector<HTMLButtonElement>('[data-retry]')!.focus({ preventScroll: true }); }, 650);
+    };
+    const hop = () => { if (state === 'run' && y === 0) vy = -JUMP_V; };
+
+    playBtn.addEventListener('click', start);
+    root.querySelector('[data-retry]')!.addEventListener('click', start);
+    root.addEventListener('pointerdown', (e) => { if (state === 'run' && !(e.target as HTMLElement).closest('button, a')) hop(); });
+    addEventListener('keydown', (e) => {
+      if (!['Space', 'ArrowUp', 'KeyW'].includes(e.code) || e.repeat) return;
+      if (state === 'run') { e.preventDefault(); hop(); }
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+    let visible = true;
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (!visible) pause(); }, { threshold: 0.15 }).observe(root);
+
+    // Read-only peek at the game state, used by automated checks
+    (root as any).chasePeek = () => ({ state, dist, speed, y, heroX, vw: VW, pickups, obstacles: obstacles.map((o) => [o.x, o.w, o.h]) });
+
+    let last = performance.now();
+    const loop = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      if (visible && sky) { update(dt); draw(); }
+      requestAnimationFrame(loop);
+    };
+    (document.fonts?.ready ?? Promise.resolve()).then(() => requestAnimationFrame(loop));
+  });
+</script>
+
+<style is:global>
+  .chase { position: relative; aspect-ratio: 4 / 3; max-height: 78vh; width: 100%; overflow: hidden; outline: none;
+    border: 4px solid var(--t-accent); box-shadow: 8px 8px 0 var(--t-secondary); background: var(--t-bg);
+    touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  @media (min-width: 640px) { .chase { aspect-ratio: 2 / 1; } }
+  @media (min-width: 1024px) { .chase { aspect-ratio: 5 / 2; } }
+  .chase.is-running { cursor: pointer; }
+  .chase-canvas { display: block; width: 100%; height: 100%; }
+  .chase-panel { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1rem; padding: 1rem; text-align: center; background: color-mix(in srgb, var(--t-bg) 55%, transparent); }
+  .chase-panel[hidden] { display: none; }
+  .chase-btn { display: inline-block; padding: .9rem 1.1rem; border: 3px solid var(--t-primary); background: var(--t-primary); color: var(--t-on-primary);
+    font-family: var(--font-heading); font-size: clamp(.7rem, 2.2vw, 1rem); line-height: 1.4; text-transform: uppercase; cursor: pointer; box-shadow: 4px 4px 0 #0009; }
+  .chase-btn:hover, .chase-btn:focus-visible { filter: brightness(1.12); animation: none; }
+  .chase-btn-alt { background: var(--t-bg); color: var(--t-accent); border-color: var(--t-accent); }
+  .chase-hint { margin: 0; color: var(--t-text); text-shadow: 2px 2px 0 var(--t-bg); }
+  .chase-result { margin: 0; max-width: 30rem; color: var(--t-text); font-size: 1.15em; line-height: 1.2; text-shadow: 2px 2px 0 var(--t-bg); }
+</style>

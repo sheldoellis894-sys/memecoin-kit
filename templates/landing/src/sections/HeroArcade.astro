@@ -1,0 +1,61 @@
+---
+// Hero as a game title screen: the project name is the title, the slogan sits under it,
+// and the main button sends the visitor to the mini-game.
+// Desktop: the banner fills the screen behind the text. Phone: the banner in full view, the text under it.
+import { config, asset, buyUrl, layout, ui } from '../lib/project';
+import Button from '../components/Button.astro';
+import ContractAddress from '../components/ContractAddress.astro';
+const hasGame = layout.sections.includes('chaseGame') && config.chase?.enabled;
+---
+<section class="title-screen relative overflow-hidden">
+  <div class="title-art scanlines">
+    <img src={asset(config.assets.hero)} alt="" class="h-full w-full object-cover" />
+  </div>
+  <div class="title-shade"></div>
+
+  <div class="title-body relative z-10 mx-auto flex max-w-6xl flex-col gap-5 px-4 py-8 md:min-h-[88vh] md:justify-center md:gap-6 md:py-20">
+    {config.hero.kicker && <p class="title-kicker text-accent">{config.hero.kicker}</p>}
+    <h1 class="title-name max-w-[13ch] text-ink">{config.name}</h1>
+    <p class="title-ticker font-ticker text-primary">${config.ticker}</p>
+    <p class="title-slogan title-copy max-w-md text-ink">{config.tagline}</p>
+    <p class="title-copy max-w-md text-ink">{config.hero.text}</p>
+    <div class="flex flex-wrap gap-4">
+      {hasGame && <Button href="#play">{ui.playLabel}</Button>}
+      <Button href={buyUrl} variant={hasGame ? 'outline' : 'primary'}>Buy ${config.ticker}</Button>
+    </div>
+    <ContractAddress />
+  </div>
+</section>
+
+<style>
+  /* Phone: a column — the picture cropped around the characters on its right side, then the text */
+  .title-screen { display: flex; flex-direction: column; }
+  .title-art { aspect-ratio: 4 / 3; }
+  .title-art img { object-position: 84% 60%; }
+  .title-shade { display: none; }
+
+  /* Desktop: the picture becomes the background, a dark fade on the left keeps the text readable */
+  @media (min-width: 768px) {
+    .title-screen { display: block; }
+    .title-art { position: absolute; inset: 0; aspect-ratio: auto; }
+    .title-art img { object-position: 70% 60%; }
+    .title-shade { display: block; position: absolute; inset: 0;
+      background:
+        linear-gradient(0deg, var(--t-bg) 0%, transparent 12%),
+        linear-gradient(90deg, color-mix(in srgb, var(--t-bg) 94%, transparent) 0%, color-mix(in srgb, var(--t-bg) 84%, transparent) 34%, transparent 66%); }
+  }
+
+  .title-kicker { font-size: 1.1em; letter-spacing: .08em; text-transform: uppercase; }
+  /* Sizes are set here, not by the theme scale: this is the one place where the title is the picture.
+     Outline and shadow are in em, so they stay in proportion on a phone. */
+  .title-name { font-size: clamp(1.5rem, 5vw, 3.4rem); line-height: 1.35;
+    --o: var(--t-bg); --w: .06em;
+    text-shadow: var(--w) 0 0 var(--o), calc(var(--w) * -1) 0 0 var(--o), 0 var(--w) 0 var(--o), 0 calc(var(--w) * -1) 0 var(--o),
+      var(--w) var(--w) 0 var(--o), calc(var(--w) * -1) var(--w) 0 var(--o), var(--w) calc(var(--w) * -1) 0 var(--o), calc(var(--w) * -1) calc(var(--w) * -1) 0 var(--o),
+      .15em .15em 0 var(--t-secondary); }
+  .title-ticker { font-size: clamp(1.1rem, 3vw, 1.9rem); line-height: 1.3; text-shadow: .1em .1em 0 var(--t-bg); }
+  .title-slogan { font-size: 1.35em; line-height: 1.05; }
+  @media (min-width: 768px) {
+    .title-copy { text-shadow: 2px 2px 0 var(--t-bg), -1px -1px 0 var(--t-bg), 1px -1px 0 var(--t-bg), -1px 1px 0 var(--t-bg); }
+  }
+</style>

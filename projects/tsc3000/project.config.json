@@ -1,0 +1,123 @@
+{
+  "name": "Turbo Shiba Cop 3000",
+  "shortName": "TSC3000",
+  "ticker": "TSC3000",
+  "tagline": "You have the right to remain silent. He has the right to bark.",
+  "description": "Turbo Shiba Cop 3000 is a lost 16-bit game about a dog cop from the future. $TSC3000 — a community memecoin on Solana.",
+  "url": "https://turboshibacop.vercel.app",
+  "chain": "Solana",
+  "ca": "",
+  "theme": "sunset",
+  "layout": "arcade",
+  "links": {
+    "x": "https://x.com/turboshibacop",
+    "telegram": "https://t.me/turboshibacop",
+    "pumpfun": "",
+    "dexscreener": ""
+  },
+  "assets": {
+    "logo": "exports/tsc3000_avatar_circle_256.png",
+    "favicon": "exports/tsc3000_avatar_circle_256.png",
+    "hero": "banners/tsc3000_banner.jpg",
+    "og": "exports/tsc3000_og.png"
+  },
+  "boot": {
+    "lines": [
+      "TSC-3000 SYSTEM v19.94",
+      "CARTRIDGE FOUND ........ OK",
+      "DUST BLOWN OFF ......... OK",
+      "LOADING SHIBA .......... OK",
+      "DONUTS ................. 3000",
+      "BAD GUYS DETECTED ...... 1 CAT"
+    ],
+    "button": "Press start"
+  },
+  "hero": {
+    "kicker": "A lost 16-bit game from 1994",
+    "text": "One dog. One badge. One donut. Turbo has been on patrol since the year 3000."
+  },
+  "about": {
+    "kicker": "The lost cartridge",
+    "title": "The game nobody ever played",
+    "text": [
+      "In 1994 a game about a dog cop from the year 3000 hit the shelves. Or it was supposed to. Nobody saw it, nobody played it, no magazine ever reviewed it.",
+      "Thirty years later the cartridge turned up. Inside: Turbo, a Shiba Inu with an action-hero body, mirrored shades and a donut he takes more seriously than his badge.",
+      "He patrols Solana. He never smiles. He is after the cat who steals rugs."
+    ],
+    "image": "gallery/tsc3000_tv.jpg"
+  },
+  "chase": {
+    "enabled": true,
+    "nav": "Play",
+    "kicker": "Mini-game",
+    "title": "Chase the cat",
+    "sprites": {
+      "run": ["stickers/tsc3000_run1.png", "stickers/tsc3000_run2.png"],
+      "jump": "stickers/tsc3000_jump.png",
+      "crash": "stickers/tsc3000_crash.png",
+      "rival": "stickers/tsc3000_cat.png",
+      "pickup": "stickers/tsc3000_donut.png",
+      "obstacles": ["stickers/tsc3000_barrier.png", "stickers/tsc3000_hydrant.png", "stickers/tsc3000_carpet.png"]
+    },
+    "lines": {
+      "start": "Press start",
+      "hint": "Space or tap to jump",
+      "over": "Busted! Distance: {score} m. Donuts: {pickups}.",
+      "retry": "Continue",
+      "share": "Share on X",
+      "score": "DIST",
+      "pickups": "DONUTS",
+      "best": "BEST"
+    },
+    "shareText": "I chased the rug cat for {score} m. Donuts: {pickups}. He has the right to bark. ${ticker}"
+  },
+  "howToBuy": [
+    { "title": "Get a wallet", "text": "Install Phantom or Solflare from the official website or app store." },
+    { "title": "Get some SOL", "text": "Buy SOL on an exchange and send it to your wallet." },
+    { "title": "Open pump.fun", "text": "Connect your wallet and paste the $TSC3000 contract address." },
+    { "title": "Swap for $TSC3000", "text": "Choose the amount, confirm the swap and press start." }
+  ],
+  "tokenomics": {
+    "supply": "1,000,000,000",
+    "items": [
+      { "label": "Fair launch on pump.fun", "value": "100%" },
+      { "label": "Buy and sell tax", "value": "0%" },
+      { "label": "Network", "value": "Solana" },
+      { "label": "Ticker", "value": "$TSC3000" }
+    ]
+  },
+  "gallery": [
+    { "src": "gallery/tsc3000_g01.jpg", "alt": "Turbo flexes both arms in front of a striped sunset, a donut in his paw" },
+    { "src": "gallery/tsc3000_g04.jpg", "alt": "Turbo sprints down a neon street after the cat with the rug" },
+    { "src": "gallery/tsc3000_g02.jpg", "alt": "A police lineup: the rug cat, a bear in a suit, a nervous hamster, and Turbo watching them" },
+    { "src": "gallery/tsc3000_g06.jpg", "alt": "Turbo eats a donut on his hover cruiser while a skyscraper explodes behind him" },
+    { "src": "logo/tsc3000_logo.jpg", "alt": "Turbo shows a donut like a police badge" },
+    { "src": "gallery/tsc3000_g05.jpg", "alt": "Turbo hands a ticket to a bear in a suit sitting on the curb" },
+    { "src": "gallery/tsc3000_g10.jpg", "alt": "Turbo interrogates the cat, a rolled-up rug on the table as evidence" },
+    { "src": "gallery/tsc3000_g09.jpg", "alt": "Turbo lifts a barbell with two giant donuts instead of plates" },
+    { "src": "gallery/tsc3000_g03.jpg", "alt": "Turbo rests his feet on the desk in an evidence room full of confiscated rugs" },
+    { "src": "gallery/tsc3000_g11.jpg", "alt": "Turbo on a stakeout with binoculars, the dashboard covered in coffee cups and donuts" },
+    { "src": "gallery/tsc3000_g08.jpg", "alt": "Turbo pins portraits of suspects to a cork board with red string" }
+  ],
+  "roadmap": [
+    { "phase": "Level 1", "title": "Press start", "items": ["Launch on pump.fun", "X and Telegram open", "First 100 players"] },
+    { "phase": "Level 2", "title": "Night patrol", "items": ["DexScreener profile", "Meme contests", "Turbo sticker pack"] },
+    { "phase": "Level 3", "title": "Boss fight", "items": ["Community-made lore", "New obstacles in the chase game", "High score board"] }
+  ],
+  "disclaimer": "$TSC3000 is a memecoin with no intrinsic value or expectation of financial return. It is not an investment. Nothing on this site is financial advice. Crypto is risky — never spend more than you can afford to lose.",
+  "marquee": ["$TSC3000", "PRESS START", "HE HAS THE RIGHT TO BARK", "PLAYER 1 READY", "DONUT BREAK IS OVER"],
+  "ui": {
+    "iconImage": "stickers/tsc3000_donut.png",
+    "playLabel": "Press start",
+    "howToBuyKicker": "Insert coin",
+    "tokenomicsKicker": "Stats",
+    "galleryKicker": "Scenes from the game",
+    "galleryTitle": "Gallery",
+    "roadmapKicker": "Next levels"
+  },
+  "images": {
+    "optimize": true,
+    "maxSize": { "gallery": 900, "logo": 900, "banners": 1920, "references": 1200 }
+  },
+  "effects": { "reveal": false, "parallax": false, "cursor": false, "sparks": true }
+}

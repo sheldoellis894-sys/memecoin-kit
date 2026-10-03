@@ -4,18 +4,32 @@ import { config, theme, asset } from '../lib/project';
 import Effects from './Effects.astro';
 
 const c = theme.colors;
+const f = theme.fonts;
+const tickerFont = f.ticker === 'heading' ? f.heading : f.body;
+const htmlClass = [
+  theme.flavor && `flavor-${theme.flavor}`,
+  f.ticker === 'heading' && 'ticker-heading',
+  f.headingScale && 'scale-headings',
+  f.headingLeading && 'lead-headings',
+  f.bodyScale && 'scale-body',
+].filter(Boolean).join(' ') || undefined;
 const vars = [
   `--t-bg:${c.bg}`, `--t-surface:${c.surface}`, `--t-text:${c.text}`, `--t-muted:${c.muted}`,
   `--t-primary:${c.primary}`, `--t-on-primary:${c.onPrimary}`, `--t-secondary:${c.secondary}`, `--t-accent:${c.accent}`,
   `--t-font-heading:'${theme.fonts.heading}'`, `--t-font-body:'${theme.fonts.body}'`,
   `--t-radius-button:${theme.radius.button}`, `--t-radius-card:${theme.radius.card}`,
-].join(';');
+  `--t-font-ticker:'${tickerFont}'`,
+  f.headingScale && `--t-heading-scale:${f.headingScale}`,
+  f.headingLeading && `--t-heading-leading:${f.headingLeading}`,
+  f.headingMin && `--t-heading-min:${f.headingMin}`,
+  f.bodyScale && `--t-body-scale:${f.bodyScale}`,
+].filter(Boolean).join(';');
 
 const title = `${config.name} ($${config.ticker})`;
 const og = config.assets.og ? (config.url ? new URL(asset(config.assets.og), config.url).href : asset(config.assets.og)) : '';
 ---
 <!doctype html>
-<html lang="en" style={vars}>
+<html lang="en" style={vars} class={htmlClass}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

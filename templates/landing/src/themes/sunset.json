@@ -1,0 +1,25 @@
+{
+  "name": "sunset",
+  "flavor": "arcade",
+  "colors": {
+    "bg": "#1A0B2E",
+    "surface": "#26113F",
+    "text": "#F6EEFF",
+    "muted": "#BBA9D9",
+    "primary": "#FF6B1A",
+    "onPrimary": "#1A0B2E",
+    "secondary": "#E0218A",
+    "accent": "#CFE8FF"
+  },
+  "fonts": {
+    "heading": "Press Start 2P",
+    "body": "VT323",
+    "googleFonts": "family=Press+Start+2P&family=VT323",
+    "headingScale": 0.55,
+    "headingMin": ".75rem",
+    "headingLeading": 1.45,
+    "bodyScale": 1.375,
+    "ticker": "heading"
+  },
+  "radius": { "button": "0px", "card": "0px" }
+}

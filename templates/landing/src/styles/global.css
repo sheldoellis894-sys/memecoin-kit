@@ -21,6 +21,49 @@ html { scroll-behavior: smooth; overflow-x: clip; }
 body { overflow-x: clip; background: var(--t-bg); color: var(--t-text); font-family: var(--font-body); }
 h1, h2, h3 { font-family: var(--font-heading); letter-spacing: 0.01em; }
 
+/* ---------- Ticker font ----------
+   $TICKER is set in one font from the theme ("fonts.ticker": "heading" | "body"),
+   so the $ sign always matches the letters next to it. */
+.font-ticker { font-family: var(--t-font-ticker), system-ui, sans-serif; font-weight: 900; }
+
+/* ---------- Optional type scaling from the theme ----------
+   Tailwind sizes read these variables, so redefining them rescales text without touching the sections.
+   "fonts.bodyScale" enlarges all text (for small-looking body fonts);
+   "fonts.headingScale" shrinks headings (for very wide display fonts). */
+html.scale-body {
+  --text-xs: calc(.75rem * var(--t-body-scale));
+  --text-sm: calc(.875rem * var(--t-body-scale));
+  --text-base: calc(1rem * var(--t-body-scale));
+  --text-lg: calc(1.125rem * var(--t-body-scale));
+  --text-xl: calc(1.25rem * var(--t-body-scale));
+  --text-2xl: calc(1.5rem * var(--t-body-scale));
+  --text-3xl: calc(1.875rem * var(--t-body-scale));
+  --text-4xl: calc(2.25rem * var(--t-body-scale));
+  --text-5xl: calc(3rem * var(--t-body-scale));
+  --text-6xl: calc(3.75rem * var(--t-body-scale));
+  --text-7xl: calc(4.5rem * var(--t-body-scale));
+  --text-8xl: calc(6rem * var(--t-body-scale));
+  --text-9xl: calc(8rem * var(--t-body-scale));
+}
+html.scale-body body { font-size: calc(1rem * var(--t-body-scale)); }
+html.scale-headings :is(h1, h2, h3, .font-heading),
+html.scale-headings.ticker-heading .font-ticker {
+  --text-xs: max(var(--t-heading-min, .75rem), calc(.75rem * var(--t-heading-scale)));
+  --text-sm: max(var(--t-heading-min, .75rem), calc(.875rem * var(--t-heading-scale)));
+  --text-base: max(var(--t-heading-min, .75rem), calc(1rem * var(--t-heading-scale)));
+  --text-lg: max(var(--t-heading-min, .75rem), calc(1.125rem * var(--t-heading-scale)));
+  --text-xl: max(var(--t-heading-min, .75rem), calc(1.25rem * var(--t-heading-scale)));
+  --text-2xl: max(var(--t-heading-min, .75rem), calc(1.5rem * var(--t-heading-scale)));
+  --text-3xl: max(var(--t-heading-min, .75rem), calc(1.875rem * var(--t-heading-scale)));
+  --text-4xl: max(var(--t-heading-min, .75rem), calc(2.25rem * var(--t-heading-scale)));
+  --text-5xl: max(var(--t-heading-min, .75rem), calc(3rem * var(--t-heading-scale)));
+  --text-6xl: max(var(--t-heading-min, .75rem), calc(3.75rem * var(--t-heading-scale)));
+  --text-7xl: max(var(--t-heading-min, .75rem), calc(4.5rem * var(--t-heading-scale)));
+  --text-8xl: max(var(--t-heading-min, .75rem), calc(6rem * var(--t-heading-scale)));
+  --text-9xl: max(var(--t-heading-min, .75rem), calc(8rem * var(--t-heading-scale)));
+}
+html.lead-headings :is(h1, h2, h3, .font-heading) { line-height: var(--t-heading-leading); }
+
 /* ---------- Motion: marquee ---------- */
 .marquee-track { animation: marquee var(--marquee-duration, 30s) linear infinite; }
 .marquee-reverse { animation-direction: reverse; }
@@ -74,3 +117,59 @@ h1, h2, h3 { font-family: var(--font-heading); letter-spacing: 0.01em; }
 @keyframes dig-shake { 25% { transform: translateX(-4px) rotate(-2deg); } 75% { transform: translateX(4px) rotate(2deg); } }
 @keyframes dig-pop { 0% { transform: scale(.9); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .dig-tile[data-found], .dig-pop { animation: none; } }
+
+
+/* =====================================================================
+   Flavor "arcade" (theme.flavor = "arcade")
+   A 16-bit game look: square corners, pixel borders, hard offset shadows.
+   Everything is scoped to .flavor-arcade, other themes are not affected.
+   ===================================================================== */
+.flavor-arcade :is(h1, h2, h3, .font-heading) { text-transform: uppercase; letter-spacing: 0; }
+.flavor-arcade .font-ticker { font-weight: 400; }
+.flavor-arcade ::selection { background: var(--t-secondary); color: var(--t-text); }
+
+/* Panels: 3px pixel border + hard shadow instead of soft cards */
+.flavor-arcade .rounded-card.border {
+  border: 3px solid color-mix(in srgb, var(--t-accent) 55%, transparent);
+  box-shadow: 6px 6px 0 color-mix(in srgb, var(--t-secondary) 70%, transparent);
+}
+.flavor-arcade img.rounded-card { border: 3px solid var(--t-accent); box-shadow: 8px 8px 0 var(--t-secondary); }
+
+/* Buttons press down like arcade keys; every button uses the display font, so $TICKER looks the same everywhere */
+.flavor-arcade .rounded-btn { font-family: var(--font-heading); font-weight: 400; font-size: .8rem; line-height: 1.4; text-transform: uppercase; }
+.flavor-arcade .rounded-btn { box-shadow: 4px 4px 0 #0008; transition: transform .06s, box-shadow .06s, filter .15s; }
+.flavor-arcade a.rounded-btn.border-2 { background: var(--t-bg); }
+.flavor-arcade .rounded-btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 #0008; }
+.flavor-arcade :is(a, button):focus-visible { outline: 3px solid var(--t-accent); outline-offset: 3px; }
+
+/* Step numbers and logo stay crisp squares, not circles */
+.flavor-arcade span.rounded-full { border-radius: 0; }
+
+/* Section kickers read as HUD captions */
+.flavor-arcade .tracking-\[0\.2em\] { letter-spacing: .08em; }
+
+/* Header: keep it compact on phones (wide pixel font) */
+.flavor-arcade header .rounded-btn { padding: .65rem .8rem; font-size: .7rem; }
+@media (max-width: 420px) { .flavor-arcade header a > span.font-heading { display: none; } }
+
+/* Compact terminal font reads better with tighter lines */
+.flavor-arcade :is(p, li) { line-height: 1.15; }
+
+/* The long supply number must fit a phone screen */
+.flavor-arcade #tokenomics p.font-heading { font-size: clamp(1rem, 5.4vw, 2.5rem); }
+
+/* Running band */
+.flavor-arcade .marquee-track { align-items: center; }
+
+/* Sparks are square pixels */
+.flavor-arcade .spark { border-radius: 0; box-shadow: none; width: 8px; height: 8px; }
+
+/* Shared helper: CRT scanlines over an image or a canvas */
+.scanlines { position: relative; }
+.scanlines::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, rgb(0 0 0 / .16) 3px 4px); }
+
+/* Blinking "press start" */
+.blink { animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .blink { animation: none; } }

@@ -1,0 +1,4 @@
+{
+  "name": "arcade",
+  "sections": ["boot", "header", "heroArcade", "marquee", "about", "chaseGame", "howToBuy", "marquee", "tokenomics", "gallery", "roadmap", "footer"]
+}

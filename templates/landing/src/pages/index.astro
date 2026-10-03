@@ -13,10 +13,14 @@ import Roadmap from '../sections/Roadmap.astro';
 import Footer from '../sections/Footer.astro';
 import Marquee from '../sections/Marquee.astro';
 import DigGame from '../sections/DigGame.astro';
+import Boot from '../sections/Boot.astro';
+import HeroArcade from '../sections/HeroArcade.astro';
+import ChaseGame from '../sections/ChaseGame.astro';
 
 const registry: Record<string, any> = {
   header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
   tokenomics: Tokenomics, gallery: Gallery, roadmap: Roadmap, footer: Footer, marquee: Marquee, digGame: DigGame,
+  boot: Boot, heroArcade: HeroArcade, chaseGame: ChaseGame,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);
