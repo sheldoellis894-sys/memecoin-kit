@@ -1,0 +1,168 @@
+{
+  "name": "Fat Cat Holdings",
+  "shortName": "Fat Cat Holdings",
+  "ticker": "FCH",
+  "tagline": "You don't own the cat. You work for him.",
+  "description": "Fat Cat Holdings is run by one very large cat. He is not fat, he is accumulating. Read the employment agreement, sign it and report for duty. $FCH — a community memecoin on Solana.",
+  "url": "https://fatcatholdings.vercel.app",
+  "chain": "Solana",
+  "ca": "",
+  "theme": "office",
+  "layout": "contract",
+  "links": {
+    "x": "https://x.com/fatcatholdings",
+    "telegram": "https://t.me/fatcatholdings",
+    "pumpfun": "",
+    "dexscreener": ""
+  },
+  "assets": {
+    "logo": "exports/fch_avatar_circle_256.png",
+    "favicon": "exports/fch_avatar_circle_256.png",
+    "hero": "video/fch_v02.jpg",
+    "heroVideo": "video/fch_v02_web.mp4",
+    "og": "exports/fch_og.png"
+  },
+  "hero": {
+    "kicker": "Employment agreement No. 1",
+    "text": "This agreement is made between the Management (one very large cat) and the Staff (you). The Management has reviewed it. The Management has gone back to sleep."
+  },
+  "about": {
+    "kicker": "Section 1",
+    "title": "The Parties",
+    "text": [
+      "The Management is a cat. He is the chairman, the board of directors and the only one who eats first.",
+      "He is not fat. He is accumulating. The accumulation phase has [[no end date]].",
+      "The Staff is you. You do not own the cat. You work for him.",
+      "Probation period: lifetime. ~~Vacation: 28 days.~~ {{Denied.}}",
+      "Working hours: whenever the bowl is empty. ~~Overtime is paid.~~ {{No.}}",
+      "The Management may sit on any document, keyboard or employee [[that is warm]]."
+    ],
+    "image": "references/fch_main.jpg"
+  },
+  "feed": {
+    "enabled": true,
+    "nav": "Lunch",
+    "kicker": "Appendix A",
+    "title": "Lunch of the Management",
+    "seconds": 40,
+    "unit": "kg",
+    "sprites": {
+      "open": "stickers/fch_boss_open.png",
+      "chew": "stickers/fch_boss_chew.png",
+      "hit": "stickers/fch_boss_hit.png",
+      "food": [
+        { "src": "stickers/fch_item_sardine.png", "points": 1 },
+        { "src": "stickers/fch_item_sausage.png", "points": 2 },
+        { "src": "stickers/fch_item_can.png", "points": 3 },
+        { "src": "stickers/fch_item_chicken.png", "points": 4 }
+      ],
+      "bad": [
+        { "src": "stickers/fch_item_cucumber.png", "points": -4 },
+        { "src": "stickers/fch_item_clock.png", "seconds": -5 }
+      ]
+    },
+    "lines": {
+      "start": "Serve lunch",
+      "hint": "Move the Boss with your mouse, finger or arrow keys. Catch the food. Dodge the cucumber and the alarm clock.",
+      "over": "Lunch is over. The Boss accumulated {score} kg.",
+      "retry": "Second lunch",
+      "share": "Share on X",
+      "score": "WEIGHT",
+      "time": "TIME",
+      "best": "RECORD"
+    },
+    "shareText": "My Boss accumulated {score} kg at lunch. He's not fat. He's accumulating. ${ticker}"
+  },
+  "boss": {
+    "sprite": "stickers/fch_boss_chew.png",
+    "label": "Weight",
+    "unit": "kg",
+    "from": 6.5,
+    "to": 31.4,
+    "note": "accumulating",
+    "dismiss": "Tap to send the Management away"
+  },
+  "howToBuy": [
+    { "title": "Get a wallet", "text": "Install Phantom or Solflare from the official website or app store." },
+    { "title": "Get some SOL", "text": "Buy SOL on an exchange and send it to your wallet." },
+    { "title": "Open pump.fun", "text": "Connect your wallet and paste the $FCH contract address." },
+    { "title": "Swap for $FCH", "text": "Choose the amount and confirm the swap. Then report to the Management." }
+  ],
+  "tokenomics": {
+    "supply": "1,000,000,000",
+    "items": [
+      { "label": "Fair launch on pump.fun", "value": "100%" },
+      { "label": "Buy and sell tax", "value": "0%" },
+      { "label": "Network", "value": "Solana" },
+      { "label": "Ticker", "value": "$FCH" },
+      { "label": "Staff salary", "value": "[[none]]" },
+      { "label": "Lunch budget of the Management", "value": "unlimited" }
+    ]
+  },
+  "gallery": [
+    { "src": "gallery/fch_g05.jpg", "alt": "The Boss is stuck in a doorway while two employees push him from behind", "note": "Door to be widened. Order No. 7." },
+    { "src": "gallery/fch_g01.jpg", "alt": "The Boss sits on a keyboard while an employee tries to type around him", "note": "Productivity up 0%. Approved." },
+    { "src": "gallery/fch_g06.jpg", "alt": "The Boss fills a whole elevator, two employees pressed against the walls", "note": "Capacity: one Management." },
+    { "src": "gallery/fch_g02.jpg", "alt": "The Boss pushes an employee's coffee mug off the desk", "note": "He looked at me the whole time." },
+    { "src": "logo/fch_logo.jpg", "alt": "The Boss talks on a grey brick phone", "note": "On a call. With lunch." },
+    { "src": "gallery/fch_g04.jpg", "alt": "The Boss sits on a photocopier, a copy of cat fur comes out", "note": "40 copies. All approved." },
+    { "src": "gallery/fch_g03.jpg", "alt": "The Boss tips over a brown mug on an employee's desk", "note": "Second mug this week. New mugs: denied." }
+  ],
+  "roadmap": [
+    { "phase": "Order No. 1", "title": "Open the office", "items": ["Launch on pump.fun", "X and Telegram open", "First 100 employees"] },
+    { "phase": "Order No. 2", "title": "Refill the bowl", "items": ["DexScreener profile", "Meme contests", "Boss sticker pack"] },
+    { "phase": "Order No. 3", "title": "Expand the Management", "items": ["Clauses written by the staff", "New dishes in the lunch game", "Employee of the month board"] }
+  ],
+  "disclaimer": "$FCH is a memecoin with no intrinsic value or expectation of financial return. It is not an investment. Nothing on this site is financial advice. Crypto is risky — never spend more than you can afford to lose. The employment agreement is a joke: nobody is hired and nobody is paid.",
+  "paper": {
+    "office": "Office of the Management",
+    "ref": "Form FC-1",
+    "docTitle": "Employment agreement No. 1",
+    "photoCaption": "Fig. 1. The Management approves the agreement without reading it.",
+    "coverNote": "Approved.",
+    "signCta": "Sign here",
+    "playCta": "Feed the Boss",
+    "aboutNo": "1",
+    "aboutCaption": "Fig. 2. The Management. Official portrait.",
+    "finePrintLabel": "Fine print",
+    "finePrintHint": "Hover to read with the magnifying glass. Click to enlarge.",
+    "finePrint": "By reading this far you have already agreed. The Management may knock this agreement off the table at any time, for any reason, while maintaining eye contact. Complaints are accepted in writing and used as bedding.",
+    "dutiesNo": "2",
+    "dutiesKicker": "Section 2",
+    "dutiesTitle": "Duties of the Staff",
+    "dutiesIntro": "The Staff shall complete the following steps without asking questions.",
+    "dutiesNote": "Faster.",
+    "payrollKicker": "Section 3",
+    "payrollTitle": "Payroll",
+    "supplyLabel": "Total supply",
+    "payrollNote": "Looks correct.",
+    "caLabel": "Contract address",
+    "caEmpty": "appears here at launch",
+    "photosKicker": "Exhibit B",
+    "photosTitle": "Photographs from the office",
+    "photosHint": "Drag the photos around. Click one to read the note on the back.",
+    "photosNo": "Exhibit B, photo",
+    "photosFlip": "Flip the photo",
+    "ordersKicker": "Orders of the Management",
+    "ordersTitle": "What happens next",
+    "signKicker": "Section 4",
+    "signTitle": "Signatures",
+    "signText": "The Management signs with a paw. The Staff signs below. ~~Reading the agreement first is recommended.~~ {{Not required.}}",
+    "signBoss": "The Management",
+    "signStaff": "The Staff (you)",
+    "signHint": "Draw your signature here",
+    "signClear": "Start over",
+    "signedTitle": "Hired.",
+    "signedText": "Welcome to Fat Cat Holdings. Your first duty is listed in Section 2.",
+    "buyLabel": "Get",
+    "skipLabel": "Skip the paperwork",
+    "stampWord": "APPROVED",
+    "tabs": { "cover": "Cover", "about": "Parties", "game": "Lunch", "duties": "Duties", "payroll": "Payroll", "photos": "Photos", "orders": "Orders", "sign": "Sign" },
+    "fx": { "stamps": true, "pen": true, "redact": true, "loupe": true }
+  },
+  "images": {
+    "optimize": true,
+    "maxSize": { "gallery": 700, "logo": 700, "banners": 1920, "references": 900, "video": 1280, "stickers": 640, "exports": 1500 }
+  },
+  "effects": { "reveal": false, "parallax": false, "cursor": false, "sparks": false }
+}

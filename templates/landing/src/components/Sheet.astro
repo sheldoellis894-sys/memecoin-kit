@@ -1,0 +1,14 @@
+---
+// One sheet of paper on the desk (layout "contract"): punch holes, optional paper clip and coffee ring, page number.
+interface Props { id?: string; tilt?: number; clip?: boolean; ring?: boolean; page?: number; pages?: number; class?: string }
+const { id, tilt = 0, clip = false, ring = false, page, pages, class: cls = '' } = Astro.props;
+---
+<section id={id} class="pp-wrap">
+  <div class={`pp-sheet ${cls}`} style={`--tilt:${tilt}deg`}>
+    <span class="pp-holes" aria-hidden="true"></span>
+    {clip && <span class="pp-clip" aria-hidden="true"></span>}
+    {ring && <span class="pp-ring" aria-hidden="true"></span>}
+    <slot />
+    {page ? <p class="pp-page">Page {page} of {pages}</p> : null}
+  </div>
+</section>

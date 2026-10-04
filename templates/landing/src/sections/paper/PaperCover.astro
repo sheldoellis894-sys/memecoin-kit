@@ -1,0 +1,42 @@
+---
+// First sheet: letterhead, title of the agreement, the main line, a clipped photo (or a silent looping video) and two buttons.
+import { config, asset } from '../../lib/project';
+import { rich, pageOf } from '../../lib/paper';
+import Sheet from '../../components/Sheet.astro';
+const p = config.paper || {};
+const video = config.assets.heroVideo;
+---
+<Sheet id="top" class="pp-cover" {...pageOf('paperCover')}>
+  <div class="pp-letterhead">
+    <img src={asset(config.assets.logo)} alt="" width="64" height="64" />
+    <div>
+      <p class="pp-letterhead-name font-heading">{config.name}</p>
+      <p class="pp-letterhead-sub">{p.office}</p>
+    </div>
+    <p class="pp-letterhead-ref">{p.ref}<br /><span class="font-ticker">${config.ticker}</span> · {config.chain}</p>
+  </div>
+
+  <div class="pp-cover-grid">
+    <div>
+      <p class="pp-kicker">{p.docTitle}</p>
+      <h1 class="pp-h1">{config.tagline}</h1>
+      <p class="pp-lead" set:html={rich(config.hero.text)} />
+      <div class="pp-actions">
+        <a href="#sign" class="pp-btn">{p.signCta || 'Sign here'}</a>
+        {config.feed?.enabled && <a href="#lunch" class="pp-btn pp-btn-ghost">{p.playCta || 'Play'}</a>}
+      </div>
+    </div>
+    <figure class="pp-photo-clip">
+      <span class="pp-clip" aria-hidden="true"></span>
+      {video ? (
+        <video autoplay muted loop playsinline preload="metadata" poster={asset(config.assets.hero)} aria-label={p.photoCaption}>
+          <source src={asset(video)} type="video/mp4" />
+        </video>
+      ) : (
+        <img src={asset(config.assets.hero)} alt={p.photoCaption || config.name} />
+      )}
+      {p.photoCaption && <figcaption>{p.photoCaption}</figcaption>}
+      {p.coverNote && <span class="pp-pen pp-cover-note" data-pen>{p.coverNote}</span>}
+    </figure>
+  </div>
+</Sheet>

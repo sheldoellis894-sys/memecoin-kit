@@ -1,0 +1,42 @@
+---
+// "Tokenomics" as a payroll ledger: label, dotted leader, value. The contract address sits at the bottom.
+import { config } from '../../lib/project';
+import { rich, pageOf } from '../../lib/paper';
+import Sheet from '../../components/Sheet.astro';
+const { tokenomics } = config;
+const p = config.paper || {};
+const ca = config.ca.trim();
+---
+<Sheet id="tokenomics" tilt={-0.3} ring {...pageOf('paperPayroll')}>
+  <p class="pp-kicker">{p.payrollKicker}</p>
+  <h2 class="pp-h2">{p.payrollTitle || 'Tokenomics'}</h2>
+  <div class="pp-supply">
+    <p>{p.supplyLabel || 'Total supply'}</p>
+    <p class="font-heading">{tokenomics.supply}</p>
+  </div>
+  <dl class="pp-ledger">
+    {tokenomics.items.map((it) => (
+      <div><dt set:html={rich(it.label)} /><dd set:html={rich(it.value)} /></div>
+    ))}
+  </dl>
+  <div class="pp-ca" data-nostamp>
+    <span>{p.caLabel || 'Contract address'}</span>
+    {ca ? (
+      <>
+        <code title={ca}>{ca}</code>
+        <button type="button" class="pp-btn pp-btn-small" data-pp-copy={ca}>Copy</button>
+      </>
+    ) : <em>{p.caEmpty || 'appears here at launch'}</em>}
+  </div>
+  {p.payrollNote && <p class="pp-pen pp-note-right" data-pen>{p.payrollNote}</p>}
+</Sheet>
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-pp-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(btn.dataset.ppCopy || ''); } catch { return; }
+      const label = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => (btn.textContent = label), 1500);
+    });
+  });
+</script>

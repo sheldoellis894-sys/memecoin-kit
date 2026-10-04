@@ -16,11 +16,27 @@ import DigGame from '../sections/DigGame.astro';
 import Boot from '../sections/Boot.astro';
 import HeroArcade from '../sections/HeroArcade.astro';
 import ChaseGame from '../sections/ChaseGame.astro';
+// Layout "contract": paper sheets on a desk
+import PaperFx from '../sections/paper/PaperFx.astro';
+import PaperTabs from '../sections/paper/PaperTabs.astro';
+import BossGrow from '../sections/paper/BossGrow.astro';
+import PaperCover from '../sections/paper/PaperCover.astro';
+import PaperClauses from '../sections/paper/PaperClauses.astro';
+import FeedGame from '../sections/paper/FeedGame.astro';
+import PaperDuties from '../sections/paper/PaperDuties.astro';
+import PaperPayroll from '../sections/paper/PaperPayroll.astro';
+import DeskPhotos from '../sections/paper/DeskPhotos.astro';
+import PaperOrders from '../sections/paper/PaperOrders.astro';
+import PaperSign from '../sections/paper/PaperSign.astro';
+import PaperFooter from '../sections/paper/PaperFooter.astro';
 
 const registry: Record<string, any> = {
   header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
   tokenomics: Tokenomics, gallery: Gallery, roadmap: Roadmap, footer: Footer, marquee: Marquee, digGame: DigGame,
   boot: Boot, heroArcade: HeroArcade, chaseGame: ChaseGame,
+  paperFx: PaperFx, paperTabs: PaperTabs, bossGrow: BossGrow, paperCover: PaperCover, paperClauses: PaperClauses,
+  feedGame: FeedGame, paperDuties: PaperDuties, paperPayroll: PaperPayroll, deskPhotos: DeskPhotos,
+  paperOrders: PaperOrders, paperSign: PaperSign, paperFooter: PaperFooter,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);

@@ -1,0 +1,258 @@
+---
+// Mini-game "Feed": the hero stands at the bottom, moves left and right and catches falling food.
+// Every catch adds points and makes him wider. Bad items take points or seconds away.
+// Mouse, finger or arrow keys. Sprites and all texts come from config.feed, colors from the theme.
+import { config, theme, asset } from '../../lib/project';
+import { pageOf } from '../../lib/paper';
+import Sheet from '../../components/Sheet.astro';
+const g = config.feed;
+const data = g && JSON.stringify({
+  seconds: g.seconds || 40,
+  unit: g.unit || '',
+  sprites: {
+    open: asset(g.sprites.open), chew: asset(g.sprites.chew), hit: asset(g.sprites.hit),
+    food: g.sprites.food.map((f) => ({ ...f, src: asset(f.src) })),
+    bad: g.sprites.bad.map((f) => ({ ...f, src: asset(f.src) })),
+  },
+  lines: g.lines, shareText: g.shareText, ticker: config.ticker, name: config.name, url: config.url, colors: theme.colors,
+});
+---
+{g?.enabled && (
+  <Sheet id="lunch" tilt={0.5} {...pageOf('feedGame')}>
+    <p class="pp-kicker">{g.kicker}</p>
+    <h2 class="pp-h2">{g.title}</h2>
+    <div class="feed" data-feed={data} data-nostamp tabindex="-1">
+      <canvas class="feed-canvas" aria-label={`${g.title}: ${g.lines.hint}`}></canvas>
+      <div class="feed-panel" data-start>
+        <button type="button" class="pp-btn" data-play>{g.lines.start}</button>
+        <p class="feed-hint">{g.lines.hint}</p>
+      </div>
+      <div class="feed-panel" data-over hidden>
+        <p class="feed-result" data-result></p>
+        <div class="pp-actions">
+          <button type="button" class="pp-btn" data-retry>{g.lines.retry}</button>
+          <a class="pp-btn pp-btn-ghost" data-share target="_blank" rel="noopener noreferrer">{g.lines.share}</a>
+        </div>
+      </div>
+    </div>
+  </Sheet>
+)}
+
+<script>
+  type Item = { src: string; points?: number; seconds?: number };
+  type Cfg = {
+    seconds: number; unit: string;
+    sprites: { open: string; chew: string; hit: string; food: Item[]; bad: Item[] };
+    lines: Record<string, string>; shareText: string; ticker: string; name: string; url?: string;
+    colors: Record<string, string>;
+  };
+  type Img = HTMLImageElement | null;
+  type Drop = { x: number; y: number; vy: number; rot: number; vr: number; img: Img; w: number; h: number; def: Item; good: boolean };
+  type Pop = { x: number; y: number; t: number; text: string; good: boolean };
+
+  const HERO_H = 168;        // height of the hero, px (the canvas works in CSS pixels)
+  const FLOOR = 34;          // height of the desk strip at the bottom
+  const ITEM = 58;           // longest side of a falling item
+  const FAT_AT = 60;         // points at which the hero is as wide as he gets
+  const FAT_MAX = 0.85;      // how much wider he gets (0.85 = +85%)
+  const RUN = 560;           // keyboard speed, px/s
+
+  const load = (src: string) => new Promise<Img>((res) => {
+    if (!src) return res(null);
+    const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src;
+  });
+  const rgb = (v: string) => {
+    if (v.startsWith('#')) { const n = parseInt(v.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+    return (v.match(/\d+/g) || [0, 0, 0]).slice(0, 3).map(Number);
+  };
+  const mix = (a: string, b: string, t: number) => {
+    const x = rgb(a), y = rgb(b); return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`;
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-feed]').forEach(async (root) => {
+    const cfg: Cfg = JSON.parse(root.dataset.feed!);
+    const cv = root.querySelector('canvas')!;
+    const ctx = cv.getContext('2d')!;
+    const startPanel = root.querySelector<HTMLElement>('[data-start]')!;
+    const overPanel = root.querySelector<HTMLElement>('[data-over]')!;
+    const result = root.querySelector<HTMLElement>('[data-result]')!;
+    const share = root.querySelector<HTMLAnchorElement>('[data-share]')!;
+    const C = cfg.colors;
+    const wall = mix(C.surface, '#ffffff', 0.25), line = mix(C.surface, C.text, 0.12);
+
+    const [open, chew, hit] = await Promise.all([load(cfg.sprites.open), load(cfg.sprites.chew), load(cfg.sprites.hit)]);
+    const foods = await Promise.all(cfg.sprites.food.map(async (d) => ({ def: d, img: await load(d.src) })));
+    const bads = await Promise.all(cfg.sprites.bad.map(async (d) => ({ def: d, img: await load(d.src) })));
+
+    let W = 0, H = 0, dpr = 1;
+    let state: 'idle' | 'play' | 'over' = 'idle';
+    let visible = true, running = false, prev = 0;
+    let x = 0, target: number | null = null, dir = 0;
+    let score = 0, left = cfg.seconds, spawnIn = 0, elapsed = 0;
+    let pose: 'open' | 'chew' | 'hit' = 'open', poseT = 0, shake = 0;
+    let drops: Drop[] = [], pops: Pop[] = [];
+    let best = 0;
+    try { best = Number(localStorage.getItem('feed-best')) || 0; } catch {}
+
+    const fat = () => 1 + Math.min(score, FAT_AT) / FAT_AT * FAT_MAX;
+    const heroW = (img: Img) => (img ? HERO_H * img.width / img.height : HERO_H * 0.68) * fat();
+    const fill = (s: string) => s.replace('{score}', String(score)).replace('{ticker}', cfg.ticker).replace('{unit}', cfg.unit);
+
+    const fit = () => {
+      const r = cv.getBoundingClientRect();
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      W = r.width; H = r.height;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      if (!x) x = W / 2;
+      x = Math.min(Math.max(x, 0), W);
+      draw();
+    };
+
+    const spawn = () => {
+      const p = elapsed / cfg.seconds;                       // 0 → 1 over the round
+      const bad = bads.length && Math.random() < 0.2 + 0.14 * p;
+      const pick = bad ? bads[Math.floor(Math.random() * bads.length)] : foods[Math.floor(Math.random() * foods.length)];
+      const img = pick.img;
+      const k = img ? ITEM / Math.max(img.width, img.height) : 1;
+      const w = img ? img.width * k : ITEM, h = img ? img.height * k : ITEM;
+      drops.push({
+        x: 30 + Math.random() * Math.max(1, W - 60), y: -h, vy: 170 + 230 * p + Math.random() * 50,
+        rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 3, img, w, h, def: pick.def, good: !bad,
+      });
+      spawnIn = 0.85 - 0.5 * p + Math.random() * 0.25;
+    };
+
+    const step = (dt: number) => {
+      elapsed += dt; left -= dt;
+      if (left <= 0) { left = 0; return end(); }
+      // move: pointer target first, then keys
+      if (target !== null) x += Math.max(-1100 * dt, Math.min(1100 * dt, target - x));
+      else if (dir) x += dir * RUN * dt;
+      const half = heroW(open) / 2;
+      x = Math.min(Math.max(x, Math.min(half, W / 2)), Math.max(W - half, W / 2));
+      spawnIn -= dt; if (spawnIn <= 0) spawn();
+      if (poseT > 0) { poseT -= dt; if (poseT <= 0) pose = 'open'; }
+      if (shake > 0) shake -= dt;
+
+      const top = H - FLOOR - HERO_H;                       // top of the hero's head
+      const reach = heroW(open) * 0.36;                     // half-width of the catching zone
+      for (const d of drops) {
+        d.y += d.vy * dt; d.rot += d.vr * dt;
+        const cy = d.y + d.h / 2;
+        if (cy > top + HERO_H * 0.08 && cy < top + HERO_H * 0.5 && Math.abs(d.x - x) < reach + d.w * 0.25) {
+          d.y = 9999;
+          if (d.good) {
+            score += d.def.points || 1; pose = 'chew'; poseT = 0.28;
+            pops.push({ x: d.x, y: cy, t: 0, text: `+${d.def.points || 1} ${cfg.unit}`, good: true });
+          } else {
+            const pts = d.def.points || 0, sec = d.def.seconds || 0;
+            score = Math.max(0, score + pts); left = Math.max(0, left + sec);
+            pose = 'hit'; poseT = 0.55; shake = 0.25;
+            pops.push({ x: d.x, y: cy, t: 0, text: [pts && `${pts} ${cfg.unit}`, sec && `${sec} s`].filter(Boolean).join('  '), good: false });
+          }
+        }
+      }
+      drops = drops.filter((d) => d.y < H + 20);
+      for (const p of pops) p.t += dt;
+      pops = pops.filter((p) => p.t < 0.9);
+    };
+
+    const draw = () => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      // office wall with faint ledger lines, desk strip at the bottom
+      ctx.fillStyle = wall; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = line; ctx.lineWidth = 1;
+      for (let y = 26; y < H - FLOOR; y += 26) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
+      ctx.fillStyle = C.bg; ctx.fillRect(0, H - FLOOR, W, FLOOR);
+      ctx.fillStyle = mix(C.bg, '#ffffff', 0.14); ctx.fillRect(0, H - FLOOR, W, 3);
+
+      const sx = shake > 0 ? Math.sin(shake * 90) * 4 : 0;
+      // hero
+      const img = pose === 'chew' ? chew : pose === 'hit' ? hit : open;
+      const w = heroW(img), h = HERO_H, top = H - FLOOR - h + 10;
+      ctx.fillStyle = 'rgb(0 0 0 / .22)';
+      ctx.beginPath(); ctx.ellipse(x + sx, H - FLOOR + 6, w * 0.42, 8, 0, 0, 6.28); ctx.fill();
+      if (img) ctx.drawImage(img, x - w / 2 + sx, top, w, h);
+      else { ctx.fillStyle = C.primary; ctx.fillRect(x - w / 2 + sx, top, w, h); }
+
+      // falling items
+      for (const d of drops) {
+        ctx.save(); ctx.translate(d.x, d.y + d.h / 2); ctx.rotate(d.rot);
+        if (d.img) ctx.drawImage(d.img, -d.w / 2, -d.h / 2, d.w, d.h);
+        else { ctx.fillStyle = d.good ? C.secondary : C.accent; ctx.fillRect(-d.w / 2, -d.h / 2, d.w, d.h); }
+        ctx.restore();
+      }
+      // floating "+2 kg"
+      ctx.textAlign = 'center'; ctx.font = `700 18px 'Courier Prime', 'Courier New', monospace`;
+      for (const p of pops) {
+        ctx.globalAlpha = 1 - p.t / 0.9;
+        ctx.fillStyle = p.good ? C.primary : C.accent;
+        ctx.fillText(p.text, Math.min(Math.max(p.x, 46), W - 46), p.y - p.t * 50);
+      }
+      ctx.globalAlpha = 1;
+
+      // score line
+      const small = W < 420;
+      ctx.font = `700 ${small ? 13 : 16}px 'Courier Prime', 'Courier New', monospace`;
+      ctx.fillStyle = C.text; ctx.textAlign = 'left';
+      ctx.fillText(`${cfg.lines.score} ${score} ${cfg.unit}`, 12, 22);
+      ctx.textAlign = 'right';
+      const t = Math.ceil(left);
+      ctx.fillStyle = t <= 5 && state === 'play' ? C.accent : C.text;
+      ctx.fillText(`${cfg.lines.time} 0:${String(t).padStart(2, '0')}`, W - 12, 22);
+      ctx.fillStyle = C.muted; ctx.textAlign = small ? 'left' : 'center';
+      ctx.fillText(`${cfg.lines.best} ${best} ${cfg.unit}`, small ? 12 : W / 2, small ? 40 : 22);
+    };
+
+    const frame = (now: number) => {
+      if (!running) return;
+      const dt = Math.min((now - prev) / 1000, 0.05); prev = now;
+      if (state === 'play') step(dt);
+      draw();
+      if (state === 'play') requestAnimationFrame(frame); else running = false;
+    };
+    const resume = () => { if (state === 'play' && visible && !document.hidden && !running) { running = true; prev = performance.now(); requestAnimationFrame(frame); } };
+    const pause = () => { running = false; };
+
+    const start = () => {
+      score = 0; left = cfg.seconds; elapsed = 0; spawnIn = 0.4; drops = []; pops = []; pose = 'open'; poseT = 0; x = W / 2; target = null; dir = 0;
+      state = 'play'; startPanel.hidden = true; overPanel.hidden = true;
+      root.focus({ preventScroll: true });
+      resume();
+    };
+    const end = () => {
+      state = 'over'; pose = 'chew';
+      if (score > best) { best = score; try { localStorage.setItem('feed-best', String(best)); } catch {} }
+      result.textContent = fill(cfg.lines.over);
+      const url = cfg.url || location.origin;
+      share.href = `https://x.com/intent/post?text=${encodeURIComponent(fill(cfg.shareText))}&url=${encodeURIComponent(url)}`;
+      overPanel.hidden = false;
+      draw();
+    };
+
+    root.querySelector('[data-play]')!.addEventListener('click', start);
+    root.querySelector('[data-retry]')!.addEventListener('click', start);
+    const aim = (e: PointerEvent) => { if (state === 'play') target = e.clientX - cv.getBoundingClientRect().left; };
+    cv.addEventListener('pointerdown', aim);
+    cv.addEventListener('pointermove', aim);
+    root.addEventListener('keydown', (e) => {
+      if (state !== 'play') return;
+      if (e.key === 'ArrowLeft' || e.key === 'a') { dir = -1; target = null; e.preventDefault(); }
+      if (e.key === 'ArrowRight' || e.key === 'd') { dir = 1; target = null; e.preventDefault(); }
+    });
+    root.addEventListener('keyup', (e) => {
+      if ((e.key === 'ArrowLeft' || e.key === 'a') && dir < 0) dir = 0;
+      if ((e.key === 'ArrowRight' || e.key === 'd') && dir > 0) dir = 0;
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); else resume(); });
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (!visible) pause(); else resume(); }, { threshold: 0.15 }).observe(root);
+    new ResizeObserver(fit).observe(cv);
+    // For automated checks: lets a test read the scene and steer the hero
+    (root as any).feed = {
+      scene: () => ({ state, W, H, x, score, left, reach: heroW(open) * 0.36, top: H - FLOOR - HERO_H, drops: drops.map((d) => ({ x: d.x, y: d.y + d.h / 2, vy: d.vy, good: d.good })) }),
+      steer: (to: number) => { target = to; },
+    };
+    fit();
+  });
+</script>

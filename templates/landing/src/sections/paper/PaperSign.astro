@@ -1,0 +1,97 @@
+---
+// Last sheet: the reader signs with a mouse or a finger. After the signature the stamp lands and the buy button appears.
+// Without JavaScript the button is simply visible.
+import { config, buyUrl } from '../../lib/project';
+import { rich, pageOf } from '../../lib/paper';
+import Sheet from '../../components/Sheet.astro';
+const p = config.paper || {};
+const ca = config.ca.trim();
+const ext = buyUrl.startsWith('http');
+---
+<Sheet id="sign" tilt={-0.4} {...pageOf('paperSign')}>
+  <p class="pp-kicker">{p.signKicker}</p>
+  <h2 class="pp-h2">{p.signTitle || 'Sign here'}</h2>
+  {p.signText && <p class="pp-lead" set:html={rich(p.signText)} />}
+
+  <div class="pp-sign" data-sign data-nostamp>
+    <div class="pp-sign-col">
+      <div class="pp-sign-pad pp-sign-boss"><span class="pp-sign-stamp" data-pp-stamp aria-hidden="true"></span></div>
+      <p class="pp-sign-label">{p.signBoss || 'The Management'}</p>
+    </div>
+    <div class="pp-sign-col">
+      <div class="pp-sign-pad">
+        <canvas aria-label={p.signStaff || 'Your signature'}></canvas>
+        <span class="pp-sign-x" aria-hidden="true">×</span>
+        <span class="pp-sign-hint" data-sign-hint>{p.signHint || 'Draw your signature'}</span>
+        <span class="pp-sign-hired" data-pp-stamp aria-hidden="true"></span>
+      </div>
+      <p class="pp-sign-label">{p.signStaff || 'The Staff (you)'} <button type="button" class="pp-link" data-sign-clear hidden>{p.signClear || 'Start over'}</button></p>
+    </div>
+  </div>
+
+  <div class="pp-after" data-sign-after>
+    <h3 class="pp-h3">{p.signedTitle || 'Signed.'}</h3>
+    {p.signedText && <p set:html={rich(p.signedText)} />}
+    <div class="pp-actions" data-nostamp>
+      <a href={buyUrl} class="pp-btn" target={ext ? '_blank' : undefined} rel={ext ? 'noopener noreferrer' : undefined}>
+        {p.buyLabel || 'Buy'} <span class="font-ticker">${config.ticker}</span>
+      </a>
+      {config.links.x && <a href={config.links.x} class="pp-btn pp-btn-ghost" target="_blank" rel="noopener noreferrer">X</a>}
+      {config.links.telegram && <a href={config.links.telegram} class="pp-btn pp-btn-ghost" target="_blank" rel="noopener noreferrer">Telegram</a>}
+    </div>
+    <p class="pp-ca" data-nostamp>
+      <span>{p.caLabel || 'Contract address'}</span>
+      {ca ? <code title={ca}>{ca}</code> : <em>{p.caEmpty || 'appears here at launch'}</em>}
+    </p>
+  </div>
+  <p class="pp-skip" data-sign-skip hidden><a href={buyUrl} class="pp-link">{p.skipLabel || 'Skip the paperwork'}</a></p>
+</Sheet>
+
+<script is:inline>
+  (() => {
+    const box = document.querySelector('[data-sign]');
+    if (!box) return;
+    document.querySelectorAll('[data-pp-stamp]').forEach((el) => { if (window.ppStamp && !el.innerHTML) el.innerHTML = window.ppStamp; });
+    const cv = box.querySelector('canvas');
+    const ctx = cv.getContext('2d');
+    const after = document.querySelector('[data-sign-after]');
+    const skip = document.querySelector('[data-sign-skip]');
+    const hint = box.querySelector('[data-sign-hint]');
+    const clear = box.querySelector('[data-sign-clear]');
+    const NEED = 220;          // how much ink (px) counts as a signature
+    let ink = 0, last = null, signed = false;
+
+    after.classList.add('is-locked'); skip.hidden = false;
+
+    const fit = () => {
+      const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+      const old = ink > 0 ? cv.toDataURL() : null;
+      cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d);
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 2.6;
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--pp-pen-blue').trim() || '#1c2f6b';
+      if (old) { const i = new Image(); i.onload = () => ctx.drawImage(i, 0, 0, r.width, r.height); i.src = old; }
+    };
+    const pos = (e) => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    const done = () => {
+      if (signed) return; signed = true;
+      box.classList.add('is-signed'); after.classList.remove('is-locked'); after.classList.add('is-open');
+      skip.hidden = true;
+    };
+    cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); last = pos(e); hint.hidden = true; clear.hidden = false; e.preventDefault(); });
+    cv.addEventListener('pointermove', (e) => {
+      if (!last) return;
+      const p = pos(e);
+      ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      ink += Math.hypot(p.x - last.x, p.y - last.y); last = p;
+    });
+    const up = () => { last = null; if (ink >= NEED) done(); };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    clear.addEventListener('click', () => {
+      ctx.clearRect(0, 0, cv.width, cv.height); ink = 0; signed = false; hint.hidden = false; clear.hidden = true;
+      box.classList.remove('is-signed'); after.classList.add('is-locked'); after.classList.remove('is-open'); skip.hidden = false;
+    });
+    addEventListener('resize', fit);
+    fit();
+  })();
+</script>

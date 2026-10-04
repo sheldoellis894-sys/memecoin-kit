@@ -1,0 +1,28 @@
+---
+// Navigation as folder tabs: a strip under a slim letterhead on phones, index tabs on the right edge on wide screens.
+import { config, asset, buyUrl, layout } from '../../lib/project';
+const t = { cover: 'Cover', about: 'Parties', game: 'Lunch', duties: 'Duties', payroll: 'Payroll', photos: 'Photos', orders: 'Orders', sign: 'Sign', ...(config.paper?.tabs || {}) };
+const has = (s: string) => layout.sections.includes(s);
+const tabs = [
+  has('paperCover') && { label: t.cover, href: '#top' },
+  has('paperClauses') && { label: t.about, href: '#about' },
+  has('feedGame') && config.feed?.enabled && { label: config.feed.nav || t.game, href: '#lunch' },
+  has('paperDuties') && { label: t.duties, href: '#how-to-buy' },
+  has('paperPayroll') && { label: t.payroll, href: '#tokenomics' },
+  has('deskPhotos') && { label: t.photos, href: '#photos' },
+  has('paperOrders') && { label: t.orders, href: '#roadmap' },
+  has('paperSign') && { label: t.sign, href: '#sign' },
+].filter(Boolean) as { label: string; href: string }[];
+---
+<header class="pp-tabs" data-nostamp>
+  <a href="#top" class="pp-tabs-brand">
+    <img src={asset(config.assets.logo)} alt="" width="36" height="36" />
+    <span class="font-heading">{config.name}</span>
+  </a>
+  <a href={buyUrl} class="pp-btn pp-tabs-buy" target={buyUrl.startsWith('http') ? '_blank' : undefined} rel={buyUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
+    Buy <span class="font-ticker">${config.ticker}</span>
+  </a>
+  <nav class="pp-tabs-list" aria-label="Sections">
+    {tabs.map((n, i) => <a href={n.href} class={`pp-tab pp-tab-${i % 4}`}>{n.label}</a>)}
+  </nav>
+</header>

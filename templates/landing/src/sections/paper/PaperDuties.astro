@@ -1,0 +1,25 @@
+---
+// "How to buy" as a list of duties with tick boxes.
+import { config } from '../../lib/project';
+import { rich, pageOf } from '../../lib/paper';
+import Sheet from '../../components/Sheet.astro';
+const p = config.paper || {};
+const n = p.dutiesNo || '2';
+---
+<Sheet id="how-to-buy" tilt={0.4} clip {...pageOf('paperDuties')}>
+  <p class="pp-kicker">{p.dutiesKicker}</p>
+  <h2 class="pp-h2">{p.dutiesTitle || 'How to buy'}</h2>
+  {p.dutiesIntro && <p class="pp-lead" set:html={rich(p.dutiesIntro)} />}
+  <ol class="pp-duties">
+    {config.howToBuy.map((s, i) => (
+      <li>
+        <span class="pp-box" aria-hidden="true"></span>
+        <div>
+          <h3><span class="pp-num">{n}.{i + 1}.</span>{s.title}</h3>
+          <p set:html={rich(s.text)} />
+        </div>
+      </li>
+    ))}
+  </ol>
+  {p.dutiesNote && <p class="pp-pen pp-note-right" data-pen>{p.dutiesNote}</p>}
+</Sheet>

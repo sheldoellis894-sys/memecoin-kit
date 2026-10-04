@@ -1,0 +1,19 @@
+---
+// Footer on the bare desk: links as paper tags, the disclaimer as fine print.
+import { config, asset } from '../../lib/project';
+const links = [
+  { label: 'X', url: config.links.x },
+  { label: 'Telegram', url: config.links.telegram },
+  { label: 'pump.fun', url: config.links.pumpfun },
+  { label: 'DexScreener', url: config.links.dexscreener },
+].filter((l) => l.url);
+---
+<footer class="pp-footer">
+  <img src={asset(config.assets.logo)} alt={config.name} width="72" height="72" loading="lazy" />
+  <p class="font-heading pp-footer-name">{config.name} <span class="font-ticker">${config.ticker}</span></p>
+  <nav data-nostamp>
+    {links.map((l) => <a href={l.url} target="_blank" rel="noopener noreferrer" class="pp-tag">{l.label}</a>)}
+  </nav>
+  <p class="pp-footer-fine">{config.disclaimer}</p>
+  <p class="pp-footer-fine">© {new Date().getFullYear()} {config.name}</p>
+</footer>

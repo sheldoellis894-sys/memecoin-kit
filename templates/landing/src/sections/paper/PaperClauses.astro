@@ -1,0 +1,31 @@
+---
+// "About" as numbered clauses of the agreement, with an optional clipped photo and a fine-print footnote.
+import { config, asset } from '../../lib/project';
+import { rich, pageOf } from '../../lib/paper';
+import Sheet from '../../components/Sheet.astro';
+const { about } = config;
+const p = config.paper || {};
+const n = p.aboutNo || '1';
+---
+<Sheet id="about" tilt={-0.5} ring {...pageOf('paperClauses')}>
+  <p class="pp-kicker">{about.kicker}</p>
+  <h2 class="pp-h2">{about.title}</h2>
+  <div class={about.image ? 'pp-clauses-grid' : ''}>
+    <ol class="pp-clauses">
+      {about.text.map((t, i) => <li><span class="pp-num">{n}.{i + 1}.</span><span set:html={rich(t)} /></li>)}
+    </ol>
+    {about.image && (
+      <figure class="pp-photo-clip pp-photo-small">
+        <span class="pp-clip" aria-hidden="true"></span>
+        <img src={asset(about.image)} alt={p.aboutCaption || about.title} loading="lazy" />
+        {p.aboutCaption && <figcaption>{p.aboutCaption}</figcaption>}
+      </figure>
+    )}
+  </div>
+  {p.finePrint && (
+    <div class="pp-fine-box">
+      <p class="pp-fine-label">{p.finePrintLabel || 'Fine print'}</p>
+      <p class="pp-fine" title={p.finePrintHint}>{p.finePrint}</p>
+    </div>
+  )}
+</Sheet>

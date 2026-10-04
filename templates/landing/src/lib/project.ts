@@ -28,12 +28,13 @@ export type Config = {
   theme: string;
   layout: string;
   links: { x?: string; telegram?: string; pumpfun?: string; dexscreener?: string };
-  assets: { logo: string; favicon?: string; hero: string; og?: string };
+  assets: { logo: string; favicon?: string; hero: string; og?: string; heroVideo?: string };
   hero: { kicker?: string; text: string };
   about: { kicker?: string; title: string; text: string[]; image?: string };
   howToBuy: { title: string; text: string }[];
   tokenomics: { supply: string; items: { label: string; value: string }[] };
-  gallery: { src: string; alt: string }[];
+  /** note = handwritten line on the back of the photo (layout "contract", section deskPhotos) */
+  gallery: { src: string; alt: string; note?: string }[];
   roadmap: { phase: string; title: string; items: string[] }[];
   disclaimer: string;
   marquee?: string[];
@@ -51,6 +52,27 @@ export type Config = {
     lines: { start: string; hint: string; over: string; retry: string; share: string; score: string; pickups: string; best: string };
     shareText: string;
   };
+  /** Catch mini-game "Feed" (section feedGame): the hero moves left and right and catches falling food. */
+  feed?: {
+    enabled: boolean; nav?: string; kicker?: string; title: string;
+    /** Length of one round in seconds. Default 40. */
+    seconds?: number;
+    /** Unit shown after the score, e.g. "kg". */
+    unit?: string;
+    sprites: {
+      open: string; chew: string; hit: string;
+      /** Good things to catch: each adds "points" to the score. */
+      food: { src: string; points: number }[];
+      /** Things to dodge: take away points and/or seconds. */
+      bad: { src: string; points?: number; seconds?: number }[];
+    };
+    lines: { start: string; hint: string; over: string; retry: string; share: string; score: string; time: string; best: string };
+    shareText: string;
+  };
+  /** Mascot that grows while the page is scrolled (section bossGrow). */
+  boss?: { sprite: string; label: string; unit: string; from: number; to: number; note?: string; dismiss?: string };
+  /** Wording of the "contract" layout (sections paper*). See projects/fch/project.config.json for a full example. */
+  paper?: Record<string, any>;
   /** Intro screen (section boot): lines appear one by one, then a start button. */
   boot?: { lines: string[]; button: string };
   /** Small wording and icons that differ from project to project. Every field is optional. */
@@ -76,6 +98,8 @@ export type Theme = {
   colors: Record<'bg' | 'surface' | 'text' | 'muted' | 'primary' | 'onPrimary' | 'secondary' | 'accent', string>;
   fonts: {
     heading: string; body: string; googleFonts: string;
+    /** Handwriting font for notes in the "paper" flavor. Optional. */
+    hand?: string;
     /** Wide display fonts need smaller headings: 0.5 = half size. Default 1. */
     headingScale?: number;
     /** Line height for headings. Default: as designed in the sections. */

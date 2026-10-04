@@ -1,0 +1,24 @@
+---
+// "Roadmap" as orders of the management: one small memo per phase, each with a stamp.
+import { config } from '../../lib/project';
+import { pageOf } from '../../lib/paper';
+import Sheet from '../../components/Sheet.astro';
+const p = config.paper || {};
+---
+<Sheet id="roadmap" tilt={0.3} {...pageOf('paperOrders')}>
+  <p class="pp-kicker">{p.ordersKicker}</p>
+  <h2 class="pp-h2">{p.ordersTitle || 'Roadmap'}</h2>
+  <div class="pp-orders">
+    {config.roadmap.map((r, i) => (
+      <article class="pp-order" style={`--tilt:${[-1.4, 0.8, -0.6][i % 3]}deg`}>
+        <p class="pp-order-no">{r.phase}</p>
+        <h3>{r.title}</h3>
+        <ul>{r.items.map((it) => <li><span class="pp-box" aria-hidden="true"></span>{it}</li>)}</ul>
+        <span class="pp-order-stamp" aria-hidden="true" data-pp-stamp></span>
+      </article>
+    ))}
+  </div>
+</Sheet>
+<script is:inline>
+  document.querySelectorAll('[data-pp-stamp]').forEach((el) => { if (window.ppStamp) el.innerHTML = window.ppStamp; });
+</script>

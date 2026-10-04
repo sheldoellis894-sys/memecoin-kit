@@ -1,0 +1,91 @@
+---
+// Gallery as photographs scattered on the desk. Drag a photo to move it; click or tap to flip it and read the note on the back.
+// Without JavaScript the photos stay in a plain grid. Pictures and notes come from config.gallery ("note" is optional).
+import { config, asset, ui } from '../../lib/project';
+const p = config.paper || {};
+---
+<section id="photos" class="pp-wrap pp-desk">
+  <div class="pp-desk-inner">
+    <div class="pp-label">
+      <p class="pp-kicker">{p.photosKicker || ui.galleryKicker}</p>
+      <h2 class="pp-h2">{p.photosTitle || ui.galleryTitle}</h2>
+      {p.photosHint && <p>{p.photosHint}</p>}
+    </div>
+    <div class="pp-photos" data-photos data-nostamp>
+      {config.gallery.map((g, i) => (
+        <button type="button" class="pp-photo" aria-label={`${g.alt}. ${p.photosFlip || 'Flip the photo'}`}>
+          <span class="pp-photo-in">
+            <span class="pp-photo-front"><img src={asset(g.src)} alt={g.alt} loading="lazy" draggable="false" /></span>
+            <span class="pp-photo-back">
+              <span class="pp-photo-no">{p.photosNo || 'Photo'} {i + 1}</span>
+              <span class="pp-pen">{g.note || g.alt}</span>
+            </span>
+          </span>
+        </button>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    const box = document.querySelector('[data-photos]');
+    if (!box) return;
+    const cards = [...box.querySelectorAll('.pp-photo')];
+    // Repeatable "random": the photos lie the same way on every visit
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const jitter = cards.map(() => ({ r: rnd() * 16 - 8, dx: rnd() - 0.5, dy: rnd() - 0.5 }));
+    let z = 10, laidFor = 0;
+
+    const lay = () => {
+      const cw = box.clientWidth;
+      if (Math.abs(cw - laidFor) < 2) return;     // keep the reader's arrangement unless the width really changed
+      laidFor = cw;
+      const cols = cw < 520 ? 2 : cw < 760 ? 3 : 4;
+      const s = Math.min(250, cw / cols * (cols === 2 ? 1.04 : 1.06));
+      const m = s * 0.09;                          // room for the corners of a rotated photo
+      const stepX = (cw - s - 2 * m) / Math.max(1, cols - 1), stepY = s * 0.86;
+      const rows = Math.ceil(cards.length / cols);
+      box.style.height = (rows - 1) * stepY + s * 1.3 + 'px';
+      box.style.setProperty('--photo', s + 'px');
+      cards.forEach((c, i) => {
+        const col = i % cols, row = Math.floor(i / cols), j = jitter[i];
+        const inRow = Math.min(cols, cards.length - row * cols);          // a short last row is centered
+        const shift = inRow < cols ? (cols - inRow) * stepX / 2 : (row % 2 ? stepX * 0.18 : 0);
+        const x = Math.min(Math.max(m + col * stepX + shift + j.dx * s * 0.12, m), cw - s - m);
+        const y = row * stepY + s * 0.08 + j.dy * s * 0.14;
+        c.style.left = x + 'px'; c.style.top = y + 'px';
+        c.style.setProperty('--rot', j.r.toFixed(1) + 'deg');
+      });
+    };
+    box.classList.add('is-desk');
+    lay();
+    addEventListener('resize', lay);
+
+    cards.forEach((c) => {
+      let start = null, moved = false;
+      c.addEventListener('pointerdown', (e) => {
+        if (e.button) return;
+        start = { px: e.clientX, py: e.clientY, x: parseFloat(c.style.left), y: parseFloat(c.style.top) };
+        moved = false; c.style.zIndex = String(++z);
+        c.setPointerCapture(e.pointerId);
+      });
+      c.addEventListener('pointermove', (e) => {
+        if (!start) return;
+        const dx = e.clientX - start.px, dy = e.clientY - start.py;
+        if (!moved && Math.hypot(dx, dy) < 7) return;
+        moved = true; c.classList.add('is-dragging');
+        const s = c.offsetWidth;
+        c.style.left = Math.min(Math.max(start.x + dx, s * 0.09), box.clientWidth - s * 1.09) + 'px';
+        c.style.top = Math.min(Math.max(start.y + dy, 0), box.clientHeight - s * 1.15) + 'px';
+      });
+      const up = () => { start = null; c.classList.remove('is-dragging'); };
+      c.addEventListener('pointerup', up);
+      c.addEventListener('pointercancel', up);
+      c.addEventListener('click', (e) => {
+        if (moved) { e.preventDefault(); moved = false; return; }
+        c.classList.toggle('is-flipped'); c.style.zIndex = String(++z);
+      });
+    });
+  })();
+</script>

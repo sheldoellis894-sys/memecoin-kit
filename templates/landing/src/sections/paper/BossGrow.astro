@@ -1,0 +1,68 @@
+---
+// The mascot stands at the edge of the page and grows while the reader scrolls.
+// Wide screens: he stands on the left and pushes the column of sheets to the right.
+// Narrow screens: he peeks from the bottom right corner; a tap sends him away.
+// Texts and the sprite come from config.boss.
+import { config, asset } from '../../lib/project';
+const b = config.boss;
+---
+{b && (
+  <aside class="pp-boss" data-boss={JSON.stringify({ from: b.from, to: b.to, unit: b.unit })} aria-hidden="true">
+    <p class="pp-boss-tag"><span>{b.label}</span> <b data-boss-kg>{b.from} {b.unit}</b>{b.note && <i>{b.note}</i>}</p>
+    <img src={asset(b.sprite)} alt="" draggable="false" title={b.dismiss} />
+  </aside>
+)}
+<script is:inline>
+  (() => {
+    const el = document.querySelector('.pp-boss');
+    if (!el) return;
+    const cfg = JSON.parse(el.dataset.boss);
+    const img = el.querySelector('img');
+    const kg = el.querySelector('[data-boss-kg]');
+    const root = document.documentElement;
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const RATIO = 1.47;      // sprite height / width
+    let minW = 0, maxW = 0, shiftMax = 0, wide = false, gone = false, ticking = false;
+    try { gone = sessionStorage.getItem('pp-boss-gone') === '1'; } catch {}
+
+    const measure = () => {
+      const vw = root.clientWidth, vh = innerHeight;
+      const sheetW = Math.min(860, vw - 32);
+      wide = vw >= 1200;
+      if (wide) {
+        const margin = (vw - sheetW) / 2;
+        shiftMax = Math.max(0, margin - 170);
+        minW = 120;
+        maxW = Math.min(460, margin + shiftMax - 28, (vh * 0.66 / RATIO) * 1.4);
+      } else {
+        shiftMax = 0;
+        minW = Math.min(Math.max(70, vw * 0.19), 96);
+        maxW = Math.min(vw * 0.36, 200);
+      }
+      el.classList.toggle('pp-boss-wide', wide);
+      el.classList.toggle('pp-boss-peek', !wide);
+      update();
+    };
+    const update = () => {
+      ticking = false;
+      if (gone) { el.hidden = true; root.style.setProperty('--boss-shift', '0px'); return; }
+      const max = root.scrollHeight - innerHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+      const fat = 1 + 0.4 * p;
+      const w = minW + (maxW - minW) * p;
+      el.style.setProperty('--boss-w', (w / fat).toFixed(1) + 'px');
+      el.style.setProperty('--boss-fat', fat.toFixed(3));
+      root.style.setProperty('--boss-shift', (calm ? 0 : shiftMax * p).toFixed(1) + 'px');
+      kg.textContent = (cfg.from + (cfg.to - cfg.from) * p).toFixed(1) + ' ' + cfg.unit;
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    addEventListener('resize', measure);
+    addEventListener('load', measure);
+    img.addEventListener('click', () => {
+      if (wide) return;
+      gone = true; try { sessionStorage.setItem('pp-boss-gone', '1'); } catch {}
+      update();
+    });
+    measure();
+  })();
+</script>

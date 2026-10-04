@@ -1,0 +1,22 @@
+{
+  "name": "office",
+  "flavor": "paper",
+  "colors": {
+    "bg": "#2E1F17",
+    "surface": "#F3E9D2",
+    "text": "#1E1A16",
+    "muted": "#6F6253",
+    "primary": "#1F5C45",
+    "onPrimary": "#F3E9D2",
+    "secondary": "#C9A227",
+    "accent": "#C4302B"
+  },
+  "fonts": {
+    "heading": "Playfair Display",
+    "body": "Courier Prime",
+    "hand": "Caveat",
+    "googleFonts": "family=Playfair+Display:wght@700;900&family=Courier+Prime:wght@400;700&family=Caveat:wght@700",
+    "ticker": "heading"
+  },
+  "radius": { "button": "2px", "card": "2px" }
+}
