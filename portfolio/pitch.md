@@ -8,12 +8,13 @@
 |---|---|---|---|---|
 | 1 | Molty ($MOLTY) | Мемкойн, Solana | 2 рабочих дня | https://molty-ten.vercel.app |
 | 2 | Turbo Shiba Cop 3000 ($TSC3000) | Мемкойн, Solana | 5,5 часа | https://turboshibacop.vercel.app |
+| 3 | Fat Cat Holdings ($FCH) | Мемкойн, Solana | 5 часов | https://fatcatholdings.vercel.app |
 
 ## Сроки
 
 | Тип проекта | Цель | Подтверждено |
 |---|---|---|
-| Мемкойн | 1 рабочий день | 5,5 часа (Turbo Shiba Cop 3000) |
+| Мемкойн | 1 рабочий день | 5 часов (Fat Cat Holdings), 5,5 часа (Turbo Shiba Cop 3000) |
 | Утилитарный токен | 1 рабочий день | пока нет |
 | Проект с ИИ-агентом | до 2 рабочих дней | пока нет |
 
@@ -34,10 +35,10 @@
 ## 1. One line
 
 **RU**
-От идеи до «осталось нажать Create coin» за 5,5 часа: герой, сайт с игрой, X, Telegram и пакет под pump.fun. Пример — Turbo Shiba Cop 3000.
+От идеи до «осталось нажать Create coin» за 5 часов: герой, сайт с игрой, анимация, X, Telegram и пакет под pump.fun. Пример — Fat Cat Holdings.
 
 **EN**
-From an idea to "just press Create coin" in 5.5 hours: character, website with a playable game, X, Telegram and a pump.fun package. Example: Turbo Shiba Cop 3000.
+From an idea to "just press Create coin" in 5 hours: character, website with a playable game, animation, X, Telegram and a pump.fun package. Example: Fat Cat Holdings.
 
 ---
 
@@ -47,20 +48,31 @@ From an idea to "just press Create coin" in 5.5 hours: character, website with a
 
 **Упаковываю токены под запуск. Целиком и быстро.**
 
-Turbo Shiba Cop 3000 ($TSC3000): от идеи до готовности к минту за 5,5 часа.
+Три проекта. У каждого свой герой, свой сайт и своя игра.
+
+Fat Cat Holdings ($FCH): от идеи до готовности к минту за 5 часов.
+Очень толстый кот руководит холдингом, а сайт — это трудовой договор, который посетитель подписывает сам.
+
+Turbo Shiba Cop 3000 ($TSC3000): 5,5 часа.
 Пёс-полицейский из 3000 года, потерянная 16-битная игра и сайт, на котором эту игру можно пройти.
 
 Что входит в пакет:
 
 - герой, которого узнают с аватарки, и фирменный стиль под все площадки;
 - сайт с игрой: посетитель остаётся, играет и делится результатом в X;
+- короткая анимация героя для закреплённого поста и первого экрана;
 - профиль в X с закреплённым постом и контентом на неделю прогрева;
 - Telegram с проверкой на входе, капчей и защитой от спама и набегов ботов;
 - пакет на день запуска: поля pump.fun и DexScreener заполнены и сверены с живой формой.
 
-Сайты собираю на собственном шаблоне: стиль, структура и игра меняются под нарратив, код при этом не переписывается.
+Сайты собираю на собственном шаблоне. В нём уже три стиля, три макета и три игры, новые добавляются под нарратив.
 
 Стек: Astro, Tailwind CSS, TypeScript, Canvas, Figma, Vercel, Telegram (Rose, Safeguard).
+
+Fat Cat Holdings
+сайт https://fatcatholdings.vercel.app
+X https://x.com/fatcatholdings
+Telegram https://t.me/fatcatholdings
 
 Turbo Shiba Cop 3000
 сайт https://turboshibacop.vercel.app
@@ -76,20 +88,31 @@ Telegram https://t.me/moltymole
 
 **I package tokens for launch. The whole thing, fast.**
 
-Turbo Shiba Cop 3000 ($TSC3000): from an idea to mint-ready in 5.5 hours.
+Three projects. Each has its own character, its own website and its own game.
+
+Fat Cat Holdings ($FCH): from an idea to mint-ready in 5 hours.
+A very fat cat runs a holding company, and the website is an employment agreement the visitor signs.
+
+Turbo Shiba Cop 3000 ($TSC3000): 5.5 hours.
 A dog cop from the year 3000, a lost 16-bit game, and a website where you can actually play it.
 
 What the package includes:
 
 - a character people recognise from the avatar, and a brand kit for every platform;
 - a website with a game: visitors stay, play and share their score on X;
+- a short animation of the character for the pinned post and the first screen;
 - an X profile with a pinned post and a week of warm-up content;
 - Telegram with a verification portal, captcha, and protection from spam and bot raids;
 - a launch-day package: pump.fun and DexScreener fields filled in and checked against the live form.
 
-I build the websites on my own template: the style, the structure and the game change to fit the narrative, and no code is rewritten.
+I build the websites on my own template. It already has three styles, three layouts and three games, and new ones are added to fit the narrative.
 
 Stack: Astro, Tailwind CSS, TypeScript, Canvas, Figma, Vercel, Telegram (Rose, Safeguard).
+
+Fat Cat Holdings
+website https://fatcatholdings.vercel.app
+X https://x.com/fatcatholdings
+Telegram https://t.me/fatcatholdings
 
 Turbo Shiba Cop 3000
 website https://turboshibacop.vercel.app
@@ -107,31 +130,9 @@ Telegram https://t.me/moltymole
 
 ### Short version (first message)
 
-Два варианта начала. Вариант Б интригует сильнее, вариант А быстрее объясняет суть.
+Основной вариант начинается со сцены из игры и сразу зовёт сыграть. Вариант «Договор» начинается со сцены из третьего проекта и зовёт подписать. Запасной начинается с цифры и быстрее объясняет суть.
 
-#### Вариант А — «Цифра»
-
-**RU**
-
-5,5 часа.
-
-Столько прошло от идеи Turbo Shiba Cop 3000 до момента, когда осталось нажать «Create coin»: герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun, сверенный с живой формой.
-
-Проверьте руками, попробуйте догнать кота: https://turboshibacop.vercel.app
-
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
-
-**EN**
-
-5.5 hours.
-
-That is how long Turbo Shiba Cop 3000 took from an idea to "just press Create coin": character, website with a playable game, X, Telegram with bot protection, and a pump.fun package checked against the live form.
-
-See for yourself, try to catch the cat: https://turboshibacop.vercel.app
-
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
-
-#### Вариант Б — «Игра»
+#### Основной вариант — «Игра» (выбран 04.10.2026)
 
 **RU**
 
@@ -150,6 +151,50 @@ A cat stole a rug and is running down a neon street. A dog cop from the year 300
 This is a memecoin website, and you can play it: https://turboshibacop.vercel.app
 
 The whole project — character, website, X, Telegram with bot protection and a pump.fun package — took 5.5 hours.
+
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+
+#### Вариант «Договор» (добавлен после Fat Cat Holdings)
+
+**RU**
+
+Трудовой договор. Работодатель — очень толстый кот. Испытательный срок пожизненный, отпуск зачёркнут красной ручкой.
+
+Это сайт мемкойна, и его надо подписать: https://fatcatholdings.vercel.app
+
+Весь проект — герой, сайт с игрой, анимация, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 5 часов. В портфолио три проекта, все сайты разные.
+
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+
+**EN**
+
+An employment agreement. The employer is a very fat cat. Probation is for life, vacation is crossed out in red pen.
+
+This is a memecoin website, and you have to sign it: https://fatcatholdings.vercel.app
+
+The whole project — character, website with a game, animation, X, Telegram with bot protection and a pump.fun package — took 5 hours. Three projects in the portfolio, no two websites alike.
+
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+
+#### Запасной вариант — «Цифра»
+
+**RU**
+
+5,5 часа.
+
+Столько прошло от идеи Turbo Shiba Cop 3000 до момента, когда осталось нажать «Create coin»: герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun, сверенный с живой формой.
+
+Проверьте руками, попробуйте догнать кота: https://turboshibacop.vercel.app
+
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+
+**EN**
+
+5.5 hours.
+
+That is how long Turbo Shiba Cop 3000 took from an idea to "just press Create coin": character, website with a playable game, X, Telegram with bot protection, and a pump.fun package checked against the live form.
+
+See for yourself, try to catch the cat: https://turboshibacop.vercel.app
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
@@ -173,7 +218,9 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Чего не делаю: ботов объёма, платных трендов и накруток.
 
-Ещё один проект, в другом стиле: https://molty-ten.vercel.app
+Ещё два проекта, каждый в своём стиле:
+сайт-договор, который надо подписать — https://fatcatholdings.vercel.app
+шахта и крот-майнер — https://molty-ten.vercel.app
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран сайта, дальше решите сами.
 
@@ -197,7 +244,9 @@ What you get:
 
 What I do not do: volume bots, paid trending, fake engagement.
 
-One more project, in a different style: https://molty-ten.vercel.app
+Two more projects, each in its own style:
+a website that is a contract you have to sign — https://fatcatholdings.vercel.app
+a mine and a mole miner — https://molty-ten.vercel.app
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen of the website, and you decide from there.
 
