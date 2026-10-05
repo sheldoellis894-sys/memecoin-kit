@@ -1,0 +1,52 @@
+---
+// "How to buy" as a workout plan: one card per set, the coach ticks a set off when it has been read
+// (the card reaches the middle of the screen) or when the visitor taps it.
+import { config } from '../../lib/project';
+import RpTitle from './RpTitle.astro';
+const w = (config.press || {}).workout || {};
+const steps = config.howToBuy;
+---
+<section id="how-to-buy" class="rp-sec">
+  <RpTitle kicker={w.kicker} title={w.title} side="r" />
+  <div class="rp-workout" data-rp-workout>
+    <p class="rp-workout-bar"><span class="rp-workout-progress"><i data-rp-wbar></i></span><span><b data-rp-wcount>0</b>/{steps.length} {w.unit}</span></p>
+    <ol class="rp-sets">
+      {steps.map((s, i) => (
+        <li class="rp-sheet rp-set" data-rp-set>
+          <button type="button" class="rp-set-check" data-rp-check aria-pressed="false" aria-label={`${w.setLabel} ${i + 1}: ${w.checkLabel}`}>
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M4 12.500l5.200 5L20 6.500" fill="none" stroke="currentColor" stroke-width="3.600" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <div>
+            <p class="rp-set-num">{w.setLabel} {i + 1} {w.of} {steps.length}{w.reps?.[i] ? ` · ${w.reps[i]}` : ''}</p>
+            <h3 class="rp-h3" set:html={s.title} />
+            <p class="rp-text" set:html={s.text} />
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="rp-workout-done" data-rp-wdone hidden>{w.done}</p>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rp-workout]').forEach((root) => {
+    const sets = [...root.querySelectorAll<HTMLElement>('[data-rp-set]')];
+    const bar = root.querySelector<HTMLElement>('[data-rp-wbar]')!, count = root.querySelector<HTMLElement>('[data-rp-wcount]')!, done = root.querySelector<HTMLElement>('[data-rp-wdone]')!;
+    const sync = () => {
+      const n = sets.filter((s) => s.classList.contains('is-done')).length;
+      count.textContent = String(n); bar.style.transform = `scaleX(${n / Math.max(1, sets.length)})`;
+      done.hidden = n < sets.length;
+    };
+    const mark = (set: HTMLElement, on: boolean) => { set.classList.toggle('is-done', on); set.querySelector('[data-rp-check]')!.setAttribute('aria-pressed', String(on)); sync(); };
+    sets.forEach((set) => set.querySelector('[data-rp-check]')!.addEventListener('click', () => mark(set, !set.classList.contains('is-done'))));
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target); setTimeout(() => mark(e.target as HTMLElement, true), 500);
+      }), { rootMargin: '-30% 0px -30% 0px' });
+      sets.forEach((s) => io.observe(s));
+    }
+    sync();
+    (root as any).rpWorkout = { done: () => sets.every((s) => s.classList.contains('is-done')) };
+  });
+</script>

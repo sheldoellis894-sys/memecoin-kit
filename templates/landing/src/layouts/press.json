@@ -1,0 +1,4 @@
+{
+  "name": "press",
+  "sections": ["pressShell", "pressHero", "pressAbout", "pressStudio", "pressWorkout", "pressInk", "pressLine", "pressShifts", "pressBuy", "pressFooter"]
+}

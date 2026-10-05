@@ -1,0 +1,80 @@
+---
+// Last stage: the print run is ready. The buy button is printed: the visitor holds the big button down
+// and a sheet with the buy link slides out of the press. Letting go early pulls the sheet back.
+// Keyboard: Enter or Space finishes at once; there is also a plain link that does the same.
+import { config, buyUrl } from '../../lib/project';
+import RpTitle from './RpTitle.astro';
+const b = (config.press || {}).buy || {};
+const ca = config.ca.trim();
+const external = buyUrl.startsWith('http');
+---
+<section id="buy" class="rp-sec">
+  <RpTitle kicker={b.kicker} title={b.title} side="r" />
+  <div class="rp-buy" data-rp-buy>
+    <p class="rp-lead">{b.text}</p>
+    <div class="rp-buy-press">
+      <button type="button" class="rp-hold" data-rp-hold>
+        <span class="rp-hold-fill" data-rp-hold-fill aria-hidden="true"></span>
+        <span class="rp-hold-text" data-rp-hold-text data-idle={b.hold} data-busy={b.holding} data-done={b.held || b.hold}>{b.hold}</span>
+      </button>
+      <div class="rp-slot" aria-hidden="true"><i></i></div>
+      <div class="rp-buy-window">
+        <div class="rp-sheet rp-ticket" data-rp-ticket inert>
+          <span class="rp-marks" aria-hidden="true"></span>
+          <p class="rp-ticket-title font-heading">{b.doneTitle}</p>
+          <p class="rp-text">{b.doneText}</p>
+          <a class="rp-btn rp-btn-big" href={buyUrl} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>{b.buyLabel} <span class="font-ticker">${config.ticker}</span></a>
+          <p class="rp-ca-label">{b.caLabel}</p>
+          {ca ? <p class="rp-ca-row"><code title={ca}>{ca}</code></p> : <p class="rp-ca-empty">{b.caEmpty}</p>}
+        </div>
+      </div>
+    </div>
+    <button type="button" class="rp-link rp-buy-skip" data-rp-skip>{b.skip}</button>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rp-buy]').forEach((root) => {
+    const hold = root.querySelector<HTMLButtonElement>('[data-rp-hold]')!;
+    const fill = root.querySelector<HTMLElement>('[data-rp-hold-fill]')!;
+    const label = root.querySelector<HTMLElement>('[data-rp-hold-text]')!;
+    const ticket = root.querySelector<HTMLElement>('[data-rp-ticket]')!;
+    const skip = root.querySelector<HTMLElement>('[data-rp-skip]')!;
+    const win = ticket.parentElement as HTMLElement;
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const total = 1700;   // ms of holding
+    let value = 0, pressing = false, finished = false, raf = 0, last = 0;
+    const paint = () => {
+      fill.style.transform = `scaleX(${value})`;
+      ticket.style.transform = `translateY(${-(1 - value) * 100}%)`;
+      win.style.height = finished ? '' : `${value * ticket.offsetHeight}px`;
+      root.style.setProperty('--rp-spin', `${value * 720}deg`);
+    };
+    const finish = () => {
+      if (finished) return; finished = true; value = 1; pressing = false; cancelAnimationFrame(raf); raf = 0;
+      if (calm) root.classList.add('is-instant');
+      paint(); root.classList.add('is-done'); ticket.removeAttribute('inert');
+      hold.disabled = true; skip.hidden = true; label.textContent = label.dataset.done || '';
+    };
+    const loop = (t: number) => {
+      const dt = Math.min(64, t - last); last = t;
+      value = Math.min(1, Math.max(0, value + (pressing ? dt / total : -dt / 500)));
+      paint();
+      if (value >= 1) return finish();
+      raf = pressing || value > 0 ? requestAnimationFrame(loop) : 0;
+    };
+    const press = (on: boolean) => {
+      if (finished) return;
+      pressing = on; root.classList.toggle('is-holding', on);
+      label.textContent = (on ? label.dataset.busy : label.dataset.idle) || '';
+      if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); }
+    };
+    hold.addEventListener('pointerdown', (e) => { if (e.button) return; hold.setPointerCapture(e.pointerId); press(true); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => hold.addEventListener(ev, () => press(false)));
+    hold.addEventListener('contextmenu', (e) => e.preventDefault());
+    hold.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); finish(); } });
+    skip.addEventListener('click', finish);
+    paint();
+    (root as any).rpBuy = { finish, press, done: () => finished, value: () => value };
+  });
+</script>

@@ -1,0 +1,26 @@
+---
+// Stage 1 of the press: a blank sheet is loaded. Name, ticker, tagline and the hero picture printed in two passes.
+import { config, asset } from '../../lib/project';
+import RpTitle from './RpTitle.astro';
+import RpPrint from './RpPrint.astro';
+const h = (config.press || {}).hero || {};
+---
+<section id="home" class="rp-sec rp-hero">
+  <div class="rp-sheet rp-hero-sheet">
+    <span class="rp-marks" aria-hidden="true"></span>
+    <div class="rp-hero-text">
+      <p class="rp-chip font-ticker">${config.ticker}</p>
+      <RpTitle kicker={config.hero.kicker} title={config.name} side="l" level={1} />
+      <p class="rp-lead">{config.tagline}</p>
+      <p class="rp-text">{config.hero.text}</p>
+      <div class="rp-actions">
+        <a class="rp-btn rp-btn-big" href="#studio">{h.primary}</a>
+        <a class="rp-btn rp-btn-ghost" href="#buy">{h.secondary} <span class="font-ticker">${config.ticker}</span></a>
+      </div>
+      <p class="rp-second">{h.second}</p>
+    </div>
+    <RpPrint src={asset(config.assets.hero)} alt={h.imageAlt || config.name} width={1280} height={720} eager class="rp-hero-art">
+      <span class="rp-stamp" aria-hidden="true">{h.stamp}</span>
+    </RpPrint>
+  </div>
+</section>

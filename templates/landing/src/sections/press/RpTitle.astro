@@ -1,0 +1,21 @@
+---
+// Section heading of the "press" layout, held by one of the mascot's arms that reaches in from the edge of the screen.
+// side: which edge the arm comes from. The arm is decoration only (hidden from screen readers).
+interface Props { kicker?: string; title: string; side?: 'l' | 'r'; level?: 1 | 2 }
+const { kicker, title, side = 'l', level = 2 } = Astro.props;
+const H = level === 1 ? 'h1' : 'h2';
+---
+<div class={`rp-title rp-title-${side}`} data-rp-title>
+  <svg class="rp-arm" viewBox="0 0 720 120" width="720" height="120" aria-hidden="true" focusable="false">
+    <path class="rp-arm-body" d="M-20 62 C120 20 230 104 360 62 S560 22 640 58" />
+    <path class="rp-arm-tip" d="M640 58 C668 70 690 56 694 34" />
+    <g class="rp-arm-suckers">
+      <circle cx="96" cy="66" r="7" /><circle cx="176" cy="84" r="7" /><circle cx="258" cy="90" r="7" /><circle cx="340" cy="82" r="7" />
+      <circle cx="420" cy="62" r="7" /><circle cx="500" cy="56" r="6" /><circle cx="574" cy="62" r="6" />
+    </g>
+  </svg>
+  <div class="rp-title-text">
+    {kicker && <p class="rp-kicker">{kicker}</p>}
+    <H class={level === 1 ? 'rp-h1' : 'rp-h2'}>{title}</H>
+  </div>
+</div>

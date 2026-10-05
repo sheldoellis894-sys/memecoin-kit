@@ -1,0 +1,33 @@
+---
+// Roadmap as a shift schedule: one row per stage with its hours and a status, and a crossed-out day off at the end.
+import { config } from '../../lib/project';
+import RpTitle from './RpTitle.astro';
+const sh = (config.press || {}).shifts || {};
+const hours: string[] = sh.hours || [];
+const statuses: string[] = sh.statuses || [];
+---
+<section id="shifts" class="rp-sec">
+  <RpTitle kicker={sh.kicker} title={sh.title} side="l" />
+  <ol class="rp-shifts">
+    {config.roadmap.map((r, i) => (
+      <li class={`rp-sheet rp-shift${i === 0 ? ' is-now' : ''}`} data-rp-in>
+        <div class="rp-shift-head">
+          <p class="rp-shift-phase font-heading">{r.phase}</p>
+          {hours[i] && <p class="rp-shift-hours">{hours[i]}</p>}
+          {statuses[i] && <span class="rp-pill">{statuses[i]}</span>}
+        </div>
+        <h3 class="rp-h3">{r.title}</h3>
+        <ul class="rp-list">{r.items.map((it) => <li>{it}</li>)}</ul>
+      </li>
+    ))}
+    {sh.dayOff && (
+      <li class="rp-sheet rp-shift rp-shift-off" data-rp-in>
+        <div class="rp-shift-head">
+          <p class="rp-shift-phase font-heading"><s>{sh.dayOff.label}</s></p>
+          <span class="rp-pill rp-pill-b">{sh.dayOff.status}</span>
+        </div>
+        <p class="rp-text">{sh.dayOff.note}</p>
+      </li>
+    )}
+  </ol>
+</section>

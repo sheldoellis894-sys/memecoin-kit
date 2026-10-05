@@ -1,0 +1,233 @@
+{
+  "name": "Inkmaxx",
+  "shortName": "Inkmaxx",
+  "ticker": "INKMAXX",
+  "tagline": "Eight arms. Zero days off. Your meme is already printing.",
+  "description": "Inkmaxx is a meme press that runs in your browser: pick a picture, turn it into a two-ink print, add a caption and stickers, and post it. Run by Maxx, an octopus who never sleeps. $INKMAXX on Solana.",
+  "url": "https://inkmaxxing.vercel.app",
+  "chain": "Solana",
+  "ca": "",
+  "theme": "riso",
+  "layout": "press",
+  "links": {
+    "x": "https://x.com/inkmaxxing",
+    "telegram": "https://t.me/inkmaxxing",
+    "pumpfun": "",
+    "dexscreener": ""
+  },
+  "assets": {
+    "logo": "exports/inkmaxx_avatar_circle_256.png",
+    "favicon": "exports/inkmaxx_avatar_circle_256.png",
+    "hero": "banners/inkmaxx_banner.jpg",
+    "og": "exports/inkmaxx_og.png"
+  },
+  "hero": {
+    "kicker": "Sheet #0001 · Paper loaded",
+    "text": "Maxx is an octopus who runs a print shop and never sleeps. Give him a picture. He turns it into a meme before you finish the caption."
+  },
+  "about": {
+    "kicker": "Your coach",
+    "title": "Meet Maxx",
+    "text": [
+      "Eight arms. One press. Zero patience.",
+      "He prints memes while you look for inspiration. Inspiration is for people with two arms.",
+      "He has not slept since the first sheet. He calls it a warm-up."
+    ],
+    "image": "references/inkmaxx_main.jpg"
+  },
+  "studio": {
+    "enabled": true,
+    "kicker": "The tool",
+    "title": "The press",
+    "lead": "A meme maker that runs in your browser. Pick a picture, turn it into a two-ink print, add a caption and stickers, then print.",
+    "watermark": "inkmaxxing.vercel.app",
+    "freeStickers": 3,
+    "templates": [
+      { "src": "gallery/inkmaxx_g01.jpg", "alt": "Maxx holds up six printed sheets at once" },
+      { "src": "gallery/inkmaxx_g02.jpg", "alt": "Maxx at four in the morning, still printing" },
+      { "src": "gallery/inkmaxx_g03.jpg", "alt": "Maxx blows his whistle at a sleeping intern" },
+      { "src": "gallery/inkmaxx_g04.jpg", "alt": "Maxx lifts a barbell made of ink rollers" },
+      { "src": "gallery/inkmaxx_g05.jpg", "alt": "Maxx under an avalanche of printed sheets" },
+      { "src": "gallery/inkmaxx_g06.jpg", "alt": "Maxx drinks six coffees at once" }
+    ],
+    "stickers": [
+      { "src": "stickers/inkmaxx_s01.png", "alt": "Maxx blows his whistle" },
+      { "src": "stickers/inkmaxx_s02.png", "alt": "Maxx points at you" },
+      { "src": "stickers/inkmaxx_s03.png", "alt": "Maxx hides his face behind two arms" },
+      { "src": "stickers/inkmaxx_s04.png", "alt": "Maxx flexes all eight arms" },
+      { "src": "stickers/inkmaxx_s05.png", "alt": "Maxx holds up a blank sheet" },
+      { "src": "stickers/inkmaxx_s06.png", "alt": "Maxx with six cups of coffee" },
+      { "src": "stickers/inkmaxx_s07.png", "alt": "Maxx lifts a paint roller like a trophy, with an evil grin" },
+      { "src": "stickers/inkmaxx_s08.png", "alt": "Maxx gives a slow sarcastic clap" }
+    ],
+    "labels": {
+      "machine": "Inkmaxx press · model 8",
+      "canvas": "Pick a picture to start",
+      "working": "Inking…",
+      "sticker": "Sticker",
+      "smaller": "Smaller",
+      "bigger": "Bigger",
+      "flip": "Flip",
+      "remove": "Remove",
+      "done": "Done",
+      "result": "Your printed meme",
+      "printed": "Fresh off the press",
+      "download": "Download",
+      "share": "Share",
+      "shareNote": "X opens with the text ready. Attach the downloaded sheet to the post yourself.",
+      "base": "Paper",
+      "upload": "Your picture",
+      "private": "Your picture stays in your browser. Nothing is uploaded.",
+      "ink": "Ink",
+      "inkOn": "Two-ink print",
+      "inkOff": "Original",
+      "inkThird": "Third ink",
+      "captions": "Captions",
+      "top": "Top line",
+      "bottom": "Bottom line",
+      "topPlaceholder": "WHEN YOU HAVE TWO ARMS",
+      "bottomPlaceholder": "AND A DEADLINE",
+      "stickers": "Stickers",
+      "stickerHint": "Tap a sticker to add it. Drag it to move, drag the round handle to resize.",
+      "holder": "Holder preview",
+      "holderNote": "Holders print without the corner tag and get the third ink and every sticker. This switch is a preview: the real balance check goes live when the token does.",
+      "print": "Print it",
+      "count": "Sheets you printed:"
+    },
+    "shareText": "Printed on the Inkmaxx press. Eight arms. Zero days off. $INKMAXX"
+  },
+  "howToBuy": [
+    { "title": "Get a wallet", "text": "Install Phantom or Solflare from the official website or app store." },
+    { "title": "Get some SOL", "text": "Buy SOL on an exchange and send it to your wallet." },
+    { "title": "Open pump.fun", "text": "Connect your wallet and paste the $INKMAXX contract address." },
+    { "title": "Swap for $INKMAXX", "text": "Choose the amount and confirm the swap. Then get back to the press." }
+  ],
+  "tokenomics": {
+    "supply": "1,000,000,000",
+    "items": [
+      { "label": "Fair launch on pump.fun", "value": "100%" },
+      { "label": "Buy and sell tax", "value": "0%" },
+      { "label": "Team wallet", "value": "0%" },
+      { "label": "Network", "value": "Solana" }
+    ]
+  },
+  "gallery": [
+    { "src": "gallery/inkmaxx_g01.jpg", "alt": "Maxx holds up six freshly printed sheets at once", "note": "Six at once. Two arms are slacking." },
+    { "src": "gallery/inkmaxx_g02.jpg", "alt": "Maxx at four in the morning, still printing next to a pile of coffee cups", "note": "4 a.m. The shift is going great." },
+    { "src": "gallery/inkmaxx_g03.jpg", "alt": "Maxx blows his whistle at a small crab intern asleep on a stack of paper", "note": "Rest is a rumour." },
+    { "src": "gallery/inkmaxx_g04.jpg", "alt": "Maxx lifts a barbell made of two ink rollers", "note": "Arm day. All eight." },
+    { "src": "gallery/inkmaxx_g05.jpg", "alt": "Maxx buried under an avalanche of printed sheets, one arm still holding a roller", "note": "Print run slightly over plan." },
+    { "src": "gallery/inkmaxx_g06.jpg", "alt": "Maxx drinks from six cups of coffee at the same time", "note": "Hydration." },
+    { "src": "gallery/inkmaxx_g07.jpg", "alt": "Maxx hangs fresh sheets on a drying line, and one crab is pegged up between them", "note": "Drying. The only rest allowed." },
+    { "src": "gallery/inkmaxx_g08.jpg", "alt": "Maxx lies in bed with his eyes open, still stamping sheets", "note": "Sleep mode: printing." }
+  ],
+  "roadmap": [
+    { "phase": "Shift 1", "title": "Warm up the press", "items": ["Launch on pump.fun", "X and Telegram open", "First 1,000 sheets printed"] },
+    { "phase": "Shift 2", "title": "Add ink", "items": ["DexScreener profile", "New sticker packs", "Meme contests printed on the press"] },
+    { "phase": "Shift 3", "title": "Double shift", "items": ["Wallet check for holders in the press", "Third ink for holders", "Templates from the community"] }
+  ],
+  "disclaimer": "$INKMAXX is a memecoin with no intrinsic value or expectation of financial return. It is not an investment. Nothing on this site is financial advice. Crypto is risky — never spend more than you can afford to lose. The coach is a joke: no coaching, training or printing service is sold. The meme maker is free and runs in your browser.",
+  "press": {
+    "buyShort": "Get",
+    "nav": [
+      { "id": "coach", "label": "Coach" },
+      { "id": "studio", "label": "Press" },
+      { "id": "how-to-buy", "label": "Workout" },
+      { "id": "ink", "label": "Ink" },
+      { "id": "prints", "label": "Prints" },
+      { "id": "buy", "label": "Buy" }
+    ],
+    "counter": { "label": "Print run", "start": 128, "pixelsPerSheet": 40, "idleBonus": 8, "digits": 6 },
+    "railTitle": "Paper path",
+    "statuses": [
+      { "label": "Paper loaded", "at": "home" },
+      { "label": "Blue ink", "at": "coach" },
+      { "label": "Pink ink", "at": "how-to-buy" },
+      { "label": "Cutting", "at": "prints" },
+      { "label": "Print run ready", "at": "buy" }
+    ],
+    "coach": {
+      "name": "Coach Maxx",
+      "idleSeconds": 5,
+      "close": "Back to work",
+      "lines": [
+        "You stopped. He printed {n} more while you rested.",
+        "Five seconds of nothing. He has eight arms and none of them paused.",
+        "Still here? He finished {n} sheets during this sentence.",
+        "Scrolling is cardio. Continue."
+      ]
+    },
+    "hero": {
+      "primary": "Print a meme",
+      "secondary": "Get",
+      "second": "His ink. Your memes.",
+      "stamp": "Proof",
+      "imageAlt": "Maxx the octopus at his printing press, working with all eight arms"
+    },
+    "about": {
+      "imageAlt": "Maxx the octopus: a huge blue head, a tiny tired face, a yellow sweatband and a whistle",
+      "stats": [
+        { "value": "8", "label": "arms" },
+        { "value": "0", "label": "days off" },
+        { "value": "24/7", "label": "shift" }
+      ],
+      "quote": "You sleep eight hours. He works eight arms."
+    },
+    "workout": {
+      "kicker": "How to buy",
+      "title": "Today's workout",
+      "setLabel": "Set",
+      "of": "of",
+      "unit": "sets done",
+      "checkLabel": "mark as done",
+      "reps": ["Warm-up", "Light", "Heavy", "Max"],
+      "done": "Workout complete. Rest is for people with two arms."
+    },
+    "ink": {
+      "kicker": "Tokenomics",
+      "title": "Ink levels",
+      "levels": [100, 0, 0, 100],
+      "totalLabel": "Total print run",
+      "caLabel": "Contract address",
+      "caEmpty": "appears here at launch",
+      "copy": "Copy",
+      "copied": "Copied",
+      "note": "Two cartridges are empty on purpose."
+    },
+    "line": {
+      "kicker": "Gallery",
+      "title": "Drying line",
+      "hint": "Fresh prints. Do not touch. He will know.",
+      "use": "Print on this",
+      "prev": "Previous print",
+      "next": "Next print"
+    },
+    "shifts": {
+      "kicker": "Roadmap",
+      "title": "Shift schedule",
+      "hours": ["00:00–08:00", "08:00–16:00", "16:00–24:00"],
+      "statuses": ["On shift", "Next", "Later"],
+      "dayOff": { "label": "Day off", "status": "Cancelled", "note": "The coach reviewed the request. The request was printed on and recycled." }
+    },
+    "buy": {
+      "kicker": "Print run ready",
+      "title": "Print your ticket",
+      "text": "Hold the button until the sheet is out. He holds eight things at once. You can manage one.",
+      "hold": "Hold to print",
+      "holding": "Keep holding…",
+      "held": "Printed",
+      "skip": "Print it for me",
+      "doneTitle": "Fresh off the press.",
+      "doneText": "Your ticket is printed. The coach expects you on shift.",
+      "buyLabel": "Get",
+      "caLabel": "Contract address",
+      "caEmpty": "appears here at launch"
+    },
+    "footer": { "tag": "His ink. Your memes." }
+  },
+  "images": {
+    "optimize": true,
+    "maxSize": { "gallery": 1080, "logo": 800, "banners": 1920, "references": 1000, "stickers": 640, "exports": 1500 }
+  },
+  "effects": { "reveal": false, "parallax": false, "cursor": false, "sparks": false }
+}

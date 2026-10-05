@@ -1,0 +1,67 @@
+---
+// Gallery as a drying line: printed sheets hang on a rope with pegs, sway while the page or the line is scrolled,
+// and the line scrolls sideways. Every sheet can be sent to the meme maker as a base picture.
+import { config, asset } from '../../lib/project';
+import RpTitle from './RpTitle.astro';
+const g = (config.press || {}).line || {};
+const items = config.gallery;
+const canUse = !!config.studio?.enabled;
+---
+<section id="prints" class="rp-sec rp-line-sec">
+  <RpTitle kicker={g.kicker} title={g.title} side="r" />
+  <div class="rp-line" data-rp-line>
+    <div class="rp-line-scroll" data-rp-line-scroll tabindex="0" role="group" aria-label={g.title}>
+      <ul class="rp-line-rope">
+        {items.map((it, i) => (
+          <li class="rp-hang" style={`--rp-tilt:${[-3, 2, -1.500, 3, -2.500, 1.500][i % 6]}deg;--rp-k:${[1, 0.700, 1.200, 0.850][i % 4]}`}>
+            <span class="rp-peg" aria-hidden="true"></span>
+            <figure class="rp-hang-sheet">
+              <img src={asset(it.src)} alt={it.alt} width="700" height="700" loading="lazy" />
+              <figcaption>
+                <span>{it.note}</span>
+                {canUse && <button type="button" class="rp-link" data-rp-use={asset(it.src)}>{g.use}</button>}
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="rp-line-nav">
+      <button type="button" class="rp-round" data-rp-prev aria-label={g.prev || 'Previous'}>←</button>
+      <p class="rp-note">{g.hint}</p>
+      <button type="button" class="rp-round" data-rp-next aria-label={g.next || 'Next'}>→</button>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rp-line]').forEach((root) => {
+    const scroller = root.querySelector<HTMLElement>('[data-rp-line-scroll]')!;
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const step = () => (scroller.querySelector<HTMLElement>('.rp-hang')?.offsetWidth || 280) + 24;
+    root.querySelector('[data-rp-prev]')!.addEventListener('click', () => scroller.scrollBy({ left: -step(), behavior: calm ? 'auto' : 'smooth' }));
+    root.querySelector('[data-rp-next]')!.addEventListener('click', () => scroller.scrollBy({ left: step(), behavior: calm ? 'auto' : 'smooth' }));
+    scroller.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { scroller.scrollBy({ left: step() }); e.preventDefault(); }
+      if (e.key === 'ArrowLeft') { scroller.scrollBy({ left: -step() }); e.preventDefault(); }
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-rp-use]').forEach((b) => b.addEventListener('click', () => {
+      dispatchEvent(new CustomEvent('rp:use', { detail: b.dataset.rpUse }));
+      document.getElementById('studio')?.scrollIntoView({ behavior: calm ? 'auto' : 'smooth' });
+    }));
+    // Sway: the sheets swing against the direction of movement and settle like a spring
+    if (!calm) {
+      let sway = 0, vel = 0, lastX = scroller.scrollLeft, lastY = scrollY, raf = 0, seen = false;
+      const tick = () => {
+        vel += -sway * 0.12; vel *= 0.86; sway += vel;
+        root.style.setProperty('--rp-sway', `${sway.toFixed(2)}deg`);
+        raf = Math.abs(sway) > 0.02 || Math.abs(vel) > 0.02 ? requestAnimationFrame(tick) : 0;
+        if (!raf) root.style.setProperty('--rp-sway', '0deg');
+      };
+      const push = (d: number) => { if (!seen) return; vel += Math.max(-2.400, Math.min(2.400, d * 0.05)); if (!raf) raf = requestAnimationFrame(tick); };
+      scroller.addEventListener('scroll', () => { const x = scroller.scrollLeft; push(lastX - x); lastX = x; }, { passive: true });
+      addEventListener('scroll', () => { const y = scrollY; push((lastY - y) * 0.5); lastY = y; }, { passive: true });
+      if ('IntersectionObserver' in window) new IntersectionObserver((en) => { seen = en[0].isIntersecting; }).observe(root); else seen = true;
+    }
+  });
+</script>

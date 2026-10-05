@@ -43,6 +43,17 @@ import AppStories from '../sections/app/AppStories.astro';
 import AppNext from '../sections/app/AppNext.astro';
 import AppOrder from '../sections/app/AppOrder.astro';
 import AppFooter from '../sections/app/AppFooter.astro';
+// Layout "press": the site is a printing press, the visitor is a sheet of paper going through it
+import PressShell from '../sections/press/PressShell.astro';
+import PressHero from '../sections/press/PressHero.astro';
+import PressAbout from '../sections/press/PressAbout.astro';
+import PressStudio from '../sections/press/PressStudio.astro';
+import PressWorkout from '../sections/press/PressWorkout.astro';
+import PressInk from '../sections/press/PressInk.astro';
+import PressLine from '../sections/press/PressLine.astro';
+import PressShifts from '../sections/press/PressShifts.astro';
+import PressBuy from '../sections/press/PressBuy.astro';
+import PressFooter from '../sections/press/PressFooter.astro';
 
 const registry: Record<string, any> = {
   header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
@@ -54,6 +65,8 @@ const registry: Record<string, any> = {
   appShell: AppShell, appHome: AppHome, appMap: AppMap, appCourier: AppCourier, appChat: AppChat, stopGame: StopGame,
   appRate: AppRate, appCheckout: AppCheckout, appReceipt: AppReceipt, appStories: AppStories, appNext: AppNext,
   appOrder: AppOrder, appFooter: AppFooter,
+  pressShell: PressShell, pressHero: PressHero, pressAbout: PressAbout, pressStudio: PressStudio, pressWorkout: PressWorkout,
+  pressInk: PressInk, pressLine: PressLine, pressShifts: PressShifts, pressBuy: PressBuy, pressFooter: PressFooter,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);

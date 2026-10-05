@@ -1,0 +1,21 @@
+{
+  "name": "riso",
+  "flavor": "press",
+  "colors": {
+    "bg": "#F2EBDD",
+    "surface": "#FBF7EE",
+    "text": "#1A1A2E",
+    "muted": "#5E5C70",
+    "primary": "#2440D8",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#FF4F8B",
+    "accent": "#FFD23F"
+  },
+  "fonts": {
+    "heading": "Dela Gothic One",
+    "body": "Manrope",
+    "googleFonts": "family=Dela+Gothic+One&family=Manrope:wght@500;700;800",
+    "ticker": "heading"
+  },
+  "radius": { "button": "14px", "card": "18px" }
+}

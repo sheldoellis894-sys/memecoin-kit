@@ -1,0 +1,506 @@
+---
+// The tool of the "press" layout: a meme maker that works entirely in the browser.
+// 1. Base: a ready-made picture or the visitor's own (it never leaves the device).
+// 2. Ink: a filter that turns any picture into a two-ink print with halftone dots and slightly shifted layers.
+// 3. Captions on top and at the bottom. 4. Stickers that can be moved, resized, flipped and removed.
+// 5. Print: the sheet slides out of the machine, then "Download" and "Share".
+// Holder preview is a demo switch: it removes the corner tag and opens the third ink and all stickers.
+// Texts and pictures come from config.studio, colors from the theme. Test hook: root.studio.
+import { config, asset } from '../../lib/project';
+import RpTitle from './RpTitle.astro';
+const s = config.studio;
+const l = s?.labels || {};
+const free = s?.freeStickers ?? 3;
+const data = s && JSON.stringify({
+  templates: s.templates.map((t) => asset(t.src)),
+  stickers: s.stickers.map((t) => asset(t.src)),
+  free, watermark: s.watermark || '', inks: s.inks || {}, shareText: s.shareText, url: config.url || '',
+  file: (config.shortName || config.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+});
+---
+{s?.enabled && (
+<section id="studio" class="rp-sec rp-studio-sec">
+  <RpTitle kicker={s.kicker} title={s.title} side="l" />
+  {s.lead && <p class="rp-lead rp-studio-lead">{s.lead}</p>}
+  <div class="rp-studio" data-rp-studio={data}>
+    <div class="rp-machine-col">
+      <div class="rp-machine">
+        <div class="rp-machine-top" aria-hidden="true">
+          <span class="rp-machine-name font-heading">{l.machine}</span>
+          <span class="rp-machine-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="rp-stage">
+          <canvas width="1080" height="1080" data-rp-canvas tabindex="0" role="img" aria-label={l.canvas}></canvas>
+          <p class="rp-stage-busy" data-rp-busy hidden>{l.working}</p>
+        </div>
+        <div class="rp-sticker-tools" data-rp-tools hidden>
+          <span class="rp-sticker-tools-label">{l.sticker}</span>
+          <button type="button" data-rp-tool="smaller" aria-label={l.smaller}>−</button>
+          <button type="button" data-rp-tool="bigger" aria-label={l.bigger}>+</button>
+          <button type="button" data-rp-tool="flip">{l.flip}</button>
+          <button type="button" data-rp-tool="remove">{l.remove}</button>
+          <button type="button" data-rp-tool="done" class="is-main">{l.done}</button>
+        </div>
+        <div class="rp-slot" aria-hidden="true"><i></i></div>
+      </div>
+      <div class="rp-tray" data-rp-tray hidden>
+        <div class="rp-tray-window"><img data-rp-out alt={l.result} width="1080" height="1080" /></div>
+        <p class="rp-tray-title font-heading">{l.printed}</p>
+        <div class="rp-actions">
+          <a class="rp-btn" data-rp-download download>{l.download}</a>
+          <button type="button" class="rp-btn rp-btn-ghost" data-rp-share>{l.share}</button>
+        </div>
+        <p class="rp-note" data-rp-share-note hidden>{l.shareNote}</p>
+      </div>
+    </div>
+
+    <div class="rp-panel">
+      <fieldset class="rp-field">
+        <legend><b>1</b>{l.base}</legend>
+        <div class="rp-thumbs">
+          {s.templates.map((t, i) => (
+            <button type="button" class="rp-thumb" data-rp-template={i} aria-label={t.alt} aria-pressed="false">
+              <img src={asset(t.src)} alt="" width="120" height="120" loading="lazy" />
+            </button>
+          ))}
+          <label class="rp-thumb rp-upload">
+            <input type="file" accept="image/*" data-rp-upload />
+            <span>{l.upload}</span>
+          </label>
+        </div>
+        <p class="rp-note">{l.private}</p>
+      </fieldset>
+
+      <fieldset class="rp-field">
+        <legend><b>2</b>{l.ink}</legend>
+        <div class="rp-seg" role="group" aria-label={l.ink}>
+          <button type="button" data-rp-riso="off" aria-pressed="true">{l.inkOff}</button>
+          <button type="button" data-rp-riso="on" aria-pressed="false">{l.inkOn}</button>
+          <button type="button" data-rp-third aria-pressed="false" class="is-locked">{l.inkThird}</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="rp-field">
+        <legend><b>3</b>{l.captions}</legend>
+        <label class="rp-input"><span>{l.top}</span><input type="text" maxlength="70" data-rp-top placeholder={l.topPlaceholder} autocomplete="off" /></label>
+        <label class="rp-input"><span>{l.bottom}</span><input type="text" maxlength="70" data-rp-bottom placeholder={l.bottomPlaceholder} autocomplete="off" /></label>
+      </fieldset>
+
+      <fieldset class="rp-field">
+        <legend><b>4</b>{l.stickers}</legend>
+        <div class="rp-thumbs rp-thumbs-stickers">
+          {s.stickers.map((t, i) => (
+            <button type="button" class={`rp-thumb rp-thumb-sticker${i >= free ? ' is-locked' : ''}`} data-rp-sticker={i} aria-label={t.alt}>
+              <img src={asset(t.src)} alt="" width="120" height="120" loading="lazy" />
+            </button>
+          ))}
+        </div>
+        <p class="rp-note">{l.stickerHint}</p>
+      </fieldset>
+
+      <div class="rp-holder">
+        <label class="rp-switch">
+          <input type="checkbox" role="switch" data-rp-holder />
+          <span class="rp-switch-track" aria-hidden="true"><i></i></span>
+          <span class="rp-switch-label">{l.holder}</span>
+        </label>
+        <p class="rp-note" data-rp-holder-note>{l.holderNote}</p>
+      </div>
+
+      <button type="button" class="rp-btn rp-btn-big rp-print-btn" data-rp-go>{l.print}</button>
+      <p class="rp-note rp-count"><span>{l.count}</span> <b data-rp-count>0</b></p>
+    </div>
+  </div>
+</section>
+)}
+
+<script>
+  type Sticker = { img: HTMLImageElement; x: number; y: number; s: number; flip: boolean; w: number; h: number };
+  document.querySelectorAll<HTMLElement>('[data-rp-studio]').forEach((root) => {
+    const cfg: { templates: string[]; stickers: string[]; free: number; watermark: string; inks: Record<string, string>; shareText: string; url: string; file: string } = JSON.parse(root.dataset.rpStudio!);
+    const S = 1080;
+    const cv = root.querySelector<HTMLCanvasElement>('[data-rp-canvas]')!;
+    const ctx = cv.getContext('2d')!;
+    const css = getComputedStyle(document.documentElement);
+    const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
+    const rgb = (color: string): [number, number, number] => {
+      const probe = document.createElement('canvas'); probe.width = probe.height = 1;
+      const p = probe.getContext('2d')!; p.fillStyle = '#000'; p.fillStyle = color; p.fillRect(0, 0, 1, 1);
+      const d = p.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]];
+    };
+    const ink = {
+      a: rgb(cfg.inks.first || v('--t-primary', '#2440D8')),
+      b: rgb(cfg.inks.second || v('--t-secondary', '#FF4F8B')),
+      c: rgb(cfg.inks.third || v('--t-accent', '#FFD23F')),
+      paper: rgb(cfg.inks.paper || v('--t-bg', '#F2EBDD')),
+      text: v('--t-text', '#1A1A2E'),
+    };
+    const hex = (c: number[]) => `rgb(${c[0]},${c[1]},${c[2]})`;
+    const headingFont = `${v('--t-font-heading', 'sans-serif')}, system-ui, sans-serif`;
+    const bodyFont = `${v('--t-font-body', 'sans-serif')}, system-ui, sans-serif`;
+
+    const state = { base: null as HTMLImageElement | null, baseKey: '', riso: false, risoAuto: true, third: false, holder: false, top: '', bottom: '', stickers: [] as Sticker[], sel: -1 };
+    const baseLayer = document.createElement('canvas'); baseLayer.width = baseLayer.height = S;
+    const scratch = document.createElement('canvas'); scratch.width = scratch.height = S;
+    const busyEl = root.querySelector<HTMLElement>('[data-rp-busy]')!;
+    const tools = root.querySelector<HTMLElement>('[data-rp-tools]')!;
+
+    const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image(); img.decoding = 'async';
+      img.onload = () => resolve(img); img.onerror = () => reject(new Error(`image failed: ${src}`)); img.src = src;
+    });
+
+    // ---- Two-ink print filter -------------------------------------------------------------
+    // Every pixel gets a coverage for each ink (dark areas → first ink, warm areas → second ink,
+    // yellowish areas → third ink). Coverage is drawn as halftone dots on rotated grids; the second and
+    // third inks are sampled with a small shift, like layers printed slightly out of register.
+    const clamp = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
+    const dot = (x: number, y: number, c: number, cs: number, sn: number, cell: number) => {
+      if (c <= 0.03) return 0; if (c >= 0.92) return 1;
+      const u = (x * cs + y * sn) / cell, w = (y * cs - x * sn) / cell;
+      const fu = u - Math.floor(u) - 0.5, fw = w - Math.floor(w) - 0.5;
+      const t = (Math.sqrt(c) * 0.74 - Math.sqrt(fu * fu + fw * fw)) / 0.1 + 0.5;
+      return t <= 0 ? 0 : t >= 1 ? 1 : t;
+    };
+    const noise = (x: number, y: number) => { const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return n - Math.floor(n); };
+    const risoPrint = (source: HTMLCanvasElement, target: HTMLCanvasElement, third: boolean) => {
+      const sctx = source.getContext('2d', { willReadFrequently: true })!;
+      const src = sctx.getImageData(0, 0, S, S).data;
+      const n = S * S;
+      const ca = new Float32Array(n), cb = new Float32Array(n), cc = third ? new Float32Array(n) : null;
+      for (let i = 0, p = 0; i < n; i++, p += 4) {
+        const al = src[p + 3] / 255;
+        // transparent pixels count as paper
+        const r = src[p] * al + ink.paper[0] * (1 - al), g = src[p + 1] * al + ink.paper[1] * (1 - al), b = src[p + 2] * al + ink.paper[2] * (1 - al);
+        const L = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+        const sat = mx ? (mx - mn) / mx : 0;
+        const warm = clamp((r - (g + b) / 2) / 160), cool = clamp((b - r) / 140);
+        // yellowish areas get only a light tint of the second ink (and almost none when the third ink prints them)
+        const yellow = clamp(sat * 1.7 * clamp((Math.min(r, g) - b) / 120));
+        // warm and yellow areas stay free of the first ink, so pink prints as clean pink and yellow as clean yellow
+        ca[i] = clamp((1 - L - 0.06) * 1.3) * Math.pow(1 - warm, 1.5) * (1 - 0.8 * yellow);
+        // cool (blue) areas stay clean first ink; neutral shadows and warm areas get the second ink
+        cb[i] = clamp((1 - L) * 0.5 * (1 - cool) * (1 - yellow) + warm * 0.95 * (1 - (cc ? 0.95 : 0.62) * yellow) - 0.12);
+        if (cc) cc[i] = yellow;
+      }
+      const out = target.getContext('2d')!.createImageData(S, S);
+      const o = out.data;
+      const A = [Math.cos(Math.PI / 4), Math.sin(Math.PI / 4)], B = [Math.cos(Math.PI * 75 / 180), Math.sin(Math.PI * 75 / 180)], C = [Math.cos(Math.PI / 12), Math.sin(Math.PI / 12)];
+      const cell = 8, bx = 4, by = -3, cx = -3, cy = 4;
+      for (let y = 0, i = 0, p = 0; y < S; y++) {
+        for (let x = 0; x < S; x++, i++, p += 4) {
+          const grain = 0.8 + 0.2 * noise(x, y);
+          const aA = dot(x, y, ca[i], A[0], A[1], cell) * grain;
+          const xb = Math.min(S - 1, Math.max(0, x - bx)), yb = Math.min(S - 1, Math.max(0, y - by));
+          const aB = dot(x, y, cb[yb * S + xb], B[0], B[1], cell) * (0.84 + 0.16 * noise(y, x));
+          let aC = 0;
+          if (cc) { const xc = Math.min(S - 1, Math.max(0, x - cx)), yc = Math.min(S - 1, Math.max(0, y - cy)); aC = dot(x, y, cc[yc * S + xc], C[0], C[1], cell) * 0.95; }
+          const speck = 0.975 + 0.025 * noise(x * 0.37, y * 0.71);
+          for (let k = 0; k < 3; k++) {
+            let val = ink.paper[k] * speck;
+            if (aC) val *= 1 - aC * (1 - ink.c[k] / 255);
+            val *= 1 - aB * (1 - ink.b[k] / 255);
+            val *= 1 - aA * (1 - ink.a[k] / 255);
+            o[p + k] = val;
+          }
+          o[p + 3] = 255;
+        }
+      }
+      target.getContext('2d')!.putImageData(out, 0, 0);
+    };
+
+    const rebuild = () => {
+      const b = baseLayer.getContext('2d')!;
+      b.fillStyle = hex(ink.paper); b.fillRect(0, 0, S, S);
+      if (state.base) {
+        const img = state.base, k = Math.max(S / img.naturalWidth, S / img.naturalHeight);
+        const w = img.naturalWidth * k, h = img.naturalHeight * k;
+        const sc = scratch.getContext('2d', { willReadFrequently: true })!;
+        sc.fillStyle = hex(ink.paper); sc.fillRect(0, 0, S, S);
+        sc.drawImage(img, (S - w) / 2, (S - h) / 2, w, h);
+        if (state.riso) risoPrint(scratch, baseLayer, state.third && state.holder);
+        else b.drawImage(scratch, 0, 0);
+      }
+      render();
+    };
+
+    // ---- Captions -------------------------------------------------------------------------
+    const wrap = (text: string, size: number, max: number) => {
+      ctx.font = `${size}px ${headingFont}`;
+      const words = text.split(/\s+/).filter(Boolean), lines: string[] = [];
+      let lineText = '';
+      for (const word of words) {
+        const tryText = lineText ? `${lineText} ${word}` : word;
+        if (ctx.measureText(tryText).width <= max || !lineText) lineText = tryText; else { lines.push(lineText); lineText = word; }
+      }
+      if (lineText) lines.push(lineText);
+      return lines;
+    };
+    const caption = (raw: string, place: 'top' | 'bottom') => {
+      const text = raw.trim().toUpperCase(); if (!text) return;
+      const max = S - 110;
+      let size = 92, lines: string[] = [];
+      for (const tryText of [92, 82, 72, 62, 54, 46, 40, 34]) {
+        size = tryText; lines = wrap(text, size, max);
+        const fits = lines.every((ln) => ctx.measureText(ln).width <= max);
+        if (fits && lines.length <= (size > 60 ? 2 : 3)) break;
+      }
+      const lh = size * 1.12, block = lh * lines.length;
+      let y = place === 'top' ? 58 : S - 58 - block;
+      ctx.save();
+      ctx.font = `${size}px ${headingFont}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.lineJoin = 'round'; ctx.miterLimit = 2;
+      for (const ln of lines) {
+        const off = Math.max(4, size * 0.07);
+        ctx.lineWidth = size * 0.2;
+        ctx.strokeStyle = hex(ink.b); ctx.fillStyle = hex(ink.b);
+        ctx.strokeText(ln, S / 2 + off, y + off, max + 40); ctx.fillText(ln, S / 2 + off, y + off, max + 40);
+        ctx.strokeStyle = ink.text; ctx.strokeText(ln, S / 2, y, max + 40);
+        ctx.fillStyle = '#fff'; ctx.fillText(ln, S / 2, y, max + 40);
+        y += lh;
+      }
+      ctx.restore();
+    };
+
+    // ---- Drawing the whole sheet ------------------------------------------------------------
+    const box = (st: Sticker) => ({ w: st.w * st.s, h: st.h * st.s });
+    const render = (forExport = false) => {
+      ctx.clearRect(0, 0, S, S);
+      ctx.drawImage(baseLayer, 0, 0);
+      if (!state.base) {
+        ctx.save(); ctx.fillStyle = hex(ink.a); ctx.globalAlpha = 0.5; ctx.font = `700 34px ${bodyFont}`; ctx.textAlign = 'center';
+        ctx.fillText(cv.getAttribute('aria-label') || '', S / 2, S / 2, S - 160); ctx.restore();
+      }
+      state.stickers.forEach((st) => {
+        const { w, h } = box(st);
+        ctx.save(); ctx.translate(st.x, st.y); if (st.flip) ctx.scale(-1, 1);
+        ctx.drawImage(st.img, -w / 2, -h / 2, w, h); ctx.restore();
+      });
+      caption(state.top, 'top'); caption(state.bottom, 'bottom');
+      if (cfg.watermark && !state.holder) {
+        ctx.save(); ctx.font = `800 24px ${bodyFont}`; ctx.textBaseline = 'middle';
+        const tw = ctx.measureText(cfg.watermark).width, pw = tw + 30, ph = 42, px = S - pw - 22, py = S - ph - 20;
+        ctx.fillStyle = hex(ink.paper); ctx.strokeStyle = ink.text; ctx.lineWidth = 3;
+        ctx.beginPath(); (ctx as any).roundRect ? (ctx as any).roundRect(px, py, pw, ph, 21) : ctx.rect(px, py, pw, ph); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = ink.text; ctx.fillText(cfg.watermark, px + 15, py + ph / 2 + 1); ctx.restore();
+      }
+      if (!forExport && state.sel >= 0 && state.stickers[state.sel]) {
+        const st = state.stickers[state.sel], { w, h } = box(st);
+        ctx.save(); ctx.strokeStyle = ink.text; ctx.lineWidth = 5; ctx.setLineDash([18, 12]);
+        ctx.strokeRect(st.x - w / 2 - 8, st.y - h / 2 - 8, w + 16, h + 16); ctx.setLineDash([]);
+        ctx.fillStyle = hex(ink.c); ctx.beginPath(); ctx.arc(st.x + w / 2 + 8, st.y + h / 2 + 8, 26, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    // ---- Controls ---------------------------------------------------------------------------
+    const working = (on: boolean) => { busyEl.hidden = !on; };
+    const later = (fn: () => void) => { working(true); requestAnimationFrame(() => setTimeout(() => { try { fn(); } finally { working(false); } }, 20)); };
+    const templateBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-rp-template]')];
+    const setTemplate = async (i: number) => {
+      const img = await load(cfg.templates[i]);
+      state.base = img; state.baseKey = `t${i}`;
+      templateBtns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+      if (state.risoAuto) state.riso = false;   // ready-made pictures are already prints
+      syncInk(); rebuild();
+    };
+    // own = the visitor's own picture: the print filter switches on for it, unless the visitor has already chosen a mode
+    const setImage = async (src: string, own = false) => {
+      const img = await load(src);
+      state.base = img; state.baseKey = src;
+      templateBtns.forEach((b) => b.setAttribute('aria-pressed', 'false'));
+      if (state.risoAuto) state.riso = own;
+      syncInk(); rebuild();
+    };
+    templateBtns.forEach((b, i) => b.addEventListener('click', () => { working(true); setTemplate(i).finally(() => working(false)); }));
+    root.querySelector<HTMLInputElement>('[data-rp-upload]')!.addEventListener('change', (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]; if (!file) return;
+      const url = URL.createObjectURL(file);
+      working(true); setImage(url, true).catch(() => {}).finally(() => { working(false); URL.revokeObjectURL(url); });
+    });
+
+    const risoBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-rp-riso]')];
+    const thirdBtn = root.querySelector<HTMLButtonElement>('[data-rp-third]')!;
+    const holderNote = root.querySelector<HTMLElement>('[data-rp-holder-note]')!;
+    const holderBox = root.querySelector<HTMLInputElement>('[data-rp-holder]')!;
+    const nudge = () => { const el = holderBox.closest<HTMLElement>('.rp-holder')!; el.classList.remove('is-nudge'); void el.offsetWidth; el.classList.add('is-nudge'); };
+    const syncInk = () => {
+      risoBtns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.rpRiso === 'on') === state.riso)));
+      thirdBtn.setAttribute('aria-pressed', String(state.third && state.holder));
+      thirdBtn.classList.toggle('is-locked', !state.holder);
+      thirdBtn.disabled = !state.riso;
+    };
+    const setRiso = (on: boolean) => { state.riso = on; state.risoAuto = false; syncInk(); later(rebuild); };
+    risoBtns.forEach((b) => b.addEventListener('click', () => setRiso(b.dataset.rpRiso === 'on')));
+    thirdBtn.addEventListener('click', () => { if (!state.holder) return nudge(); state.third = !state.third; syncInk(); later(rebuild); });
+    // syncInk and the template buttons are used by the loaders above; they only run after this point
+
+    const stickerBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-rp-sticker]')];
+    const setHolder = (on: boolean) => {
+      state.holder = on; holderBox.checked = on; root.classList.toggle('is-holder', on);
+      stickerBtns.forEach((b, i) => b.classList.toggle('is-locked', !on && i >= cfg.free));
+      syncInk();
+      if (state.third && state.riso) later(rebuild); else render();
+    };
+    holderBox.addEventListener('change', () => setHolder(holderBox.checked));
+
+    const select = (i: number) => {
+      state.sel = i; tools.hidden = i < 0; cv.classList.toggle('is-editing', i >= 0); render();
+    };
+    const addSticker = async (i: number) => {
+      if (!state.holder && i >= cfg.free) { nudge(); return false; }
+      const img = await load(cfg.stickers[i]);
+      const k = 380 / Math.max(img.naturalWidth, img.naturalHeight);
+      const n = state.stickers.length;
+      state.stickers.push({ img, x: S / 2 + ((n % 3) - 1) * 70, y: S / 2 + ((n % 2) ? 60 : -40), s: 1, flip: false, w: img.naturalWidth * k, h: img.naturalHeight * k });
+      select(state.stickers.length - 1);
+      return true;
+    };
+    stickerBtns.forEach((b, i) => b.addEventListener('click', () => { addSticker(i); }));
+
+    const scaleSel = (f: number) => { const st = state.stickers[state.sel]; if (!st) return; st.s = Math.min(3, Math.max(0.25, st.s * f)); render(); };
+    tools.addEventListener('click', (e) => {
+      const act = (e.target as HTMLElement).closest<HTMLElement>('[data-rp-tool]')?.dataset.rpTool; const st = state.stickers[state.sel];
+      if (!act) return;
+      if (act === 'done') return select(-1);
+      if (!st) return;
+      if (act === 'smaller') scaleSel(1 / 1.15);
+      if (act === 'bigger') scaleSel(1.15);
+      if (act === 'flip') { st.flip = !st.flip; render(); }
+      if (act === 'remove') { state.stickers.splice(state.sel, 1); select(-1); }
+    });
+
+    // Pointer: tap a sticker to select it, drag to move, drag the round handle to resize
+    const pos = (e: PointerEvent) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * S, y: (e.clientY - r.top) / r.height * S }; };
+    const hit = (x: number, y: number) => {
+      for (let i = state.stickers.length - 1; i >= 0; i--) { const st = state.stickers[i], { w, h } = box(st); if (Math.abs(x - st.x) <= w / 2 + 8 && Math.abs(y - st.y) <= h / 2 + 8) return i; }
+      return -1;
+    };
+    let drag: null | { mode: 'move' | 'scale'; dx: number; dy: number; d0: number; s0: number } = null;
+    cv.addEventListener('pointerdown', (e) => {
+      const p = pos(e), cur = state.stickers[state.sel];
+      if (cur) {
+        const { w, h } = box(cur);
+        if (Math.hypot(p.x - (cur.x + w / 2 + 8), p.y - (cur.y + h / 2 + 8)) < 52) {
+          drag = { mode: 'scale', dx: 0, dy: 0, d0: Math.hypot(p.x - cur.x, p.y - cur.y) || 1, s0: cur.s };
+          cv.setPointerCapture(e.pointerId); e.preventDefault(); return;
+        }
+      }
+      const i = hit(p.x, p.y);
+      if (i < 0) { if (state.sel >= 0) select(-1); return; }
+      if (i !== state.sel) select(i);
+      const st = state.stickers[i];
+      drag = { mode: 'move', dx: p.x - st.x, dy: p.y - st.y, d0: 1, s0: st.s };
+      cv.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    cv.addEventListener('pointermove', (e) => {
+      const st = state.stickers[state.sel]; if (!drag || !st) return;
+      const p = pos(e);
+      if (drag.mode === 'move') { st.x = Math.min(S, Math.max(0, p.x - drag.dx)); st.y = Math.min(S, Math.max(0, p.y - drag.dy)); }
+      else st.s = Math.min(3, Math.max(0.25, drag.s0 * Math.hypot(p.x - st.x, p.y - st.y) / drag.d0));
+      render();
+    });
+    const drop = () => { drag = null; };
+    cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
+    cv.addEventListener('keydown', (e) => {
+      const st = state.stickers[state.sel]; if (!st) return;
+      const step = e.shiftKey ? 40 : 12;
+      if (e.key === 'ArrowLeft') st.x -= step; else if (e.key === 'ArrowRight') st.x += step;
+      else if (e.key === 'ArrowUp') st.y -= step; else if (e.key === 'ArrowDown') st.y += step;
+      else if (e.key === '+' || e.key === '=') st.s = Math.min(3, st.s * 1.1); else if (e.key === '-') st.s = Math.max(0.25, st.s / 1.1);
+      else if (e.key === 'Delete' || e.key === 'Backspace') { state.stickers.splice(state.sel, 1); select(-1); e.preventDefault(); return; }
+      else if (e.key === 'Escape') { select(-1); return; }
+      else return;
+      e.preventDefault(); render();
+    });
+
+    const topIn = root.querySelector<HTMLInputElement>('[data-rp-top]')!, bottomIn = root.querySelector<HTMLInputElement>('[data-rp-bottom]')!;
+    const setText = (top: string, bottom: string) => { state.top = top; state.bottom = bottom; topIn.value = top; bottomIn.value = bottom; render(); };
+    topIn.addEventListener('input', () => { state.top = topIn.value; render(); });
+    bottomIn.addEventListener('input', () => { state.bottom = bottomIn.value; render(); });
+
+    // ---- Print, download, share ---------------------------------------------------------------
+    const tray = root.querySelector<HTMLElement>('[data-rp-tray]')!;
+    const outImg = root.querySelector<HTMLImageElement>('[data-rp-out]')!;
+    const dl = root.querySelector<HTMLAnchorElement>('[data-rp-download]')!;
+    const shareBtn = root.querySelector<HTMLButtonElement>('[data-rp-share]')!;
+    const shareNote = root.querySelector<HTMLElement>('[data-rp-share-note]')!;
+    const countEl = root.querySelector<HTMLElement>('[data-rp-count]')!;
+    const goBtn = root.querySelector<HTMLButtonElement>('[data-rp-go]')!;
+    const storeKey = `rp-prints-${cfg.file}`;
+    let count = 0; try { count = Number(localStorage.getItem(storeKey)) || 0; } catch { /* private mode */ }
+    countEl.textContent = String(count);
+    let lastUrl = '', lastFile: File | null = null;
+    const print = () => new Promise<{ size: number; url: string }>((resolve, reject) => {
+      render(true);
+      cv.toBlob((blob) => {
+        render();
+        if (!blob) return reject(new Error('no blob'));
+        if (lastUrl) URL.revokeObjectURL(lastUrl);
+        lastUrl = URL.createObjectURL(blob);
+        count += 1; try { localStorage.setItem(storeKey, String(count)); } catch { /* private mode */ }
+        countEl.textContent = String(count);
+        const name = `${cfg.file}-print-${count}.png`;
+        try { lastFile = new File([blob], name, { type: 'image/png' }); } catch { lastFile = null; }
+        outImg.src = lastUrl; dl.href = lastUrl; dl.download = name;
+        shareNote.hidden = true; tray.hidden = false; root.classList.add('has-print');
+        tray.classList.remove('is-out'); root.classList.add('is-printing');
+        requestAnimationFrame(() => requestAnimationFrame(() => tray.classList.add('is-out')));
+        setTimeout(() => root.classList.remove('is-printing'), 1500);
+        dispatchEvent(new CustomEvent('rp:printed'));
+        resolve({ size: blob.size, url: lastUrl });
+      }, 'image/png');
+    });
+    goBtn.addEventListener('click', () => {
+      if (state.sel >= 0) select(-1);
+      goBtn.disabled = true;
+      print().then(() => { if (matchMedia('(max-width: 899px)').matches) tray.scrollIntoView({ behavior: 'smooth', block: 'center' }); })
+        .catch(() => {}).finally(() => { goBtn.disabled = false; });
+    });
+    shareBtn.addEventListener('click', async () => {
+      const text = cfg.shareText;
+      const nav = navigator as any;
+      if (lastFile && nav.canShare?.({ files: [lastFile] })) {
+        try { await nav.share({ files: [lastFile], text: cfg.url ? `${text} ${cfg.url}` : text }); return; } catch (err) { if ((err as Error)?.name === 'AbortError') return; }
+      }
+      const q = new URLSearchParams({ text }); if (cfg.url) q.set('url', cfg.url);
+      window.open(`https://x.com/intent/post?${q}`, '_blank', 'noopener');
+      shareNote.hidden = false;
+    });
+
+    // The coach stays quiet while someone is working in the studio
+    // On narrow screens the machine is pinned over the page, so a printed sheet is put away as soon as editing starts again.
+    let quiet = 0;
+    const touch = (e: Event) => {
+      const t = e.target as HTMLElement;
+      if (!tray.hidden && !tray.contains(t) && !goBtn.contains(t) && matchMedia('(max-width: 899px)').matches) { tray.hidden = true; root.classList.remove('has-print'); }
+      dispatchEvent(new CustomEvent('rp:busy', { detail: true })); clearTimeout(quiet); quiet = window.setTimeout(() => dispatchEvent(new CustomEvent('rp:busy', { detail: false })), 30000); };
+    ['pointerdown', 'keydown', 'input', 'change'].forEach((ev) => root.addEventListener(ev, touch));
+
+    // Gallery sheets can be sent straight into the press
+    addEventListener('rp:use', (e) => { const src = (e as CustomEvent).detail as string; if (src) { working(true); setImage(src).catch(() => {}).finally(() => working(false)); } });
+
+    // Start: empty paper at once, the first picture when the studio is near the screen and the fonts are ready
+    rebuild(); syncInk();
+    let started = false;
+    const ready = new Promise<void>((resolve) => {
+      const start = () => {
+        if (started) return; started = true;
+        const fonts = (document as any).fonts;
+        Promise.all([fonts?.load ? fonts.load(`80px ${headingFont}`).catch(() => {}) : null, fonts?.load ? fonts.load(`800 24px ${bodyFont}`).catch(() => {}) : null])
+          .then(() => (cfg.templates.length ? setTemplate(0) : undefined)).catch(() => {}).then(() => { render(); resolve(); });
+      };
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((en) => { if (en.some((x) => x.isIntersecting)) { io.disconnect(); start(); } }, { rootMargin: '700px 0px' });
+        io.observe(root);
+      } else start();
+      (root as any).rpStart = start;
+    });
+
+    (root as any).studio = {
+      state, ready, start: () => { (root as any).rpStart(); return ready; }, setTemplate, setImage, addSticker, setText, setRiso: (on: boolean) => { state.riso = on; state.risoAuto = false; syncInk(); rebuild(); },
+      setThird: (on: boolean) => { state.third = on; syncInk(); rebuild(); }, setHolder, select, print, render,
+      pixel: (x: number, y: number) => [...ctx.getImageData(x, y, 1, 1).data],
+    };
+  });
+</script>

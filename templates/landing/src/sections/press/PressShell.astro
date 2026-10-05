@@ -1,0 +1,162 @@
+---
+// Layout "press": the whole site is one printing press and the visitor is a sheet of paper going through it.
+// This section draws everything that stays in place while the page scrolls: the top bar with the print-run counter,
+// the paper path (a sheet travelling between rollers, with a status that changes on scroll), the coach's note that
+// appears when the visitor stops scrolling. It also runs the shared effects of the layout:
+// two-pass printing of pictures and the arms that bring the section headings in.
+// Wording comes from config.press, colors from the theme.
+import { config, asset } from '../../lib/project';
+const p = config.press || {};
+const statuses: { label: string; at: string }[] = p.statuses || [];
+const nav: { id: string; label: string }[] = p.nav || [];
+const counter = p.counter || {};
+const coach = p.coach || {};
+const logo = asset(config.assets.logo);
+const digits = Number(counter.digits) || 6;
+const data = JSON.stringify({
+  statuses, start: Number(counter.start) || 0, perSheet: Number(counter.pixelsPerSheet) || 40, idleBonus: Number(counter.idleBonus) || 8,
+  idle: (Number(coach.idleSeconds) || 5) * 1000, lines: coach.lines || [],
+});
+---
+<header class="rp-bar" data-rp-shell={data}>
+  <a href="#home" class="rp-bar-brand" aria-label={config.name}>
+    <img src={logo} alt="" width="40" height="40" />
+    <span class="font-heading">{config.shortName || config.name}</span>
+  </a>
+  <nav class="rp-bar-nav" aria-label="Sections">
+    {nav.map((n) => <a href={`#${n.id}`} data-rp-nav={n.id}>{n.label}</a>)}
+  </nav>
+  <p class="rp-counter" aria-label={counter.label}>
+    <span class="rp-counter-label">{counter.label}</span>
+    <span class="rp-odo font-heading" data-rp-odo aria-hidden="true">
+      {Array.from({ length: digits }).map(() => <i><b>0<br />1<br />2<br />3<br />4<br />5<br />6<br />7<br />8<br />9</b></i>)}
+    </span>
+  </p>
+  <a class="rp-btn rp-btn-small" href="#buy">{p.buyShort || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+  <div class="rp-bar-status">
+    <span class="rp-bar-track" aria-hidden="true"><i data-rp-progress></i></span>
+    <span class="rp-bar-stage" data-rp-status aria-live="polite">{statuses[0]?.label}</span>
+  </div>
+</header>
+
+<aside class="rp-rail" aria-hidden="true">
+  <p class="rp-rail-title">{p.railTitle}</p>
+  <div class="rp-rail-track">
+    <span class="rp-rail-sheet" data-rp-sheet></span>
+    <ol>
+      {statuses.map((s, i) => (
+        <li class={i === 0 ? 'is-now' : undefined} data-rp-step>
+          <span class="rp-roller"><i></i><i></i></span>
+          <span class="rp-rail-label">{s.label}</span>
+        </li>
+      ))}
+    </ol>
+  </div>
+</aside>
+
+<div class="rp-coach" data-rp-coach role="status" aria-live="polite">
+  <img src={logo} alt="" width="44" height="44" />
+  <div>
+    <p class="rp-coach-name">{coach.name}</p>
+    <p class="rp-coach-text" data-rp-coach-text></p>
+  </div>
+  <button type="button" class="rp-coach-close" data-rp-coach-close>{coach.close || 'OK'}</button>
+</div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-rp-shell]');
+  if (bar) {
+    const cfg: { statuses: { label: string; at: string }[]; start: number; perSheet: number; idleBonus: number; idle: number; lines: string[] } = JSON.parse(bar.dataset.rpShell!);
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const root = document.documentElement;
+    root.classList.add('rp-js');
+    if (!calm) root.classList.add('rp-motion');
+
+    // ---- Print-run counter: grows while the page is scrolled, when a meme is printed and while the visitor idles
+    const cols = [...bar.querySelectorAll<HTMLElement>('[data-rp-odo] i b')];
+    let scrolled = 0, extra = 0, shown = -1;
+    const draw = () => {
+      const value = cfg.start + Math.floor(scrolled / cfg.perSheet) + extra;
+      if (value === shown) return;
+      shown = value;
+      const s = String(value % 10 ** cols.length).padStart(cols.length, '0');
+      cols.forEach((c, i) => { c.style.transform = `translateY(-${Number(s[i]) * 10}%)`; });
+      bar.querySelector('.rp-counter')?.setAttribute('aria-label', `${bar.querySelector('.rp-counter-label')?.textContent || ''} ${value}`);
+    };
+    const add = (n: number) => { extra += n; draw(); };
+    (window as any).rpCounter = { add, value: () => shown };
+    addEventListener('rp:printed', () => add(1));
+
+    // ---- Paper path: the status follows the scroll, the small sheet travels down the rail
+    const statusEl = bar.querySelector<HTMLElement>('[data-rp-status]')!;
+    const progress = bar.querySelector<HTMLElement>('[data-rp-progress]')!;
+    const steps = [...document.querySelectorAll<HTMLElement>('[data-rp-step]')];
+    const sheet = document.querySelector<HTMLElement>('[data-rp-sheet]');
+    const navLinks = [...bar.querySelectorAll<HTMLAnchorElement>('[data-rp-nav]')];
+    const marks = cfg.statuses.map((s) => document.getElementById(s.at));
+    const navMarks = navLinks.map((a) => document.getElementById(a.dataset.rpNav!));
+    let current = -1, currentNav = -2, queued = false;
+    const update = () => {
+      queued = false;
+      const doc = document.documentElement;
+      const max = Math.max(1, doc.scrollHeight - innerHeight);
+      const ratio = Math.min(1, Math.max(0, scrollY / max));
+      scrolled = Math.max(scrolled, scrollY);
+      draw();
+      progress.style.transform = `scaleX(${ratio})`;
+      if (sheet) sheet.style.top = `${ratio * 100}%`;
+      const mid = innerHeight * 0.5;
+      let idx = 0;
+      marks.forEach((el, i) => { if (el && el.getBoundingClientRect().top < mid) idx = i; });
+      const atEnd = innerHeight + scrollY >= doc.scrollHeight - 4;
+      if (atEnd) idx = cfg.statuses.length - 1;
+      if (idx !== current) {
+        current = idx;
+        statusEl.textContent = cfg.statuses[idx]?.label || '';
+        if (!calm) { statusEl.classList.remove('is-new'); void statusEl.offsetWidth; statusEl.classList.add('is-new'); }
+        steps.forEach((s, i) => { s.classList.toggle('is-done', i < idx); s.classList.toggle('is-now', i === idx); });
+      }
+      let n = -1;
+      navMarks.forEach((el, i) => { if (el && el.getBoundingClientRect().top < mid) n = i; });
+      // at the very bottom the last link wins, even if its section never reaches the middle of the screen
+      if (atEnd && navLinks.length) n = navLinks.length - 1;
+      if (n !== currentNav) { currentNav = n; navLinks.forEach((a, i) => a.classList.toggle('is-on', i === n)); }
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+    addEventListener('resize', update);
+    update();
+
+    // ---- Coach: speaks up when the visitor stops moving for a few seconds
+    const coach = document.querySelector<HTMLElement>('[data-rp-coach]')!;
+    const coachText = coach.querySelector<HTMLElement>('[data-rp-coach-text]')!;
+    let idleTimer = 0, line = 0, lastShown = 0, open = false, busy = false;
+    const hide = () => { open = false; coach.classList.remove('is-on'); };
+    const speak = () => {
+      if (!cfg.lines.length || document.hidden || busy || open) return;
+      if (Date.now() - lastShown < 16000 && lastShown) return;
+      lastShown = Date.now(); open = true;
+      coachText.textContent = cfg.lines[line++ % cfg.lines.length].replace('{n}', String(cfg.idleBonus));
+      coach.classList.add('is-on');
+      add(cfg.idleBonus);
+    };
+    const arm = () => { clearTimeout(idleTimer); idleTimer = window.setTimeout(speak, cfg.idle); };
+    const active = () => { if (open && Date.now() - lastShown > 1500) hide(); arm(); };
+    ['scroll', 'pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel'].forEach((ev) => addEventListener(ev, active, { passive: true }));
+    coach.querySelector('[data-rp-coach-close]')!.addEventListener('click', hide);
+    // the meme maker asks the coach to stay quiet while someone is working in it
+    addEventListener('rp:busy', (e) => { busy = !!(e as CustomEvent).detail; if (busy) hide(); });
+    arm();
+    (window as any).rpCoach = { speak, hide, isOpen: () => open };
+
+    // ---- Shared effects: headings arrive with an arm, pictures print in two passes
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target); e.target.classList.add('is-in');
+      }), { rootMargin: '0px 0px -12% 0px', threshold: 0.15 });
+      document.querySelectorAll('[data-rp-title], [data-rp-print], [data-rp-in]').forEach((el) => io.observe(el));
+    } else {
+      document.querySelectorAll('[data-rp-title], [data-rp-print], [data-rp-in]').forEach((el) => el.classList.add('is-in'));
+    }
+  }
+</script>

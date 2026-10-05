@@ -1,0 +1,41 @@
+---
+// Tokenomics as ink levels: one cartridge per line, filled to press.ink.levels[i] percent when it scrolls into view.
+// The supply is the size of the print run; the contract address sits under the cartridges.
+import { config } from '../../lib/project';
+import RpTitle from './RpTitle.astro';
+const k = (config.press || {}).ink || {};
+const levels: number[] = k.levels || [];
+const tones = ['a', 'b', 'c', 'd'];
+const ca = config.ca.trim();
+---
+<section id="ink" class="rp-sec">
+  <RpTitle kicker={k.kicker} title={k.title} side="l" />
+  <div class="rp-sheet rp-ink" data-rp-in>
+    <span class="rp-marks" aria-hidden="true"></span>
+    <ul class="rp-carts">
+      {config.tokenomics.items.map((it, i) => (
+        <li class={`rp-cart rp-cart-${tones[i % tones.length]}`}>
+          <div class="rp-cart-tank" aria-hidden="true"><i style={`--rp-level:${Math.min(100, Math.max(0, levels[i] ?? 100))}%`}></i><span></span></div>
+          <p class="rp-cart-value font-heading">{it.value}</p>
+          <p class="rp-cart-label">{it.label}</p>
+        </li>
+      ))}
+    </ul>
+    <p class="rp-total"><span>{k.totalLabel}</span><b class="font-heading">{config.tokenomics.supply}</b></p>
+    <div class="rp-ca">
+      <p class="rp-ca-label">{k.caLabel}</p>
+      {ca
+        ? <p class="rp-ca-row"><code title={ca}>{ca}</code><button type="button" class="rp-btn rp-btn-small" data-rp-copy={ca} data-done={k.copied || 'Copied'}>{k.copy || 'Copy'}</button></p>
+        : <p class="rp-ca-empty">{k.caEmpty}</p>}
+    </div>
+    {k.note && <p class="rp-note">{k.note}</p>}
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-rp-copy]').forEach((btn) => btn.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(btn.dataset.rpCopy || ''); } catch { return; }
+    const label = btn.textContent; btn.textContent = btn.dataset.done || 'Copied';
+    setTimeout(() => (btn.textContent = label), 1500);
+  }));
+</script>

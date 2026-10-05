@@ -1,0 +1,25 @@
+---
+// Footer of the "press" layout: links, the second tagline and the disclaimer.
+import { config, asset } from '../../lib/project';
+const f = (config.press || {}).footer || {};
+const links = [
+  config.links.x && { label: 'X', url: config.links.x },
+  config.links.telegram && { label: 'Telegram', url: config.links.telegram },
+  config.links.pumpfun && { label: 'pump.fun', url: config.links.pumpfun },
+  config.links.dexscreener && { label: 'DexScreener', url: config.links.dexscreener },
+].filter(Boolean) as { label: string; url: string }[];
+---
+<footer class="rp-sec rp-footer">
+  <div class="rp-footer-brand">
+    <img src={asset(config.assets.logo)} alt="" width="56" height="56" loading="lazy" />
+    <div>
+      <p class="font-heading rp-footer-name">{config.name} <span class="font-ticker">${config.ticker}</span></p>
+      <p class="rp-footer-tag">{f.tag}</p>
+    </div>
+  </div>
+  <ul class="rp-footer-links">
+    {links.map((l) => <li><a class="rp-btn rp-btn-small rp-btn-ghost" href={l.url} target="_blank" rel="noopener noreferrer">{l.label}</a></li>)}
+  </ul>
+  <p class="rp-disclaimer">{config.disclaimer}</p>
+  {f.note && <p class="rp-disclaimer">{f.note}</p>}
+</footer>

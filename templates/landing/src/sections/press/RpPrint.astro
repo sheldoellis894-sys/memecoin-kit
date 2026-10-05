@@ -1,0 +1,12 @@
+---
+// A picture that "prints" itself in two passes when it scrolls into view: the first ink, then the second ink
+// sliding into register, then the finished picture. Without JS or with reduced motion the picture is simply shown.
+interface Props { src: string; alt: string; width?: number; height?: number; eager?: boolean; class?: string }
+const { src, alt, width = 900, height = 900, eager = false, class: cls = '' } = Astro.props;
+---
+<figure class={`rp-print ${cls}`} data-rp-print>
+  <img class="rp-print-final" src={src} alt={alt} width={width} height={height} loading={eager ? 'eager' : 'lazy'} />
+  <span class="rp-print-ink rp-print-a" style={`background-image:url("${src}")`} aria-hidden="true"></span>
+  <span class="rp-print-ink rp-print-b" style={`background-image:url("${src}")`} aria-hidden="true"></span>
+  <slot />
+</figure>

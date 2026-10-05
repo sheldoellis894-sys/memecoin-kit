@@ -1,0 +1,22 @@
+---
+// Stage 2: the first ink. Who the coach is: picture, three numbers and a few lines of his method.
+import { config, asset } from '../../lib/project';
+import RpTitle from './RpTitle.astro';
+import RpPrint from './RpPrint.astro';
+const a = (config.press || {}).about || {};
+const stats: { value: string; label: string }[] = a.stats || [];
+---
+<section id="coach" class="rp-sec">
+  <RpTitle kicker={config.about.kicker} title={config.about.title} side="r" />
+  <div class="rp-sheet rp-about">
+    <span class="rp-marks" aria-hidden="true"></span>
+    {config.about.image && <RpPrint src={asset(config.about.image)} alt={a.imageAlt || config.about.title} class="rp-about-art" />}
+    <div class="rp-about-body">
+      {config.about.text.map((t) => <p class="rp-text">{t}</p>)}
+      <ul class="rp-stats">
+        {stats.map((s) => <li><b class="font-heading">{s.value}</b><span>{s.label}</span></li>)}
+      </ul>
+      {a.quote && <p class="rp-quote">{a.quote}</p>}
+    </div>
+  </div>
+</section>

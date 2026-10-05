@@ -83,6 +83,23 @@ export type Config = {
   };
   /** Wording and data of the "delivery" layout (sections app*). See projects/goosini/project.config.json for a full example. */
   app?: Record<string, any>;
+  /** Wording and data of the "press" layout (sections press*). See projects/inkmaxx/project.config.json for a full example. */
+  press?: Record<string, any>;
+  /** Meme maker "Studio" (section pressStudio): base picture, two-ink print filter, captions, stickers, download and share. */
+  studio?: {
+    enabled: boolean; nav?: string; kicker?: string; title: string; lead?: string;
+    /** Ready-made base pictures (square). */
+    templates: { src: string; alt: string }[];
+    /** Stickers with a transparent background. The first "freeStickers" are open to everyone, the rest are shown as holder-only. */
+    stickers: { src: string; alt: string }[];
+    freeStickers?: number;
+    /** Small tag printed in the corner of every sheet unless the holder preview is on. */
+    watermark?: string;
+    /** Ink colors of the print filter. Default: theme primary, secondary and accent on the theme background. */
+    inks?: { first?: string; second?: string; third?: string; paper?: string };
+    labels: Record<string, string>;
+    shareText: string;
+  };
   /** Mascot that grows while the page is scrolled (section bossGrow). */
   boss?: { sprite: string; label: string; unit: string; from: number; to: number; note?: string; dismiss?: string };
   /** Wording of the "contract" layout (sections paper*). See projects/fch/project.config.json for a full example. */
