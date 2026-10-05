@@ -17,3 +17,4 @@ Reusable kit for building memecoin and utility-token projects fast.
 | [Turbo Shiba Cop 3000 ($TSC3000)](projects/tsc3000/README.md) | Memecoin, 16-bit dog cop | https://turboshibacop.vercel.app |
 | [Fat Cat Holdings ($FCH)](projects/fch/README.md) | Memecoin, fat cat boss and an employment agreement | https://fatcatholdings.vercel.app |
 | [Scootini Goosini ($GOOSINI)](projects/goosini/README.md) | Memecoin, goose-scooter courier and a delivery app | https://scootinigoosini.vercel.app |
+| [Inkmaxx ($INKMAXX)](projects/inkmaxx/README.md) | Utility token, octopus printer and a working meme press | https://inkmaxxing.vercel.app |

@@ -1029,7 +1029,8 @@ html.lead-headings :is(h1, h2, h3, .font-heading) { line-height: var(--t-heading
 @media (min-width: 760px) { .rp-carts { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
 /* ---------- Gallery: the drying line ---------- */
-.rp-line-scroll { overflow-x: auto; overflow-y: hidden; margin-inline: -16px; padding: 6px 16px 26px; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--t-primary) transparent; }
+.rp-line-scroll { overflow-x: auto; overflow-y: hidden; margin-inline: -16px; padding: 6px 16px 26px; scroll-snap-type: x proximity; scrollbar-width: none; }
+.rp-line-scroll::-webkit-scrollbar { display: none; }
 .rp-line-rope { position: relative; display: flex; gap: 24px; width: max-content; margin: 0; padding: 40px 12px 0; list-style: none; }
 .rp-line-rope::before { content: ""; position: absolute; left: -16px; right: -16px; top: 18px; height: 4px; background: var(--t-text); border-radius: 2px; }
 .rp-hang { position: relative; flex: 0 0 min(70vw, 280px); scroll-snap-align: center; transform-origin: 50% -22px; rotate: calc(var(--rp-tilt, 0deg) + var(--rp-sway, 0deg) * var(--rp-k, 1)); }
