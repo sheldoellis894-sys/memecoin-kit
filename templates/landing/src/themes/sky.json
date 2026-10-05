@@ -1,0 +1,21 @@
+{
+  "name": "sky",
+  "flavor": "app",
+  "colors": {
+    "bg": "#BFE3FF",
+    "surface": "#FFFFFF",
+    "text": "#0E1B3D",
+    "muted": "#56678A",
+    "primary": "#1747D1",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#FFFFFF",
+    "accent": "#FF6A00"
+  },
+  "fonts": {
+    "heading": "Montserrat",
+    "body": "Montserrat",
+    "googleFonts": "family=Montserrat:ital,wght@0,500;0,700;0,800;1,900",
+    "ticker": "heading"
+  },
+  "radius": { "button": "999px", "card": "22px" }
+}

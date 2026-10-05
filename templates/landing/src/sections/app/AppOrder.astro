@@ -1,0 +1,63 @@
+---
+// "Slide to order": the buy button stays locked until the visitor drags the slider to the end
+// (or presses Enter / Space on it, or uses the plain link under it).
+import { config, asset, buyUrl } from '../../lib/project';
+const o = (config.app || {}).order || {};
+const ca = config.ca.trim();
+const external = buyUrl.startsWith('http');
+---
+<section id="order" class="da-sec">
+  <p class="da-kicker">{o.kicker}</p>
+  <h2 class="da-h2">{o.title}</h2>
+  <div class="da-card da-order-card" data-da-order>
+    <p class="da-lead">{o.text}</p>
+    <div class="da-slide" data-da-slide role="slider" tabindex="0" aria-label={o.slide} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <span class="da-slide-fill" data-da-fill></span>
+      <span class="da-slide-text">{o.slide}</span>
+      <span class="da-slide-thumb" data-da-thumb><img src={asset(config.assets.logo)} alt="" width="52" height="52" draggable="false" /></span>
+    </div>
+    <button type="button" class="da-link" data-da-skip>{o.skip}</button>
+    <div class="da-order-done" data-da-done hidden>
+      <p class="da-order-done-title font-heading">{o.doneTitle}</p>
+      <p>{o.doneText}</p>
+      <a class="da-btn da-btn-big" href={buyUrl} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>{o.buyLabel} <span class="font-ticker">${config.ticker}</span></a>
+      <p class="da-ca-label">{o.caLabel}</p>
+      {ca ? <p class="da-ca-row"><code title={ca}>{ca}</code></p> : <p class="da-ca-empty">{o.caEmpty}</p>}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-da-order]').forEach((root) => {
+    const slide = root.querySelector<HTMLElement>('[data-da-slide]')!;
+    const thumb = root.querySelector<HTMLElement>('[data-da-thumb]')!;
+    const fill = root.querySelector<HTMLElement>('[data-da-fill]')!;
+    const done = root.querySelector<HTMLElement>('[data-da-done]')!;
+    const skip = root.querySelector<HTMLElement>('[data-da-skip]')!;
+    let dragging = false, startX = 0, x = 0, finished = false;
+    const max = () => slide.clientWidth - thumb.offsetWidth - 8;
+    const set = (v: number, anim = false) => {
+      x = Math.min(Math.max(v, 0), max());
+      slide.classList.toggle('is-anim', anim);
+      thumb.style.translate = `${x}px 0`; fill.style.width = `${x + thumb.offsetWidth + 4}px`;
+      slide.setAttribute('aria-valuenow', String(Math.round(x / Math.max(1, max()) * 100)));
+    };
+    const finish = () => {
+      if (finished) return; finished = true;
+      set(max(), true); slide.classList.add('is-done'); slide.setAttribute('aria-disabled', 'true');
+      done.hidden = false; skip.hidden = true;
+      done.classList.add('is-in');
+    };
+    slide.addEventListener('pointerdown', (e) => {
+      if (finished) return;
+      dragging = true; startX = e.clientX - x; slide.setPointerCapture(e.pointerId); slide.classList.remove('is-anim');
+    });
+    slide.addEventListener('pointermove', (e) => { if (dragging) set(e.clientX - startX); });
+    const drop = () => { if (!dragging) return; dragging = false; if (x > max() * 0.86) finish(); else set(0, true); };
+    slide.addEventListener('pointerup', drop);
+    slide.addEventListener('pointercancel', drop);
+    slide.addEventListener('keydown', (e) => { if (['Enter', ' ', 'ArrowRight', 'End'].includes(e.key)) { e.preventDefault(); finish(); } });
+    skip.addEventListener('click', finish);
+    (root as any).daOrder = { finish, done: () => finished };
+  });
+</script>

@@ -1,0 +1,18 @@
+---
+// Roadmap shown as a list of upcoming orders, each with a status chip (config.app.next.statuses, by position).
+import { config } from '../../lib/project';
+const n = (config.app || {}).next || {};
+---
+<section id="next" class="da-sec">
+  <p class="da-kicker">{n.kicker}</p>
+  <h2 class="da-h2">{n.title}</h2>
+  <ul class="da-orders">
+    {config.roadmap.map((r, i) => (
+      <li class="da-card da-order">
+        <p class="da-order-top"><span class="da-order-no">{r.phase}</span>{(n.statuses || [])[i] && <span class="da-chip">{n.statuses[i]}</span>}</p>
+        <h3 class="da-h3">{r.title}</h3>
+        <ul class="da-order-items">{r.items.map((it) => <li>{it}</li>)}</ul>
+      </li>
+    ))}
+  </ul>
+</section>

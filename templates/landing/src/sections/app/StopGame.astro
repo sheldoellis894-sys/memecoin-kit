@@ -1,0 +1,285 @@
+---
+// Mini-game "Stop": the hero rides to the right by himself and speeds up every round.
+// One tap (click, Space, Enter) hits the brakes. The goal is to stop exactly at the marked door.
+// A good stop = one more order "eaten at the door"; the first miss ends the shift.
+// Sprites and all texts come from config.stop, colors from the theme.
+import { config, theme, asset } from '../../lib/project';
+const g = config.stop;
+const data = g && JSON.stringify({
+  unit: g.unit || 'm',
+  sprites: Object.fromEntries(Object.entries(g.sprites).map(([k, v]) => [k, asset(v)])),
+  lines: g.lines, shareText: g.shareText, ticker: config.ticker, url: config.url, colors: theme.colors,
+});
+---
+{g?.enabled && (
+  <section id="game" class="da-sec">
+    <p class="da-kicker">{g.kicker}</p>
+    <h2 class="da-h2">{g.title}</h2>
+    <div class="da-card da-game" data-stop={data} tabindex="-1">
+      <canvas class="da-game-canvas" aria-label={`${g.title}: ${g.lines.hint}`}></canvas>
+      <div class="da-game-panel" data-start>
+        <button type="button" class="da-btn" data-play>{g.lines.start}</button>
+        <p class="da-game-hint">{g.lines.hint}</p>
+      </div>
+      <div class="da-game-panel" data-over hidden>
+        <p class="da-game-result" data-result></p>
+        <div class="da-actions">
+          <button type="button" class="da-btn" data-retry>{g.lines.retry}</button>
+          <a class="da-btn da-btn-ghost" data-share target="_blank" rel="noopener noreferrer">{g.lines.share}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  type Cfg = {
+    unit: string; sprites: Record<'ride' | 'brake' | 'eat' | 'miss' | 'door', string>;
+    lines: Record<string, string>; shareText: string; ticker: string; url?: string; colors: Record<string, string>;
+  };
+  type Img = HTMLImageElement | null;
+  type Pop = { x: number; y: number; t: number; text: string };
+
+  const M = 36;            // pixels in one metre: 250 px/s reads as 25 km/h
+  const GROUND = 44;       // height of the sidewalk strip
+  const HERO_H = 124;      // height of the hero on screen
+  const DOOR_H = 150;      // height of the door
+  const SPEED0 = 250;      // speed in round 1, px/s
+  const SPEED_UP = 46;     // added every round
+  const SPEED_MAX = 620;
+  const ACCEL = 560;       // how fast he gets up to speed
+  const DECEL = 1000;      // brakes
+  const TOL = 42;          // a stop this close to the door centre counts (about 1.2 m)
+  const PERFECT = 12;
+  const GONE = 280;        // past the door by this much without braking = shift over
+
+  const load = (src: string) => new Promise<Img>((res) => {
+    if (!src) return res(null);
+    const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src;
+  });
+  const rgb = (v: string) => {
+    if (v.startsWith('#')) { const n = parseInt(v.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+    return (v.match(/\d+/g) || [0, 0, 0]).slice(0, 3).map(Number);
+  };
+  const mix = (a: string, b: string, t: number) => {
+    const x = rgb(a), y = rgb(b); return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`;
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-stop]').forEach(async (root) => {
+    const cfg: Cfg = JSON.parse(root.dataset.stop!);
+    const cv = root.querySelector('canvas')!;
+    const ctx = cv.getContext('2d')!;
+    const startPanel = root.querySelector<HTMLElement>('[data-start]')!;
+    const overPanel = root.querySelector<HTMLElement>('[data-over]')!;
+    const result = root.querySelector<HTMLElement>('[data-result]')!;
+    const share = root.querySelector<HTMLAnchorElement>('[data-share]')!;
+    const C = cfg.colors, L = cfg.lines;
+    const font = getComputedStyle(root).fontFamily;
+    const far = mix(C.bg, C.primary, 0.16), wall = C.surface, win = mix(C.surface, C.primary, 0.14);
+    const walk = mix(C.surface, C.text, 0.10), joint = mix(C.surface, C.text, 0.22), deco = mix(C.surface, C.text, 0.30);
+
+    const S = cfg.sprites;
+    const [ride, brake, eat, miss, door] = await Promise.all([load(S.ride), load(S.brake), load(S.eat), load(S.miss), load(S.door)]);
+
+    let W = 0, H = 0, dpr = 1;
+    let state: 'idle' | 'ride' | 'brake' | 'eat' | 'over' = 'idle';
+    let visible = true, running = false, prev = 0, clock = 0;
+    let hx = 0, v = 0, target = SPEED0, doorX = 600, round = 0, score = 0, wait = 0;
+    let lastErr = 0, endKind: 'past' | 'short' | 'none' = 'none';
+    let pops: Pop[] = [];
+    let best = 0;
+    try { best = Number(localStorage.getItem('stop-best')) || 0; } catch {}
+
+    const metres = (px: number) => (Math.abs(px) / M).toFixed(1);
+    const fill = (s: string) => s.replace('{score}', String(score)).replace('{miss}', metres(lastErr)).replace('{unit}', cfg.unit).replace('{ticker}', cfg.ticker);
+    // the faster he goes, the further left he sits on screen, so the door is seen earlier
+    let lead = 0.3;
+    const heroScreenX = () => W * lead;
+
+    const fit = () => {
+      const r = cv.getBoundingClientRect();
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      W = r.width; H = r.height;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      draw();
+    };
+
+    const nextRound = () => {
+      round++;
+      target = Math.min(SPEED0 + SPEED_UP * (round - 1), SPEED_MAX);
+      // far enough to reach full speed and still have about two seconds to judge the braking distance
+      doorX = hx + 420 + target * 1.9 + Math.random() * 260;
+      state = 'ride';
+    };
+
+    const tap = () => { if (state === 'ride') state = 'brake'; };
+
+    const step = (dt: number) => {
+      clock += dt;
+      const want = 0.3 - 0.13 * Math.min(1, Math.max(0, (target - SPEED0) / (SPEED_MAX - SPEED0)));
+      lead += (want - lead) * Math.min(1, dt * 2.5);
+      if (state === 'ride') {
+        v = Math.min(target, v + ACCEL * dt); hx += v * dt;
+        if (hx - doorX > GONE) { lastErr = hx - doorX; endKind = 'none'; return end(); }
+      } else if (state === 'brake') {
+        v = Math.max(0, v - DECEL * dt); hx += v * dt;
+        if (v === 0) {
+          lastErr = hx - doorX;
+          if (Math.abs(lastErr) <= TOL) {
+            score++; state = 'eat'; wait = 1.15;
+            pops.push({ x: 0, y: 0, t: 0, text: Math.abs(lastErr) <= PERFECT ? L.perfect : L.good });
+          } else { endKind = lastErr > 0 ? 'past' : 'short'; return end(); }
+        }
+      } else if (state === 'eat') {
+        wait -= dt; if (wait <= 0) nextRound();
+      }
+      for (const p of pops) p.t += dt;
+      pops = pops.filter((p) => p.t < 1.3);
+    };
+
+    const draw = () => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const cam = hx - heroScreenX();
+      const ground = H - GROUND;
+      // sky and clouds
+      ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgb(255 255 255 / .75)';
+      for (let i = 0; i < 4; i++) {
+        const cx = ((i * 310 + 90 - cam * 0.12) % (W + 260) + W + 260) % (W + 260) - 130, cy = 38 + (i % 2) * 34;
+        ctx.beginPath(); ctx.ellipse(cx, cy, 46, 15, 0, 0, 6.28); ctx.ellipse(cx + 26, cy - 10, 30, 14, 0, 0, 6.28); ctx.fill();
+      }
+      // far houses
+      ctx.fillStyle = far;
+      const fw = 120, f0 = Math.floor(cam * 0.35 / fw) - 1;
+      for (let i = f0; i < f0 + W / fw + 3; i++) {
+        const hh = 70 + ((i * 37) % 5 + 5) % 5 * 16;
+        ctx.fillRect(i * fw - cam * 0.35, ground - 96 - hh, fw - 14, hh + 96);
+      }
+      // the wall of the street with windows and plain doors
+      const wallTop = ground - 176;
+      ctx.fillStyle = wall; ctx.fillRect(0, wallTop, W, 176);
+      ctx.fillStyle = joint; ctx.fillRect(0, wallTop, W, 3);
+      const cell = 170, c0 = Math.floor(cam / cell) - 1;
+      for (let i = c0; i < c0 + W / cell + 3; i++) {
+        const x = i * cell - cam;
+        ctx.fillStyle = win;
+        ctx.fillRect(x + 24, wallTop + 26, 48, 54); ctx.fillRect(x + 98, wallTop + 26, 48, 54);
+        if ((i % 3 + 3) % 3 === 1 && Math.abs(i * cell + 61 - doorX) > 220) {
+          ctx.fillStyle = deco; ctx.fillRect(x + 36, ground - 108, 50, 108);
+          ctx.fillStyle = wall; ctx.fillRect(x + 42, ground - 100, 38, 44);
+        }
+      }
+      // target door with a doormat line and a bouncing arrow
+      const dx = doorX - cam;
+      if (dx > -160 && dx < W + 160) {
+        const dw = door ? DOOR_H * door.width / door.height : 74;
+        if (door) ctx.drawImage(door, dx - dw / 2, ground - DOOR_H + 8, dw, DOOR_H);
+        else {
+          ctx.fillStyle = C.text; ctx.fillRect(dx - 41, ground - DOOR_H, 82, DOOR_H);
+          ctx.fillStyle = C.accent; ctx.fillRect(dx - 35, ground - DOOR_H + 6, 70, DOOR_H - 6);
+        }
+        if (state === 'ride' || state === 'brake' || state === 'idle') {
+          const bob = Math.sin(clock * 6) * 5, ay = ground - DOOR_H - 22 + bob;
+          ctx.fillStyle = C.accent; ctx.beginPath(); ctx.moveTo(dx - 13, ay - 16); ctx.lineTo(dx + 13, ay - 16); ctx.lineTo(dx, ay); ctx.closePath(); ctx.fill();
+        }
+      }
+      // sidewalk
+      ctx.fillStyle = walk; ctx.fillRect(0, ground, W, GROUND);
+      ctx.fillStyle = joint; ctx.fillRect(0, ground, W, 3);
+      const tile = 64, t0 = Math.floor(cam / tile) - 1;
+      for (let i = t0; i < t0 + W / tile + 3; i++) ctx.fillRect(i * tile - cam, ground + 3, 2, GROUND - 3);
+      // the stop zone on the sidewalk
+      if (dx > -160 && dx < W + 160) { ctx.fillStyle = mix(C.accent, walk, 0.45); ctx.fillRect(dx - TOL, ground + 8, TOL * 2, 8); }
+
+      // speed lines
+      if ((state === 'ride' || state === 'brake') && v > 120) {
+        ctx.strokeStyle = 'rgb(255 255 255 / .8)'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+        const n = Math.min(5, Math.floor(v / 130));
+        for (let i = 0; i < n; i++) {
+          const ly = ground - 30 - i * 21, len = 16 + v * 0.05 + (i % 2) * 10, lx = heroScreenX() - 62 - ((clock * 300 + i * 23) % 26);
+          ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx - len, ly); ctx.stroke();
+        }
+      }
+      // hero
+      const over = state === 'over';
+      const img = state === 'brake' ? brake : state === 'eat' ? eat : over ? (endKind === 'short' ? brake : miss) : ride;
+      const hw = img ? HERO_H * img.width / img.height : HERO_H * 0.8;
+      const x = heroScreenX();
+      const bob = state === 'ride' ? Math.sin(clock * 22) * 1.5 : state === 'eat' ? -Math.abs(Math.sin(clock * 9)) * 6 : 0;
+      const tilt = state === 'brake' ? -0.10 : state === 'ride' ? 0.03 : 0;
+      ctx.fillStyle = 'rgb(14 27 61 / .16)';
+      ctx.beginPath(); ctx.ellipse(x, ground + 9, hw * 0.36, 7, 0, 0, 6.28); ctx.fill();
+      ctx.save(); ctx.translate(x, ground + 10 + bob); ctx.rotate(tilt);
+      if (img) ctx.drawImage(img, -hw / 2, -HERO_H, hw, HERO_H);
+      else { ctx.fillStyle = C.primary; ctx.fillRect(-hw / 2, -HERO_H, hw, HERO_H); }
+      ctx.restore();
+
+      // result of the stop: a pill under the score line
+      ctx.textAlign = 'center'; ctx.font = `800 14px ${font}`;
+      for (const p of pops) {
+        ctx.globalAlpha = Math.min(1, p.t * 8, (1.3 - p.t) * 4);
+        const tw = ctx.measureText(p.text).width + 28, py = 62 - Math.min(1, p.t * 6) * 6;
+        ctx.fillStyle = C.accent; ctx.strokeStyle = C.text; ctx.lineWidth = 3;
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(W / 2 - tw / 2, py, tw, 30, 15); else ctx.rect(W / 2 - tw / 2, py, tw, 30); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = C.text; ctx.fillText(p.text, W / 2, py + 20);
+      }
+      ctx.globalAlpha = 1;
+
+      // score line
+      ctx.font = `800 13px ${font}`; ctx.fillStyle = C.text;
+      ctx.textAlign = 'left'; ctx.fillText(`${L.score} ${score}`, 12, 22);
+      ctx.textAlign = 'right'; ctx.fillText(`${L.speed} ${Math.round(v / M * 3.6)} km/h`, W - 12, 22);
+      ctx.fillStyle = C.muted; ctx.textAlign = 'left'; ctx.fillText(`${L.best} ${best}`, 12, 40);
+      if (state === 'ride' || state === 'brake') {
+        const d = doorX - hx;
+        ctx.textAlign = 'right'; ctx.fillStyle = d < 0 ? C.accent : C.primary;
+        ctx.fillText(`${L.door} ${d < 0 ? '-' : ''}${metres(d)} ${cfg.unit}`, W - 12, 40);
+      }
+    };
+
+    const frame = (now: number) => {
+      if (!running) return;
+      const dt = Math.min((now - prev) / 1000, 0.05); prev = now;
+      if (state !== 'idle' && state !== 'over') step(dt);
+      draw();
+      if (state !== 'idle' && state !== 'over') requestAnimationFrame(frame); else running = false;
+    };
+    const live = () => state !== 'idle' && state !== 'over';
+    const resume = () => { if (live() && visible && !document.hidden && !running) { running = true; prev = performance.now(); requestAnimationFrame(frame); } };
+    const pause = () => { running = false; };
+
+    const start = () => {
+      score = 0; round = 0; v = 0; hx = 0; pops = []; endKind = 'none'; lastErr = 0; lead = 0.3;
+      startPanel.hidden = true; overPanel.hidden = true;
+      nextRound();
+      root.focus({ preventScroll: true });
+      resume();
+    };
+    const end = () => {
+      state = 'over';
+      if (score > best) { best = score; try { localStorage.setItem('stop-best', String(best)); } catch {} }
+      result.textContent = fill(endKind === 'past' ? L.overPast : endKind === 'short' ? L.overShort : L.overNoBrake);
+      const url = cfg.url || location.origin;
+      share.href = `https://x.com/intent/post?text=${encodeURIComponent(fill(cfg.shareText))}&url=${encodeURIComponent(url)}`;
+      overPanel.hidden = false;
+      draw();
+    };
+
+    root.querySelector('[data-play]')!.addEventListener('click', start);
+    root.querySelector('[data-retry]')!.addEventListener('click', start);
+    cv.addEventListener('pointerdown', (e) => { if (state === 'ride') { e.preventDefault(); tap(); } });
+    root.addEventListener('keydown', (e) => {
+      if ((e.key === ' ' || e.key === 'Enter') && state === 'ride' && e.target === root) { e.preventDefault(); tap(); }
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); else resume(); });
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (!visible) pause(); else resume(); }, { threshold: 0.15 }).observe(root);
+    new ResizeObserver(fit).observe(cv);
+    // For automated checks: lets a test read the scene and hit the brakes
+    (root as any).stop = {
+      scene: () => ({ state, W, H, v, hx, doorX, toDoor: doorX - hx, brakeDist: v * v / (2 * DECEL), score, round, tol: TOL, lastErr }),
+      brake: tap,
+    };
+    fit();
+  });
+</script>

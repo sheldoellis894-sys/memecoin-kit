@@ -1,0 +1,137 @@
+---
+// Layout "delivery": the whole site is a food-delivery app on a phone screen.
+// This section draws everything that stays in place while the page scrolls: the phone frame (wide screens),
+// the order bar with a status that changes on scroll, push notifications, the bottom tab bar and the side panels.
+// Wording comes from config.app, colors from the theme.
+import { config, asset } from '../../lib/project';
+const a = config.app || {};
+const statuses: { label: string; at: string }[] = a.statuses || [];
+const tabs: { id: string; label: string; icon: string }[] = a.tabs || [];
+const side = a.side || {};
+const logo = asset(config.assets.logo);
+const data = JSON.stringify({ statuses, pushes: a.pushes || [], pushTime: a.pushTime || 'now' });
+const icons: Record<string, string> = {
+  order: 'M4 8l8-4 8 4v9l-8 4-8-4V8zm8 4l8-4M12 12L4 8m8 4v9',
+  map: 'M12 21s7-6.2 7-11.5A7 7 0 005 9.500C5 14.800 12 21 12 21zm0-9a2.500 2.500 0 100-5 2.500 2.500 0 000 5z',
+  chat: 'M4 5h16v11H9l-5 4V5z',
+  game: 'M5 21V4m0 1h12l-2.500 4L17 13H5',
+  pay: 'M5 8h14l-1.200 12H6.200L5 8zm4 0V6a3 3 0 016 0v2',
+};
+---
+<div class="da-frame" aria-hidden="true"><span class="da-notch"></span></div>
+<div class="da-os" aria-hidden="true">
+  <span data-da-clock>9:41</span>
+  <span class="da-os-icons"><i class="da-sig"></i><i class="da-bat"></i></span>
+</div>
+
+<header class="da-bar" data-da-shell={data}>
+  <a href="#home" class="da-bar-brand" aria-label={config.name}><img src={logo} alt="" width="38" height="38" /></a>
+  <div class="da-bar-text">
+    <p class="da-bar-order">{a.orderLabel}</p>
+    <p class="da-bar-status" data-da-status aria-live="polite">{statuses[0]?.label}</p>
+  </div>
+  <a class="da-btn da-btn-small" href="#order">{a.buyShort || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+  <div class="da-steps" aria-hidden="true">{statuses.map((_, i) => <i class={i === 0 ? 'is-on' : undefined}></i>)}</div>
+</header>
+
+<div class="da-push" data-da-push role="status" aria-live="polite">
+  <img src={logo} alt="" width="36" height="36" />
+  <div class="da-push-body">
+    <p class="da-push-title"><span data-da-push-title></span><span class="da-push-time" data-da-push-time></span></p>
+    <p class="da-push-text" data-da-push-text></p>
+  </div>
+</div>
+
+<nav class="da-tabs" aria-label="Sections">
+  {tabs.map((t) => (
+    <a href={`#${t.id}`} data-da-tab={t.id}>
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={icons[t.icon] || icons.order} /></svg>
+      <span>{t.label}</span>
+    </a>
+  ))}
+</nav>
+
+<aside class="da-side da-side-l" aria-hidden="true">
+  <p class="da-kicker">{side.kicker}</p>
+  <p class="da-side-name font-heading">{config.name}</p>
+  <p class="da-side-ticker font-ticker">${config.ticker}</p>
+  <p class="da-side-tag">{config.tagline}</p>
+</aside>
+<aside class="da-side da-side-r" aria-hidden="true">
+  <p class="da-kicker">{side.statusTitle}</p>
+  <ol class="da-timeline">
+    {statuses.map((s, i) => <li class={i === 0 ? 'is-now' : undefined} data-da-step><span></span>{s.label}</li>)}
+  </ol>
+  <p class="da-side-eta">{side.eta}</p>
+  {side.image && <img class="da-side-img" src={asset(side.image)} alt="" loading="lazy" />}
+</aside>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-da-shell]');
+  if (bar) {
+    const cfg: { statuses: { label: string; at: string }[]; pushes: { at: string; title: string; text: string }[]; pushTime: string } = JSON.parse(bar.dataset.daShell!);
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.documentElement.classList.add('da-js');
+
+    // Clock in the phone status bar
+    const clock = document.querySelector<HTMLElement>('[data-da-clock]');
+    const tick = () => { if (clock) { const d = new Date(); clock.textContent = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; } };
+    tick(); setInterval(tick, 20000);
+
+    // Order status follows the scroll: the last section whose top has passed the middle of the screen wins
+    const statusEl = bar.querySelector<HTMLElement>('[data-da-status]')!;
+    const dots = [...bar.querySelectorAll<HTMLElement>('.da-steps i')];
+    const steps = [...document.querySelectorAll<HTMLElement>('[data-da-step]')];
+    const tabs = [...document.querySelectorAll<HTMLAnchorElement>('[data-da-tab]')];
+    const marks = cfg.statuses.map((s) => document.getElementById(s.at));
+    const tabMarks = tabs.map((t) => document.getElementById(t.dataset.daTab!));
+    let current = -1, currentTab = -1, queued = false;
+    const update = () => {
+      queued = false;
+      const mid = innerHeight * 0.5;
+      let idx = 0;
+      marks.forEach((el, i) => { if (el && el.getBoundingClientRect().top < mid) idx = i; });
+      if (idx !== current) {
+        current = idx;
+        statusEl.textContent = cfg.statuses[idx]?.label || '';
+        if (!calm) { statusEl.classList.remove('is-new'); void statusEl.offsetWidth; statusEl.classList.add('is-new'); }
+        dots.forEach((d, i) => d.classList.toggle('is-on', i <= idx));
+        steps.forEach((s, i) => { s.classList.toggle('is-done', i < idx); s.classList.toggle('is-now', i === idx); });
+      }
+      let tab = 0;
+      tabMarks.forEach((el, i) => { if (el && el.getBoundingClientRect().top < mid) tab = i; });
+      if (tab !== currentTab) { currentTab = tab; tabs.forEach((t, i) => t.classList.toggle('is-on', i === tab)); }
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+    addEventListener('resize', update);
+    update();
+
+    // Push notifications: each one drops in once, when its section comes into view
+    const push = document.querySelector<HTMLElement>('[data-da-push]')!;
+    const pTitle = push.querySelector<HTMLElement>('[data-da-push-title]')!;
+    const pText = push.querySelector<HTMLElement>('[data-da-push-text]')!;
+    const pTime = push.querySelector<HTMLElement>('[data-da-push-time]')!;
+    const queue: { title: string; text: string }[] = [];
+    let showing = false, timer = 0;
+    const hide = () => { push.classList.remove('is-on'); clearTimeout(timer); setTimeout(() => { showing = false; next(); }, 350); };
+    const next = () => {
+      if (showing) return;
+      const n = queue.shift(); if (!n) return;
+      showing = true;
+      pTitle.textContent = n.title; pText.textContent = n.text; pTime.textContent = cfg.pushTime;
+      push.classList.add('is-on');
+      timer = window.setTimeout(hide, 4200);
+    };
+    push.addEventListener('click', hide);
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        cfg.pushes.filter((p) => p.at === e.target.id).forEach((p) => queue.push(p));
+        if (queue.length > 2) queue.splice(0, queue.length - 2);   // fast scrolling: keep only the latest two
+        next();
+      }), { rootMargin: '-35% 0px -35% 0px' });
+      new Set(cfg.pushes.map((p) => p.at)).forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el); });
+    }
+  }
+</script>

@@ -1,0 +1,26 @@
+---
+// Courier profile = the "about" block of the site.
+import { config, asset } from '../../lib/project';
+const c = (config.app || {}).courier || {};
+const about = config.about;
+---
+<section id="courier" class="da-sec">
+  <p class="da-kicker">{about.kicker}</p>
+  <h2 class="da-h2">{about.title}</h2>
+  <div class="da-card da-courier">
+    <div class="da-courier-top">
+      {about.image && <img src={asset(about.image)} alt={c.imageAlt || about.title} width="96" height="96" loading="lazy" />}
+      <div>
+        <p class="da-courier-name font-heading">{c.name}</p>
+        <p class="da-courier-role">{c.role}</p>
+        <p class="da-courier-rating"><span aria-hidden="true">★</span> {c.rating}</p>
+      </div>
+    </div>
+    <dl class="da-stats">
+      {(c.stats || []).map((s: { value: string; label: string }) => <div><dd>{s.value}</dd><dt>{s.label}</dt></div>)}
+    </dl>
+    <ul class="da-facts">
+      {about.text.map((t) => <li>{t}</li>)}
+    </ul>
+  </div>
+</section>

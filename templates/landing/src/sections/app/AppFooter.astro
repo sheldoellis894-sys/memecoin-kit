@@ -1,0 +1,18 @@
+---
+// Bottom of the "delivery" layout: links and the disclaimer.
+import { config } from '../../lib/project';
+const f = (config.app || {}).footer || {};
+const links = [
+  config.links.x && { label: 'X', url: config.links.x },
+  config.links.telegram && { label: 'Telegram', url: config.links.telegram },
+  config.links.dexscreener && { label: 'DexScreener', url: config.links.dexscreener },
+].filter(Boolean) as { label: string; url: string }[];
+---
+<footer class="da-sec da-footer">
+  <p class="da-footer-links">
+    {links.map((l) => <a class="da-btn da-btn-ghost da-btn-small" href={l.url} target="_blank" rel="noopener noreferrer">{l.label}</a>)}
+  </p>
+  <p class="da-footer-note">{f.note}</p>
+  <p class="da-disclaimer">{config.disclaimer}</p>
+  <p class="da-footer-copy">© {new Date().getFullYear()} {config.name}</p>
+</footer>

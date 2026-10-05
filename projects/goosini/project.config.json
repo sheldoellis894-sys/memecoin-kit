@@ -1,0 +1,245 @@
+{
+  "name": "Scootini Goosini",
+  "shortName": "Goosini",
+  "ticker": "GOOSINI",
+  "tagline": "He didn't come in peace. He came with your pizza. And he's already leaving.",
+  "description": "Scootini Goosini is half goose, half scooter and the worst courier in the city. He has your pizza and he is not coming back. $GOOSINI — a community memecoin on Solana.",
+  "url": "https://scootinigoosini.vercel.app",
+  "chain": "Solana",
+  "ca": "",
+  "theme": "sky",
+  "layout": "delivery",
+  "links": {
+    "x": "https://x.com/scootinigoosini",
+    "telegram": "https://t.me/scootinigoosini",
+    "pumpfun": "",
+    "dexscreener": ""
+  },
+  "assets": {
+    "logo": "exports/goosini_avatar_circle_256.png",
+    "favicon": "exports/goosini_avatar_circle_256.png",
+    "hero": "banners/goosini_banner.jpg",
+    "og": "exports/goosini_og.png"
+  },
+  "hero": {
+    "kicker": "Order #0000 · On the way",
+    "text": "Thanks for your order. It was delicious."
+  },
+  "about": {
+    "kicker": "Your courier",
+    "title": "Meet Goosini",
+    "text": [
+      "Half goose, half scooter. Nobody ordered either half.",
+      "He accepts every order in the city. He delivers none of them.",
+      "Top speed: 25 km/h. Brakes: optional.",
+      "He knows your address. He is not going there.",
+      "No tip needed. He already took the fries."
+    ],
+    "image": "references/goosini_main.jpg"
+  },
+  "stop": {
+    "enabled": true,
+    "nav": "Game",
+    "kicker": "Courier training",
+    "title": "Stop at the door",
+    "unit": "m",
+    "sprites": {
+      "ride": "stickers/goosini_ride.png",
+      "brake": "stickers/goosini_brake.png",
+      "eat": "stickers/goosini_eat.png",
+      "miss": "stickers/goosini_miss.png",
+      "door": "stickers/goosini_door.png"
+    },
+    "lines": {
+      "start": "Start the shift",
+      "hint": "He rides by himself. Tap, click or press Space once to brake. Stop right at the orange door.",
+      "retry": "Next shift",
+      "share": "Share on X",
+      "score": "DOORS",
+      "best": "RECORD",
+      "speed": "SPEED",
+      "door": "DOOR IN",
+      "good": "Stopped at the door. Order eaten.",
+      "perfect": "Perfect stop. Order eaten.",
+      "overPast": "The courier drove past the door by {miss} m. Orders eaten at the door: {score}.",
+      "overShort": "The courier stopped {miss} m short of the door. Orders eaten at the door: {score}.",
+      "overNoBrake": "The courier did not brake. As usual. Orders eaten at the door: {score}."
+    },
+    "shareText": "My goose stopped at {score} doors and ate every order. He didn't come in peace. He came with your pizza. ${ticker}"
+  },
+  "howToBuy": [
+    { "title": "Get a wallet", "text": "Install Phantom or Solflare from the official website or app store." },
+    { "title": "Get some SOL", "text": "Buy SOL on an exchange and send it to your wallet." },
+    { "title": "Open pump.fun", "text": "Connect your wallet and paste the $GOOSINI contract address." },
+    { "title": "Swap for $GOOSINI", "text": "Choose the amount and confirm the swap. Do not wait for the courier." }
+  ],
+  "tokenomics": {
+    "supply": "1,000,000,000",
+    "items": [
+      { "label": "Fair launch on pump.fun", "value": "100%" },
+      { "label": "Buy and sell tax", "value": "0%" },
+      { "label": "Network", "value": "Solana" },
+      { "label": "Ticker", "value": "$GOOSINI" },
+      { "label": "Delivery fee", "value": "your pizza" },
+      { "label": "Tip for the courier", "value": "already taken" }
+    ]
+  },
+  "gallery": [
+    { "src": "gallery/goosini_g01.jpg", "alt": "Goosini stands at a front door next to an empty pizza box with one crust left", "note": "Left at the door. The box, not the pizza." },
+    { "src": "gallery/goosini_g05.jpg", "alt": "Goosini races down the street while a crowd of customers in bathrobes runs after him", "note": "Customers are very engaged today." },
+    { "src": "gallery/goosini_g02.jpg", "alt": "Goosini eats a burger in an elevator while three people stare at him", "note": "Going up. The order is going down." },
+    { "src": "gallery/goosini_g04.jpg", "alt": "Goosini is plugged into a charging station between rental scooters and eats fries", "note": "Charging. Do not unplug. Do not ask about the fries." },
+    { "src": "gallery/goosini_g06.jpg", "alt": "Goosini sits at a restaurant table and eats a pizza from a delivery box, a waiter is shocked", "note": "Checked the order for quality. Twice." },
+    { "src": "gallery/goosini_g03.jpg", "alt": "Goosini sleeps on a park bench among empty pizza boxes", "note": "Lunch break. The fourth one today." },
+    { "src": "logo/goosini_logo.jpg", "alt": "Portrait of Goosini with a slice of pizza", "note": "Profile photo. Taken with your pizza." }
+  ],
+  "roadmap": [
+    { "phase": "Order #0001", "title": "Leave the garage", "items": ["Launch on pump.fun", "X and Telegram open", "First 100 hungry customers"] },
+    { "phase": "Order #0002", "title": "Take a wrong turn", "items": ["DexScreener profile", "Meme contests", "Goosini sticker pack"] },
+    { "phase": "Order #0003", "title": "Eat the evidence", "items": ["New streets in the game", "Delivery reports from the community", "Courier of the month board"] }
+  ],
+  "disclaimer": "$GOOSINI is a memecoin with no intrinsic value or expectation of financial return. It is not an investment. Nothing on this site is financial advice. Crypto is risky — never spend more than you can afford to lose. The delivery app is a joke: no food is sold, delivered or eaten.",
+  "app": {
+    "orderLabel": "Order #0000",
+    "buyShort": "Buy",
+    "pushTime": "now",
+    "statuses": [
+      { "label": "Order received", "at": "home" },
+      { "label": "Handed to the goose", "at": "map" },
+      { "label": "Courier is nearby", "at": "chat" },
+      { "label": "Courier drove past", "at": "game" },
+      { "label": "Order eaten", "at": "receipt" }
+    ],
+    "pushes": [
+      { "at": "map", "title": "Scootini Delivery", "text": "Your order was handed to a goose." },
+      { "at": "chat", "title": "Scootini Delivery", "text": "Your courier is nearby." },
+      { "at": "game", "title": "Scootini Delivery", "text": "Your courier drove past." },
+      { "at": "rate", "title": "Scootini Delivery", "text": "Rate your delivery. There was no delivery." },
+      { "at": "receipt", "title": "Goosini", "text": "Thanks for your order. It was delicious." },
+      { "at": "order", "title": "Scootini Delivery", "text": "Hungry again? Place a new order." }
+    ],
+    "tabs": [
+      { "id": "home", "label": "Order", "icon": "order" },
+      { "id": "map", "label": "Map", "icon": "map" },
+      { "id": "chat", "label": "Chat", "icon": "chat" },
+      { "id": "game", "label": "Game", "icon": "game" },
+      { "id": "order", "label": "Buy", "icon": "pay" }
+    ],
+    "side": {
+      "kicker": "Now not delivering",
+      "statusTitle": "Order status",
+      "eta": "Arrives: never",
+      "image": "stickers/goosini_ride.png"
+    },
+    "home": {
+      "live": "Live",
+      "track": "Track the order",
+      "play": "Play",
+      "noteTitle": "Message from your courier",
+      "imageAlt": "Goosini rides away with a pizza slice while a crowd of customers chases him"
+    },
+    "map": {
+      "kicker": "Live tracking",
+      "title": "Where is my order",
+      "alt": "Map: the courier rides away from your home",
+      "home": "You",
+      "etaLabel": "Arrives in",
+      "distLabel": "Distance from you",
+      "etas": ["15 min", "25 min", "1 hour", "3 hours", "tomorrow", "next week", "3 years", "never"],
+      "from": 0.2,
+      "to": 41.7,
+      "unit": "km",
+      "note": "The courier is moving away from your address."
+    },
+    "courier": {
+      "name": "Goosini",
+      "role": "Courier · goose · scooter",
+      "rating": "2.0",
+      "imageAlt": "Goosini: a white goose on two wheels with a handlebar through his neck",
+      "stats": [
+        { "value": "1B", "label": "Orders accepted" },
+        { "value": "0", "label": "Delivered" },
+        { "value": "100%", "label": "Eaten" }
+      ]
+    },
+    "chat": {
+      "kicker": "Chat",
+      "title": "Ask the courier",
+      "name": "Goosini",
+      "online": "online, chewing",
+      "typing": "Goosini is typing",
+      "photo": "gallery/goosini_g01.jpg",
+      "photoAlt": "An empty pizza box at a front door",
+      "intro": [
+        { "from": "me", "text": "Hi. Where is my order?" },
+        { "from": "him", "text": "Honk." }
+      ],
+      "replies": [
+        { "label": "Where are you?", "answers": ["Honk.", "Honk honk.", "sys: Goosini shared his location. It is not yours."] },
+        { "label": "Is that my pizza?", "answers": ["It was.", "photo", "Honk."] },
+        { "label": "Please come back", "answers": ["No.", "Honk.", "sys: Goosini turned off notifications."] },
+        { "label": "I will call support", "answers": ["Honk.", "sys: Support is also a goose.", "Honk."] }
+      ]
+    },
+    "rate": {
+      "kicker": "Feedback",
+      "title": "Rate your courier",
+      "hint": "Tap a star.",
+      "thanks": "Thank you. Your courier also rated you:",
+      "courierStars": 2,
+      "comment": "“The customer was hungry and kept asking about the pizza. Would not deliver again.”"
+    },
+    "checkout": {
+      "kicker": "Checkout",
+      "title": "How to buy",
+      "fee": "delivery fee: your pizza"
+    },
+    "receipt": {
+      "kicker": "Receipt",
+      "title": "Tokenomics",
+      "shop": "Scootini Delivery",
+      "meta": "Order #0000 · Courier: Goosini",
+      "totalLabel": "Total supply",
+      "caLabel": "Contract address",
+      "caEmpty": "appears here at launch",
+      "copy": "Copy",
+      "copied": "Copied",
+      "bye": "Thanks for your order. It was delicious."
+    },
+    "stories": {
+      "kicker": "Delivery reports",
+      "title": "Proof of delivery",
+      "author": "goosini",
+      "stamp": "Delivered",
+      "noteLabel": "Courier's comment",
+      "hint": "Tap the right side for the next report, the left side to go back.",
+      "prev": "Previous report",
+      "next": "Next report"
+    },
+    "next": {
+      "kicker": "Scheduled deliveries",
+      "title": "What he will not deliver next",
+      "statuses": ["Accepted", "Lost", "Never"]
+    },
+    "order": {
+      "kicker": "New order",
+      "title": "Place your order",
+      "text": "One order. One goose. No refunds, no pizza.",
+      "slide": "Slide to order",
+      "skip": "Order without sliding",
+      "doneTitle": "Order placed.",
+      "doneText": "The goose has it now. Good luck.",
+      "buyLabel": "Get",
+      "caLabel": "Contract address",
+      "caEmpty": "appears here at launch"
+    },
+    "footer": {
+      "note": "Honk."
+    }
+  },
+  "images": {
+    "optimize": true,
+    "maxSize": { "gallery": 800, "logo": 800, "banners": 1920, "references": 900, "stickers": 640, "exports": 1500 }
+  },
+  "effects": { "reveal": false, "parallax": false, "cursor": false, "sparks": false }
+}

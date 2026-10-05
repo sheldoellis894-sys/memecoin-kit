@@ -69,6 +69,20 @@ export type Config = {
     lines: { start: string; hint: string; over: string; retry: string; share: string; score: string; time: string; best: string };
     shareText: string;
   };
+  /** Timing mini-game "Stop" (section stopGame): the hero rides by himself, one tap brakes, stop exactly at the door. */
+  stop?: {
+    enabled: boolean; nav?: string; kicker?: string; title: string;
+    /** Unit for distances, e.g. "m". */
+    unit?: string;
+    sprites: { ride: string; brake: string; eat: string; miss: string; door: string };
+    lines: {
+      start: string; hint: string; retry: string; share: string; score: string; best: string; speed: string; door: string;
+      good: string; perfect: string; overPast: string; overShort: string; overNoBrake: string;
+    };
+    shareText: string;
+  };
+  /** Wording and data of the "delivery" layout (sections app*). See projects/goosini/project.config.json for a full example. */
+  app?: Record<string, any>;
   /** Mascot that grows while the page is scrolled (section bossGrow). */
   boss?: { sprite: string; label: string; unit: string; from: number; to: number; note?: string; dismiss?: string };
   /** Wording of the "contract" layout (sections paper*). See projects/fch/project.config.json for a full example. */

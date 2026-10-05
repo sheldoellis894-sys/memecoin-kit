@@ -1,0 +1,75 @@
+---
+// Live tracking: the courier's marker rides along the route AWAY from the customer's home while the page scrolls,
+// the arrival time gets worse and the distance grows. Wording: config.app.map.
+import { config, asset } from '../../lib/project';
+const m = (config.app || {}).map;
+const data = m && JSON.stringify({ etas: m.etas || [], from: m.from ?? 0.2, to: m.to ?? 40, unit: m.unit || 'km' });
+// Route: starts at the home pin (bottom left) and wanders off the top right corner.
+const route = 'M54 236 H126 V172 H78 V104 H186 V148 H250 V76 H310 V30 H338';
+---
+{m && (
+  <section id="map" class="da-sec">
+    <p class="da-kicker">{m.kicker}</p>
+    <h2 class="da-h2">{m.title}</h2>
+    <div class="da-card da-map" data-da-map={data}>
+      <svg viewBox="0 0 360 270" role="img" aria-label={m.alt}>
+        <defs><clipPath id="da-map-clip"><circle r="16" /></clipPath></defs>
+        <rect width="360" height="270" class="da-map-bg" />
+        <g class="da-map-block">
+          <rect x="-8" y="-8" width="72" height="98" rx="10" /><rect x="92" y="-8" width="80" height="98" rx="10" />
+          <rect x="200" y="-8" width="96" height="70" rx="10" /><rect x="324" y="42" width="48" height="92" rx="10" />
+          <rect x="-8" y="118" width="72" height="104" rx="10" /><rect x="140" y="118" width="96" height="16" rx="8" />
+          <rect x="140" y="162" width="96" height="60" rx="10" /><rect x="264" y="90" width="48" height="44" rx="10" />
+          <rect x="264" y="162" width="108" height="60" rx="10" /><rect x="-8" y="250" width="134" height="30" rx="10" />
+          <rect x="154" y="250" width="218" height="30" rx="10" />
+        </g>
+        <rect x="92" y="118" width="20" height="40" rx="8" class="da-map-park" />
+        <path d={route} class="da-map-road" />
+        <path d={route} class="da-map-trail" data-da-trail />
+        <g transform="translate(54 236)" class="da-map-home">
+          <circle r="15" /><path d="M-7 1 L0 -6 L7 1 V7 H2 V2 H-2 V7 H-7 Z" />
+        </g>
+        <text x="54" y="262" class="da-map-label">{m.home}</text>
+        <g data-da-marker transform="translate(54 236)">
+          <circle r="19" class="da-map-ring" />
+          <image href={asset(config.assets.logo)} x="-16" y="-16" width="32" height="32" clip-path="url(#da-map-clip)" />
+        </g>
+      </svg>
+      <dl class="da-map-stats">
+        <div><dt>{m.etaLabel}</dt><dd data-da-eta>{(m.etas || [])[0]}</dd></div>
+        <div><dt>{m.distLabel}</dt><dd><span data-da-dist>{m.from ?? 0.2}</span> {m.unit || 'km'}</dd></div>
+      </dl>
+      <p class="da-map-note">{m.note}</p>
+    </div>
+  </section>
+)}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-da-map]').forEach((root) => {
+    const cfg: { etas: string[]; from: number; to: number; unit: string } = JSON.parse(root.dataset.daMap!);
+    const trail = root.querySelector<SVGPathElement>('[data-da-trail]')!;
+    const marker = root.querySelector<SVGGElement>('[data-da-marker]')!;
+    const eta = root.querySelector<HTMLElement>('[data-da-eta]')!;
+    const dist = root.querySelector<HTMLElement>('[data-da-dist]')!;
+    const len = trail.getTotalLength();
+    trail.style.strokeDasharray = `${len}`;
+    let queued = false, last = -1;
+    const update = () => {
+      queued = false;
+      const r = root.getBoundingClientRect();
+      // 0 when the card enters from below, 1 when its bottom reaches the upper third of the screen
+      const p = Math.min(1, Math.max(0, (innerHeight * 0.92 - r.top) / (r.height + innerHeight * 0.55)));
+      if (Math.abs(p - last) < 0.002) return;
+      last = p;
+      const pt = trail.getPointAtLength(len * p);
+      marker.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
+      trail.style.strokeDashoffset = `${len * (1 - p)}`;
+      if (cfg.etas.length) eta.textContent = cfg.etas[Math.min(cfg.etas.length - 1, Math.floor(p * cfg.etas.length))];
+      dist.textContent = (cfg.from + (cfg.to - cfg.from) * p * p).toFixed(1);
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+    addEventListener('resize', update);
+    update();
+    (root as any).daMap = { progress: () => last };
+  });
+</script>

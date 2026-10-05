@@ -29,6 +29,20 @@ import DeskPhotos from '../sections/paper/DeskPhotos.astro';
 import PaperOrders from '../sections/paper/PaperOrders.astro';
 import PaperSign from '../sections/paper/PaperSign.astro';
 import PaperFooter from '../sections/paper/PaperFooter.astro';
+// Layout "delivery": a food-delivery app on a phone screen
+import AppShell from '../sections/app/AppShell.astro';
+import AppHome from '../sections/app/AppHome.astro';
+import AppMap from '../sections/app/AppMap.astro';
+import AppCourier from '../sections/app/AppCourier.astro';
+import AppChat from '../sections/app/AppChat.astro';
+import StopGame from '../sections/app/StopGame.astro';
+import AppRate from '../sections/app/AppRate.astro';
+import AppCheckout from '../sections/app/AppCheckout.astro';
+import AppReceipt from '../sections/app/AppReceipt.astro';
+import AppStories from '../sections/app/AppStories.astro';
+import AppNext from '../sections/app/AppNext.astro';
+import AppOrder from '../sections/app/AppOrder.astro';
+import AppFooter from '../sections/app/AppFooter.astro';
 
 const registry: Record<string, any> = {
   header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
@@ -37,6 +51,9 @@ const registry: Record<string, any> = {
   paperFx: PaperFx, paperTabs: PaperTabs, bossGrow: BossGrow, paperCover: PaperCover, paperClauses: PaperClauses,
   feedGame: FeedGame, paperDuties: PaperDuties, paperPayroll: PaperPayroll, deskPhotos: DeskPhotos,
   paperOrders: PaperOrders, paperSign: PaperSign, paperFooter: PaperFooter,
+  appShell: AppShell, appHome: AppHome, appMap: AppMap, appCourier: AppCourier, appChat: AppChat, stopGame: StopGame,
+  appRate: AppRate, appCheckout: AppCheckout, appReceipt: AppReceipt, appStories: AppStories, appNext: AppNext,
+  appOrder: AppOrder, appFooter: AppFooter,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);

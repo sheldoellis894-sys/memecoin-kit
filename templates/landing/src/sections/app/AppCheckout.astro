@@ -1,0 +1,17 @@
+---
+// "How to buy" shown as a checkout: a cart line and numbered steps.
+import { config } from '../../lib/project';
+const c = (config.app || {}).checkout || {};
+---
+<section id="how-to-buy" class="da-sec">
+  <p class="da-kicker">{c.kicker}</p>
+  <h2 class="da-h2">{c.title}</h2>
+  <div class="da-card da-checkout">
+    <p class="da-cart"><span class="da-cart-qty">1 ×</span><span class="font-ticker">${config.ticker}</span><span class="da-cart-fee">{c.fee}</span></p>
+    <ol class="da-steps-list">
+      {config.howToBuy.map((s, i) => (
+        <li><span class="da-step-no">{i + 1}</span><div><p class="da-step-title">{s.title}</p><p class="da-step-text">{s.text}</p></div></li>
+      ))}
+    </ol>
+  </div>
+</section>

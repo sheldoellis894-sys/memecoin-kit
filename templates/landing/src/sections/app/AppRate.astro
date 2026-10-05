@@ -1,0 +1,37 @@
+---
+// "Rate your courier": the visitor taps a star, and the courier rates the visitor back.
+import { config } from '../../lib/project';
+const r = (config.app || {}).rate;
+const stars = [1, 2, 3, 4, 5];
+---
+{r && (
+  <section id="rate" class="da-sec">
+    <p class="da-kicker">{r.kicker}</p>
+    <h2 class="da-h2">{r.title}</h2>
+    <div class="da-card da-rate" data-da-rate>
+      <p class="da-rate-hint">{r.hint}</p>
+      <div class="da-stars" role="group" aria-label={r.title}>
+        {stars.map((n) => <button type="button" data-da-star={n} aria-label={`${n} / 5`}>★</button>)}
+      </div>
+      <div class="da-rate-back" data-da-back hidden>
+        <p class="da-rate-thanks">{r.thanks}</p>
+        <p class="da-stars da-stars-small" aria-label={`${r.courierStars} / 5`}>
+          {stars.map((n) => <span class={n <= (r.courierStars ?? 2) ? 'is-on' : undefined}>★</span>)}
+        </p>
+        <p class="da-rate-comment">{r.comment}</p>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-da-rate]').forEach((root) => {
+    const stars = [...root.querySelectorAll<HTMLButtonElement>('[data-da-star]')];
+    const back = root.querySelector<HTMLElement>('[data-da-back]')!;
+    stars.forEach((b) => b.addEventListener('click', () => {
+      const n = Number(b.dataset.daStar);
+      stars.forEach((s, i) => { s.classList.toggle('is-on', i < n); s.setAttribute('aria-pressed', String(i < n)); });
+      setTimeout(() => { back.hidden = false; back.classList.add('is-in'); }, 450);
+    }));
+  });
+</script>

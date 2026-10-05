@@ -28,11 +28,12 @@ Windows PowerShell: `$env:PROJECT="tsc3000"; npm run dev -- --host 127.0.0.1`
 
 | | Options |
 |---|---|
-| Themes | `mine` (warm dark, rounded cards), `sunset` (pixel fonts, square panels, hard shadows; flavor `arcade`), `office` (paper sheets on a dark wooden desk; flavor `paper`) |
-| Layouts | `longread`, `arcade` (boot screen + title-screen hero), `contract` (the site is a document: numbered sheets, folder tabs, a signature at the end) |
+| Themes | `mine` (warm dark, rounded cards), `sunset` (pixel fonts, square panels, hard shadows; flavor `arcade`), `office` (paper sheets on a dark wooden desk; flavor `paper`), `sky` (light sky, white cards with thick outlines; flavor `app`) |
+| Layouts | `longread`, `arcade` (boot screen + title-screen hero), `contract` (the site is a document: numbered sheets, folder tabs, a signature at the end), `delivery` (the site is a food-delivery app on a phone screen) |
 | Sections | `header`, `hero`, `heroArcade`, `boot`, `marquee`, `about`, `digGame`, `chaseGame`, `howToBuy`, `tokenomics`, `gallery`, `roadmap`, `footer` |
 | Sections of `contract` | `paperFx`, `paperTabs`, `bossGrow`, `paperCover`, `paperClauses`, `feedGame`, `paperDuties`, `paperPayroll`, `deskPhotos`, `paperOrders`, `paperSign`, `paperFooter` (in `src/sections/paper/`) |
-| Games | `digGame` (pick a tile, config key `game`), `chaseGame` (side-scrolling runner, config key `chase`), `feedGame` (catch falling food, config key `feed`) |
+| Sections of `delivery` | `appShell`, `appHome`, `appMap`, `appCourier`, `appChat`, `stopGame`, `appRate`, `appCheckout`, `appReceipt`, `appStories`, `appNext`, `appOrder`, `appFooter` (in `src/sections/app/`) |
+| Games | `digGame` (pick a tile, config key `game`), `chaseGame` (side-scrolling runner, config key `chase`), `feedGame` (catch falling food, config key `feed`), `stopGame` (brake exactly at the door, config key `stop`) |
 
 ## Images
 
@@ -42,7 +43,7 @@ With `"images": { "optimize": true }` in the config, big pictures are shrunk and
 
 ## New site in 5 steps
 
-1. Copy `projects/molty`, `projects/tsc3000` or `projects/fch` → `projects/<name>`, replace images in `brand/`.
+1. Copy `projects/molty`, `projects/tsc3000`, `projects/fch` or `projects/goosini` → `projects/<name>`, replace images in `brand/`.
 2. Edit `project.config.json` (texts, links, image paths).
 3. Pick `theme` and `layout` in the config.
 4. `$env:PROJECT="<name>"; npm run dev -- --host 127.0.0.1` — check on desktop and phone widths.

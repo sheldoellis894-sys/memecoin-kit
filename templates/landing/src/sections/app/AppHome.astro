@@ -1,0 +1,28 @@
+---
+// First screen of the "delivery" layout: the order card.
+import { config, asset } from '../../lib/project';
+const a = config.app || {};
+const h = a.home || {};
+---
+<section id="home" class="da-sec da-home">
+  <div class="da-card da-hero">
+    <div class="da-hero-art">
+      <img src={asset(config.assets.hero)} alt={h.imageAlt || config.name} width="1280" height="720" />
+      <span class="da-chip da-chip-live"><i></i>{h.live}</span>
+    </div>
+    <div class="da-hero-body">
+      <p class="da-kicker">{config.hero.kicker}</p>
+      <h1 class="da-h1">{config.name}</h1>
+      <p class="da-ticker font-ticker">${config.ticker}</p>
+      <p class="da-lead">{config.tagline}</p>
+      <div class="da-actions">
+        <a class="da-btn" href="#map">{h.track}</a>
+        <a class="da-btn da-btn-ghost" href="#game">{h.play}</a>
+      </div>
+    </div>
+  </div>
+  <div class="da-card da-note">
+    <img src={asset(config.assets.logo)} alt="" width="44" height="44" />
+    <p><strong>{h.noteTitle}</strong><br />{config.hero.text}</p>
+  </div>
+</section>

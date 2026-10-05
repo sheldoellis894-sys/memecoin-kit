@@ -1,0 +1,34 @@
+---
+// Tokenomics printed as a till receipt: rows with dotted leaders, the supply as the total, the contract address at the bottom.
+import { config } from '../../lib/project';
+const r = (config.app || {}).receipt || {};
+const ca = config.ca.trim();
+---
+<section id="receipt" class="da-sec">
+  <p class="da-kicker">{r.kicker}</p>
+  <h2 class="da-h2">{r.title}</h2>
+  <div class="da-receipt-wrap"><div class="da-receipt">
+    <p class="da-receipt-shop font-heading">{r.shop}</p>
+    <p class="da-receipt-meta">{r.meta}</p>
+    <ul class="da-receipt-rows">
+      {config.tokenomics.items.map((it) => <li><span>{it.label}</span><i aria-hidden="true"></i><b>{it.value}</b></li>)}
+    </ul>
+    <p class="da-receipt-total"><span>{r.totalLabel}</span><b>{config.tokenomics.supply}</b></p>
+    <div class="da-ca">
+      <p class="da-ca-label">{r.caLabel}</p>
+      {ca
+        ? <p class="da-ca-row"><code title={ca}>{ca}</code><button type="button" class="da-btn da-btn-small" data-da-copy={ca} data-done={r.copied || 'Copied'}>{r.copy || 'Copy'}</button></p>
+        : <p class="da-ca-empty">{r.caEmpty}</p>}
+    </div>
+    <div class="da-barcode" aria-hidden="true"></div>
+    <p class="da-receipt-bye">{r.bye}</p>
+  </div></div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-da-copy]').forEach((btn) => btn.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(btn.dataset.daCopy || ''); } catch { return; }
+    const label = btn.textContent; btn.textContent = btn.dataset.done || 'Copied';
+    setTimeout(() => (btn.textContent = label), 1500);
+  }));
+</script>

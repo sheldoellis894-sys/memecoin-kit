@@ -1,0 +1,71 @@
+---
+// Gallery shown as "stories": progress bars on top, a tap on the right or left half flips the picture,
+// every picture carries a "delivered" stamp and the courier's comment (gallery[].note).
+import { config, asset } from '../../lib/project';
+const s = (config.app || {}).stories || {};
+const items = config.gallery;
+---
+<section id="reports" class="da-sec">
+  <p class="da-kicker">{s.kicker}</p>
+  <h2 class="da-h2">{s.title}</h2>
+  <div class="da-card da-stories" data-da-stories tabindex="0" role="group" aria-roledescription="carousel" aria-label={s.title}>
+    <div class="da-story-stage">
+      {items.map((g, i) => (
+        <figure class={`da-story${i === 0 ? ' is-on' : ''}`} data-da-story>
+          <img src={asset(g.src)} alt={g.alt} width="700" height="700" loading={i === 0 ? 'eager' : 'lazy'} />
+        </figure>
+      ))}
+      <div class="da-story-bars" aria-hidden="true">{items.map(() => <i><b></b></i>)}</div>
+      <div class="da-story-head" aria-hidden="true">
+        <img src={asset(config.assets.logo)} alt="" width="32" height="32" />
+        <span>{s.author}</span><span class="da-story-count" data-da-count>1/{items.length}</span>
+      </div>
+      <span class="da-stamp" aria-hidden="true">{s.stamp}</span>
+      <button type="button" class="da-story-nav da-story-prev" data-da-prev aria-label={s.prev || 'Previous'}></button>
+      <button type="button" class="da-story-nav da-story-next" data-da-next aria-label={s.next || 'Next'}></button>
+    </div>
+    <p class="da-story-note"><span class="da-story-label">{s.noteLabel}</span> <span data-da-note aria-live="polite">{items[0]?.note}</span></p>
+    <p class="da-story-hint">{s.hint}</p>
+    <script type="application/json" data-da-notes set:html={JSON.stringify(items.map((g) => g.note || ''))}></script>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-da-stories]').forEach((root) => {
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-da-story]')];
+    const bars = [...root.querySelectorAll<HTMLElement>('.da-story-bars i')];
+    const notes: string[] = JSON.parse(root.querySelector('[data-da-notes]')!.textContent || '[]');
+    const note = root.querySelector<HTMLElement>('[data-da-note]')!;
+    const count = root.querySelector<HTMLElement>('[data-da-count]')!;
+    const stamp = root.querySelector<HTMLElement>('.da-stamp')!;
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const HOLD = 4600;
+    let i = 0, visible = false, timer = 0, started = 0;
+    const show = (n: number, auto = false) => {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, k) => s.classList.toggle('is-on', k === i));
+      bars.forEach((b, k) => { b.classList.toggle('is-done', k < i); b.classList.remove('is-run'); });
+      note.textContent = notes[i]; count.textContent = `${i + 1}/${slides.length}`;
+      stamp.classList.remove('is-hit'); void stamp.offsetWidth; stamp.classList.add('is-hit');
+      if (!auto) started = 0;
+      play();
+    };
+    const play = () => {
+      clearTimeout(timer);
+      if (calm || !visible || document.hidden) return;
+      bars[i].classList.remove('is-run'); void bars[i].offsetWidth; bars[i].classList.add('is-run');
+      started = performance.now();
+      timer = window.setTimeout(() => show(i + 1, true), HOLD);
+    };
+    root.querySelector('[data-da-next]')!.addEventListener('click', () => show(i + 1));
+    root.querySelector('[data-da-prev]')!.addEventListener('click', () => show(i - 1));
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { show(i + 1); e.preventDefault(); }
+      if (e.key === 'ArrowLeft') { show(i - 1); e.preventDefault(); }
+    });
+    document.addEventListener('visibilitychange', play);
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) play(); else { clearTimeout(timer); bars[i].classList.remove('is-run'); } }, { threshold: 0.5 }).observe(root);
+    stamp.classList.add('is-hit');
+    (root as any).daStories = { index: () => i, go: (n: number) => show(n) };
+  });
+</script>

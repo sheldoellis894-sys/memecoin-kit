@@ -1,0 +1,57 @@
+---
+// Chat with the courier: the visitor taps a ready-made phrase, the courier answers (mostly "Honk").
+// Wording: config.app.chat. An answer that starts with "sys:" is shown as a grey system line,
+// the answer "photo" sends the picture from chat.photo.
+import { config, asset } from '../../lib/project';
+const c = (config.app || {}).chat;
+const data = c && JSON.stringify({ replies: c.replies || [], photo: asset(c.photo), photoAlt: c.photoAlt || '', typing: c.typing || '' });
+---
+{c && (
+  <section id="chat" class="da-sec">
+    <p class="da-kicker">{c.kicker}</p>
+    <h2 class="da-h2">{c.title}</h2>
+    <div class="da-card da-chat" data-da-chat={data}>
+      <div class="da-chat-head">
+        <img src={asset(config.assets.logo)} alt="" width="40" height="40" />
+        <div><p class="da-chat-name">{c.name}</p><p class="da-chat-online"><i></i>{c.online}</p></div>
+      </div>
+      <div class="da-chat-log" data-da-log tabindex="0" role="log" aria-label={c.title}>
+        {(c.intro || []).map((msg: { from: string; text: string }) => <p class={`da-msg da-msg-${msg.from}`}>{msg.text}</p>)}
+      </div>
+      <div class="da-chat-chips">
+        {(c.replies || []).map((r: { label: string }, i: number) => <button type="button" class="da-chip-btn" data-da-reply={i}>{r.label}</button>)}
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-da-chat]').forEach((root) => {
+    const cfg: { replies: { label: string; answers: string[] }[]; photo: string; photoAlt: string; typing: string } = JSON.parse(root.dataset.daChat!);
+    const log = root.querySelector<HTMLElement>('[data-da-log]')!;
+    const used = cfg.replies.map(() => 0);
+    let busy = false;
+    const add = (cls: string, text?: string, img?: string) => {
+      const p = document.createElement('p'); p.className = `da-msg ${cls}`;
+      if (img) { const i = new Image(); i.src = img; i.alt = cfg.photoAlt; i.width = 180; i.height = 180; p.appendChild(i); p.classList.add('da-msg-photo'); }
+      else p.textContent = text || '';
+      log.appendChild(p); log.scrollTop = log.scrollHeight;
+      return p;
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-da-reply]').forEach((btn) => btn.addEventListener('click', () => {
+      if (busy) return;
+      const i = Number(btn.dataset.daReply), r = cfg.replies[i];
+      const answer = r.answers[Math.min(used[i], r.answers.length - 1)]; used[i]++;
+      busy = true;
+      add('da-msg-me', r.label);
+      const dots = add('da-msg-him da-typing'); dots.setAttribute('aria-label', cfg.typing); dots.innerHTML = '<i></i><i></i><i></i>';
+      setTimeout(() => {
+        dots.remove();
+        if (answer === 'photo' && cfg.photo) add('da-msg-him', '', cfg.photo);
+        else if (answer.startsWith('sys:')) add('da-msg-sys', answer.slice(4).trim());
+        else add('da-msg-him', answer);
+        busy = false;
+      }, 950);
+    }));
+  });
+</script>

@@ -1,0 +1,4 @@
+{
+  "name": "delivery",
+  "sections": ["appShell", "appHome", "appMap", "appCourier", "appChat", "stopGame", "appRate", "appCheckout", "appReceipt", "appStories", "appNext", "appOrder", "appFooter"]
+}
