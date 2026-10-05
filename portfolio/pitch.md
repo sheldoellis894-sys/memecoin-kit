@@ -193,7 +193,7 @@ The whole project — character, website with a game, animation, X, Telegram wit
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
-#### Вариант «Доставка» (добавлен после Scootini Goosini, владельцем ещё не утверждён)
+#### Вариант «Доставка» (добавлен после Scootini Goosini, утверждён 05.10.2026)
 
 **RU**
 

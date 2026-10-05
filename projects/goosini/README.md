@@ -128,6 +128,10 @@ The courier rides to the right by himself. One tap hits the brakes. The goal is 
 - Everything comes from the project config: sprites, texts, units. The game can be reused for another mascot.
 - Checked with an automated player on desktop and phone sizes.
 
+The first screen on an iPhone, opened from Telegram:
+
+<img src="case/04_site_mobile.jpg" width="300" alt="The first screen of the site on a phone">
+
 | The game, the rating and the checkout | The courier and the chat |
 |---|---|
 | ![Game](case/03_site_game.png) | ![Chat](case/08_site_chat.png) |
@@ -159,7 +163,7 @@ PROJECT=goosini npm run build
 
 - Profile: avatar, header, bio, link to the site.
 - Pinned post: the chase scene and a warning that no contract address means no token.
-- Content plan for 7 days, 12 posts with images and alt texts: [`launch/x_content.md`](launch/x_content.md).
+- Content plan for 7 days, 12 posts with images and alt texts: [`launch/x_content.md`](launch/x_content.md). Four of them are scheduled.
 - No price talk, no promises and no safety claims in any post. "Delivered" and "eaten" are about pizza.
 
 <img src="case/05_x_profile.png" width="420" alt="X profile">

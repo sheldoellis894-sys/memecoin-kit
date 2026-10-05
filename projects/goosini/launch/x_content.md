@@ -8,6 +8,7 @@ Images: paths are relative to projects/goosini/brand/
 Posting times (Moscow time): ~16:00 and ~21:00 — afternoon and evening for Europe, morning and midday for the US.
 
 Posts marked PUBLISH are the four chosen for scheduling. The rest stay in the plan.
+Status on 2026-10-05: profile set up, post 1 pinned, the four PUBLISH posts scheduled (confirmed by the owner).
 
 ## Profile
 
