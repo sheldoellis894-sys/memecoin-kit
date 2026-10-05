@@ -10,7 +10,7 @@ with a playable game, X profile, Telegram community and a launch package for pum
 | **Type** | Memecoin, brainrot + food delivery |
 | **Chain** | Solana (pump.fun) |
 | **Status** | Ready to launch. The token is not created. |
-| **Time** | 3.5 hours, measured step by step (see `brand/docs/goosini_timelog.md`) |
+| **Time** | 3 hours, measured step by step (see `brand/docs/goosini_timelog.md`) |
 | **Role** | Solo: brand, visuals, front-end, socials, community setup |
 | **Website** | https://scootinigoosini.vercel.app |
 | **X** | https://x.com/scootinigoosini |

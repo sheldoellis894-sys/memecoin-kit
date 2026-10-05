@@ -9,13 +9,13 @@
 | 1 | Molty ($MOLTY) | Мемкойн, Solana | 2 рабочих дня | https://molty-ten.vercel.app |
 | 2 | Turbo Shiba Cop 3000 ($TSC3000) | Мемкойн, Solana | 5,5 часа | https://turboshibacop.vercel.app |
 | 3 | Fat Cat Holdings ($FCH) | Мемкойн, Solana | 5 часов | https://fatcatholdings.vercel.app |
-| 4 | Scootini Goosini ($GOOSINI) | Мемкойн, Solana | 3,5 часа | https://scootinigoosini.vercel.app |
+| 4 | Scootini Goosini ($GOOSINI) | Мемкойн, Solana | 3 часа | https://scootinigoosini.vercel.app |
 
 ## Сроки
 
 | Тип проекта | Цель | Подтверждено |
 |---|---|---|
-| Мемкойн | 1 рабочий день | 3,5 часа (Scootini Goosini), 5 часов (Fat Cat Holdings), 5,5 часа (Turbo Shiba Cop 3000) |
+| Мемкойн | 1 рабочий день | 3 часа (Scootini Goosini), 5 часов (Fat Cat Holdings), 5,5 часа (Turbo Shiba Cop 3000) |
 | Утилитарный токен | 1 рабочий день | пока нет |
 | Проект с ИИ-агентом | до 2 рабочих дней | пока нет |
 
@@ -36,10 +36,10 @@
 ## 1. One line
 
 **RU**
-От идеи до «осталось нажать Create coin» за 3,5 часа: герой, сайт с игрой, X, Telegram и пакет под pump.fun. Пример — Scootini Goosini.
+От идеи до «осталось нажать Create coin» за 3 часа: герой, сайт с игрой, X, Telegram и пакет под pump.fun. Пример — Scootini Goosini.
 
 **EN**
-From an idea to "just press Create coin" in 3.5 hours: character, website with a playable game, X, Telegram and a pump.fun package. Example: Scootini Goosini.
+From an idea to "just press Create coin" in 3 hours: character, website with a playable game, X, Telegram and a pump.fun package. Example: Scootini Goosini.
 
 ---
 
@@ -51,7 +51,7 @@ From an idea to "just press Create coin" in 3.5 hours: character, website with a
 
 Четыре проекта. У каждого свой герой, свой сайт и своя игра.
 
-Scootini Goosini ($GOOSINI): от идеи до готовности к минту за 3,5 часа.
+Scootini Goosini ($GOOSINI): от идеи до готовности к минту за 3 часа.
 Гусь-самокат увозит вашу пиццу, а сайт — это приложение доставки, в котором заказ никогда не приедет.
 
 Fat Cat Holdings ($FCH): 5 часов.
@@ -99,7 +99,7 @@ Telegram https://t.me/moltymole
 
 Four projects. Each has its own character, its own website and its own game.
 
-Scootini Goosini ($GOOSINI): from an idea to mint-ready in 3.5 hours.
+Scootini Goosini ($GOOSINI): from an idea to mint-ready in 3 hours.
 A goose that is half scooter rides away with your pizza, and the website is a delivery app where the order never arrives.
 
 Fat Cat Holdings ($FCH): 5 hours.
@@ -201,7 +201,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Это сайт мемкойна в виде приложения доставки, и курьера можно попробовать остановить: https://scootinigoosini.vercel.app
 
-Весь проект — герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио четыре проекта, все сайты разные.
+Весь проект — герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3 часа. В портфолио четыре проекта, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
@@ -211,7 +211,7 @@ You ordered a pizza. The order was handed to a goose. The goose is half scooter,
 
 This is a memecoin website built as a delivery app, and you can try to stop the courier: https://scootinigoosini.vercel.app
 
-The whole project — character, website with a game, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Four projects in the portfolio, no two websites alike.
+The whole project — character, website with a game, X, Telegram with bot protection and a pump.fun package — took 3 hours. Four projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
