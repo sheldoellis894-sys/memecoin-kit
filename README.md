@@ -16,3 +16,4 @@ Reusable kit for building memecoin and utility-token projects fast.
 | [Molty ($MOLTY)](projects/molty/README.md) | Memecoin, mole miner | https://molty-ten.vercel.app |
 | [Turbo Shiba Cop 3000 ($TSC3000)](projects/tsc3000/README.md) | Memecoin, 16-bit dog cop | https://turboshibacop.vercel.app |
 | [Fat Cat Holdings ($FCH)](projects/fch/README.md) | Memecoin, fat cat boss and an employment agreement | https://fatcatholdings.vercel.app |
+| [Scootini Goosini ($GOOSINI)](projects/goosini/README.md) | Memecoin, goose-scooter courier and a delivery app | https://scootinigoosini.vercel.app |

@@ -100,6 +100,8 @@ const icons: Record<string, string> = {
       }
       let tab = 0;
       tabMarks.forEach((el, i) => { if (el && el.getBoundingClientRect().top < mid) tab = i; });
+      // at the very bottom of the page the last tab wins, even if its section never reaches the middle of the screen
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) tab = tabs.length - 1;
       if (tab !== currentTab) { currentTab = tab; tabs.forEach((t, i) => t.classList.toggle('is-on', i === tab)); }
     };
     addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });

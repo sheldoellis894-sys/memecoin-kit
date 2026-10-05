@@ -9,12 +9,13 @@
 | 1 | Molty ($MOLTY) | Мемкойн, Solana | 2 рабочих дня | https://molty-ten.vercel.app |
 | 2 | Turbo Shiba Cop 3000 ($TSC3000) | Мемкойн, Solana | 5,5 часа | https://turboshibacop.vercel.app |
 | 3 | Fat Cat Holdings ($FCH) | Мемкойн, Solana | 5 часов | https://fatcatholdings.vercel.app |
+| 4 | Scootini Goosini ($GOOSINI) | Мемкойн, Solana | 3,5 часа | https://scootinigoosini.vercel.app |
 
 ## Сроки
 
 | Тип проекта | Цель | Подтверждено |
 |---|---|---|
-| Мемкойн | 1 рабочий день | 5 часов (Fat Cat Holdings), 5,5 часа (Turbo Shiba Cop 3000) |
+| Мемкойн | 1 рабочий день | 3,5 часа (Scootini Goosini), 5 часов (Fat Cat Holdings), 5,5 часа (Turbo Shiba Cop 3000) |
 | Утилитарный токен | 1 рабочий день | пока нет |
 | Проект с ИИ-агентом | до 2 рабочих дней | пока нет |
 
@@ -35,10 +36,10 @@
 ## 1. One line
 
 **RU**
-От идеи до «осталось нажать Create coin» за 5 часов: герой, сайт с игрой, анимация, X, Telegram и пакет под pump.fun. Пример — Fat Cat Holdings.
+От идеи до «осталось нажать Create coin» за 3,5 часа: герой, сайт с игрой, X, Telegram и пакет под pump.fun. Пример — Scootini Goosini.
 
 **EN**
-From an idea to "just press Create coin" in 5 hours: character, website with a playable game, animation, X, Telegram and a pump.fun package. Example: Fat Cat Holdings.
+From an idea to "just press Create coin" in 3.5 hours: character, website with a playable game, X, Telegram and a pump.fun package. Example: Scootini Goosini.
 
 ---
 
@@ -48,9 +49,12 @@ From an idea to "just press Create coin" in 5 hours: character, website with a p
 
 **Упаковываю токены под запуск. Целиком и быстро.**
 
-Три проекта. У каждого свой герой, свой сайт и своя игра.
+Четыре проекта. У каждого свой герой, свой сайт и своя игра.
 
-Fat Cat Holdings ($FCH): от идеи до готовности к минту за 5 часов.
+Scootini Goosini ($GOOSINI): от идеи до готовности к минту за 3,5 часа.
+Гусь-самокат увозит вашу пиццу, а сайт — это приложение доставки, в котором заказ никогда не приедет.
+
+Fat Cat Holdings ($FCH): 5 часов.
 Очень толстый кот руководит холдингом, а сайт — это трудовой договор, который посетитель подписывает сам.
 
 Turbo Shiba Cop 3000 ($TSC3000): 5,5 часа.
@@ -65,9 +69,14 @@ Turbo Shiba Cop 3000 ($TSC3000): 5,5 часа.
 - Telegram с проверкой на входе, капчей и защитой от спама и набегов ботов;
 - пакет на день запуска: поля pump.fun и DexScreener заполнены и сверены с живой формой.
 
-Сайты собираю на собственном шаблоне. В нём уже три стиля, три макета и три игры, новые добавляются под нарратив.
+Сайты собираю на собственном шаблоне. В нём уже четыре стиля, четыре макета и четыре игры, новые добавляются под нарратив.
 
 Стек: Astro, Tailwind CSS, TypeScript, Canvas, Figma, Vercel, Telegram (Rose, Safeguard).
+
+Scootini Goosini
+сайт https://scootinigoosini.vercel.app
+X https://x.com/scootinigoosini
+Telegram https://t.me/scootinigoosini
 
 Fat Cat Holdings
 сайт https://fatcatholdings.vercel.app
@@ -88,9 +97,12 @@ Telegram https://t.me/moltymole
 
 **I package tokens for launch. The whole thing, fast.**
 
-Three projects. Each has its own character, its own website and its own game.
+Four projects. Each has its own character, its own website and its own game.
 
-Fat Cat Holdings ($FCH): from an idea to mint-ready in 5 hours.
+Scootini Goosini ($GOOSINI): from an idea to mint-ready in 3.5 hours.
+A goose that is half scooter rides away with your pizza, and the website is a delivery app where the order never arrives.
+
+Fat Cat Holdings ($FCH): 5 hours.
 A very fat cat runs a holding company, and the website is an employment agreement the visitor signs.
 
 Turbo Shiba Cop 3000 ($TSC3000): 5.5 hours.
@@ -105,9 +117,14 @@ What the package includes:
 - Telegram with a verification portal, captcha, and protection from spam and bot raids;
 - a launch-day package: pump.fun and DexScreener fields filled in and checked against the live form.
 
-I build the websites on my own template. It already has three styles, three layouts and three games, and new ones are added to fit the narrative.
+I build the websites on my own template. It already has four styles, four layouts and four games, and new ones are added to fit the narrative.
 
 Stack: Astro, Tailwind CSS, TypeScript, Canvas, Figma, Vercel, Telegram (Rose, Safeguard).
+
+Scootini Goosini
+website https://scootinigoosini.vercel.app
+X https://x.com/scootinigoosini
+Telegram https://t.me/scootinigoosini
 
 Fat Cat Holdings
 website https://fatcatholdings.vercel.app
@@ -130,7 +147,7 @@ Telegram https://t.me/moltymole
 
 ### Short version (first message)
 
-Основной вариант начинается со сцены из игры и сразу зовёт сыграть. Вариант «Договор» начинается со сцены из третьего проекта и зовёт подписать. Запасной начинается с цифры и быстрее объясняет суть.
+Основной вариант начинается со сцены из игры и сразу зовёт сыграть. Вариант «Договор» начинается со сцены из третьего проекта и зовёт подписать. Вариант «Доставка» начинается со сцены из четвёртого проекта и зовёт остановить курьера. Запасной начинается с цифры и быстрее объясняет суть.
 
 #### Основной вариант — «Игра» (выбран 04.10.2026)
 
@@ -176,6 +193,28 @@ The whole project — character, website with a game, animation, X, Telegram wit
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
+#### Вариант «Доставка» (добавлен после Scootini Goosini, владельцем ещё не утверждён)
+
+**RU**
+
+Вы заказали пиццу. Заказ передали гусю. Гусь наполовину самокат, и он уже уезжает.
+
+Это сайт мемкойна в виде приложения доставки, и курьера можно попробовать остановить: https://scootinigoosini.vercel.app
+
+Весь проект — герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио четыре проекта, все сайты разные.
+
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+
+**EN**
+
+You ordered a pizza. The order was handed to a goose. The goose is half scooter, and he is already leaving.
+
+This is a memecoin website built as a delivery app, and you can try to stop the courier: https://scootinigoosini.vercel.app
+
+The whole project — character, website with a game, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Four projects in the portfolio, no two websites alike.
+
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+
 #### Запасной вариант — «Цифра»
 
 **RU**
@@ -218,7 +257,8 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Чего не делаю: ботов объёма, платных трендов и накруток.
 
-Ещё два проекта, каждый в своём стиле:
+Ещё три проекта, каждый в своём стиле:
+сайт-приложение доставки, где гуся-курьера надо остановить у двери — https://scootinigoosini.vercel.app
 сайт-договор, который надо подписать — https://fatcatholdings.vercel.app
 шахта и крот-майнер — https://molty-ten.vercel.app
 
@@ -244,7 +284,8 @@ What you get:
 
 What I do not do: volume bots, paid trending, fake engagement.
 
-Two more projects, each in its own style:
+Three more projects, each in its own style:
+a website that is a delivery app where you have to stop the goose courier at the door — https://scootinigoosini.vercel.app
 a website that is a contract you have to sign — https://fatcatholdings.vercel.app
 a mine and a mole miner — https://molty-ten.vercel.app
 
