@@ -232,25 +232,25 @@ The whole project — character, website with a game, X, Telegram with bot prote
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
-#### Вариант «Станок» (добавлен после Inkmaxx, ждёт утверждения владельцем)
+#### Вариант «Станок» (добавлен после Inkmaxx, утверждён 06.10.2026)
 
 **RU**
 
-Осьминог с восемью руками не спал с первого листа. Он печатает мемы, пока вы ищете вдохновение.
+Загрузите любую картинку. Осьминог напечатает из неё мем. Спасибо он не скажет.
 
-Это сайт токена, и станок на нём настоящий. Загрузите любую картинку, и он сделает из неё оттиск в две краски: https://inkmaxxing.vercel.app
+Это сайт токена с рабочим станком для мемов: https://inkmaxxing.vercel.app
 
-Весь проект — герой, сайт с генератором мемов, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио пять проектов: мемкойны и утилитарный токен, все сайты разные.
+Весь проект — герой, сайт с генератором мемов, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио пять проектов, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
 **EN**
 
-An octopus with eight arms has not slept since the first sheet. He prints memes while you look for inspiration.
+Upload any picture. An octopus turns it into a meme. He will not say thank you.
 
-This is a token website, and the press on it is real. Upload any picture and it turns into a two-ink print: https://inkmaxxing.vercel.app
+This is a token website with a working meme press: https://inkmaxxing.vercel.app
 
-The whole project — character, website with a meme maker, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Five projects in the portfolio: memecoins and a utility token, no two websites alike.
+The whole project — character, website with a meme maker, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Five projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
