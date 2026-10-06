@@ -13,6 +13,7 @@
 import { personas } from './_agent/persona.js';
 import { inspect } from './_agent/agent.js';
 
+const BUILD = 3;                 // raised with every change of the agent, so a deployment can be told apart from outside
 const DAY = 86400000;
 const seen = new Map();          // ip → [timestamps]. Lives as long as the instance does: a brake, not a wall.
 let total = { day: 0, n: 0 };
@@ -39,7 +40,7 @@ export async function handle(request, env = process.env) {
   if (!persona) return json({ error: 'not_found' }, 404);
   const live = Boolean(env.LLM_API_KEY && (env.HELIUS_API_KEY || env.SOLANA_RPC_URL));
 
-  if (request.method === 'GET') return json({ live });
+  if (request.method === 'GET') return json({ live, build: BUILD });
   if (request.method !== 'POST') return json({ error: 'method' }, 405, { allow: 'GET, POST' });
 
   // Same-site requests only: the keys behind this function are paid for by the project.

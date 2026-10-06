@@ -20,7 +20,7 @@ const TOOLS = [
   },
   {
     name: 'file_review',
-    description: 'Files the entry in the guide and ends the inspection. Call exactly once, after reading the trades.',
+    description: 'Files the entry in the guide and ends the inspection. Call exactly once, after reading the trades. Every field is a plain string (stars is a number): no nested objects, no lists.',
     input_schema: {
       type: 'object',
       properties: {
@@ -29,19 +29,15 @@ const TOOLS = [
         cuisine: { type: 'string', description: 'What this kitchen specialises in, from the facts. Max 60 characters.' },
         average_check: { type: 'string', description: 'The average buy size in SOL, phrased as an average check. Max 40 characters.' },
         opening_hours: { type: 'string', description: 'When this kitchen is busiest, from busiest_hours_utc. Max 48 characters.' },
-        dish_of_the_day: {
-          type: 'object',
-          properties: {
-            title: { type: 'string', description: 'The single trade or position that defines the wallet, named like a dish. Max 48 characters.' },
-            note: { type: 'string', description: 'One or two sentences with the real numbers. Max 150 characters.' },
-          },
-          required: ['title', 'note'],
-        },
-        paragraphs: { type: 'array', minItems: 3, maxItems: 3, items: { type: 'string' }, description: 'Three short paragraphs: arrival and first impression, the main course (what the trading shows), the bill (the totals). Max 300 characters each.' },
+        dish_title: { type: 'string', description: 'The single trade or position that defines the wallet, named like a dish. Max 48 characters.' },
+        dish_note: { type: 'string', description: 'One or two sentences about that dish with the real numbers. Max 150 characters.' },
+        paragraph_1: { type: 'string', description: 'Arrival and first impression. Max 300 characters.' },
+        paragraph_2: { type: 'string', description: 'The main course: what the trading shows. Max 300 characters.' },
+        paragraph_3: { type: 'string', description: 'The bill: the totals. Max 300 characters.' },
         pull_quote: { type: 'string', description: 'The one line people will quote. Max 100 characters.' },
         verdict: { type: 'string', description: 'Closing line of the entry. Max 70 characters.' },
       },
-      required: ['stars', 'name', 'cuisine', 'average_check', 'opening_hours', 'dish_of_the_day', 'paragraphs', 'pull_quote', 'verdict'],
+      required: ['stars', 'name', 'cuisine', 'average_check', 'opening_hours', 'dish_title', 'dish_note', 'paragraph_1', 'paragraph_2', 'paragraph_3', 'pull_quote', 'verdict'],
     },
   },
 ];
@@ -51,8 +47,27 @@ const clip = (s, max) => {
   return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t;
 };
 
-export function cleanReview(r) {
-  const p = Array.isArray(r?.paragraphs) ? r.paragraphs : [];
+/** The entry arrives as flat fields. Older nested shapes and fields sent as JSON text are understood too. */
+export function normalize(input) {
+  const r = input && typeof input === 'object' ? { ...input } : {};
+  const parse = (v) => { if (typeof v !== 'string') return v; const t = v.trim(); if (!/^[[{]/.test(t)) return v; try { return JSON.parse(t); } catch { return v; } };
+  let dish = parse(r.dish_of_the_day);
+  if (typeof dish === 'string') dish = { title: dish, note: '' };
+  dish = dish && typeof dish === 'object' ? dish : {};
+  let paragraphs = parse(r.paragraphs);
+  if (typeof paragraphs === 'string') paragraphs = paragraphs.split(/\n{2,}/);
+  paragraphs = Array.isArray(paragraphs) ? paragraphs : [];
+  const flat = [r.paragraph_1, r.paragraph_2, r.paragraph_3].filter((x) => typeof x === 'string' && x.trim());
+  return {
+    ...r,
+    dish_of_the_day: { title: r.dish_title || dish.title || dish.name || '', note: r.dish_note || dish.note || dish.description || '' },
+    paragraphs: flat.length ? flat : paragraphs.filter((x) => typeof x === 'string'),
+  };
+}
+
+export function cleanReview(input) {
+  const r = normalize(input);
+  const p = r.paragraphs;
   return {
     stars: Math.max(0, Math.min(5, Math.round(Number(r?.stars) || 0))),
     name: clip(r?.name, 40) || 'The Unnamed Table',
@@ -67,12 +82,14 @@ export function cleanReview(r) {
 }
 
 /** Which required parts of the entry are missing or empty. */
-export function missingParts(r) {
+export function missingParts(input) {
+  const r = normalize(input);
   const has = (v) => typeof v === 'string' && v.trim().length > 0;
   const m = [];
-  for (const k of ['name', 'cuisine', 'average_check', 'opening_hours', 'pull_quote', 'verdict']) if (!has(r?.[k])) m.push(k);
-  if (!has(r?.dish_of_the_day?.title) || !has(r?.dish_of_the_day?.note)) m.push('dish_of_the_day');
-  if (!Array.isArray(r?.paragraphs) || r.paragraphs.filter(has).length < 3) m.push('paragraphs');
+  for (const k of ['name', 'cuisine', 'average_check', 'opening_hours', 'pull_quote', 'verdict']) if (!has(r[k])) m.push(k);
+  if (!has(r.dish_of_the_day.title)) m.push('dish_title');
+  if (!has(r.dish_of_the_day.note)) m.push('dish_note');
+  r.paragraphs.filter(has).length < 3 && m.push(...['paragraph_1', 'paragraph_2', 'paragraph_3'].slice(r.paragraphs.filter(has).length));
   return m;
 }
 
@@ -195,7 +212,7 @@ export async function inspect({ wallet, persona, env, emit }) {
       // An unfinished entry (the model ran out of room or skipped fields) goes back once for a rewrite.
       if (gaps.length && rewrites < 1 && turn < MAX_TURNS - 1) {
         rewrites++;
-        emit({ type: 'step', text: 'The entry came back unfinished. The inspector writes it again.' });
+        emit({ type: 'step', text: `The entry came back unfinished (${gaps.length} blank ${gaps.length === 1 ? 'field' : 'fields'}${out.stop_reason === 'max_tokens' ? ', out of paper' : ''}). The inspector writes it again.` });
         const results = [];
         for (const c of calls) {
           if (c === filed) results.push({ type: 'tool_result', tool_use_id: c.id, is_error: true, content: `Not filed: the entry is incomplete. Missing or empty: ${gaps.join(', ')}. Call file_review again with every field filled. Write no text before the tool call.` });
@@ -206,7 +223,7 @@ export async function inspect({ wallet, persona, env, emit }) {
         continue;
       }
       const review = cleanReview(filed.input);
-      emit({ type: 'step', text: 'Entry written. Stars counted.' });
+      emit({ type: 'step', text: gaps.length ? `Entry written. ${gaps.length} blank ${gaps.length === 1 ? 'field was' : 'fields were'} filled from the books.` : 'Entry written. Stars counted.' });
       emit({ type: 'review', review: gaps.length ? cleanReview(completeReview(review, facts, (m) => labels.get(m) || shortMint(m))) : review });
       return;
     }

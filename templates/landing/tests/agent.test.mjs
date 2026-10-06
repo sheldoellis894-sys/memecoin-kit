@@ -59,8 +59,8 @@ assert.equal((await post('0OIl' + 'a'.repeat(40))).status, 400);
 assert.equal((await post(WALLET, { ...ENV, PROJECT: 'tenkeys' })).status, 404);
 assert.equal((await post(WALLET, { PROJECT: 'chefrekt' })).status, 503);
 assert.equal((await post(WALLET, ENV, { origin: 'https://evil.example' })).status, 403);
-const g = await handle(new Request('https://x/api/inspect'), ENV); assert.deepEqual(await g.json(), { live: true });
-const g2 = await handle(new Request('https://x/api/inspect'), { PROJECT: 'chefrekt' }); assert.deepEqual(await g2.json(), { live: false });
+const g = await handle(new Request('https://x/api/inspect'), ENV); assert.equal((await g.json()).live, true);
+const g2 = await handle(new Request('https://x/api/inspect'), { PROJECT: 'chefrekt' }); assert.equal((await g2.json()).live, false);
 const lim = { ...ENV, AGENT_PER_IP: '2' };
 const h = { 'x-forwarded-for': '9.9.9.9' };
 // the streams are read to the end: an unread stream keeps running and would eat the answers of the next scenario
@@ -93,3 +93,13 @@ assert.equal(calls.model, 3); assert.equal(r8.name, 'The Smallest Hours'); asser
 assert.ok(r8.dish_of_the_day.title && r8.dish_of_the_day.note && r8.pull_quote && r8.verdict);
 assert.ok(/9 transactions/.test(r8.paragraphs[0]) && /-1.85 SOL/.test(r8.paragraphs[2]));
 console.log('8 ok: gaps filled from the facts ->', r8.dish_of_the_day.title, '|', r8.paragraphs[1]);
+
+// 9. The entry in the flat shape the tool asks for, and in two broken shapes seen from small models
+const { cleanReview, missingParts } = await import(new URL('../api/_agent/agent.js', import.meta.url));
+const flat = { stars: 2, name: 'N', cuisine: 'C', average_check: 'A', opening_hours: 'O', dish_title: 'D', dish_note: 'DN', paragraph_1: 'one', paragraph_2: 'two', paragraph_3: 'three', pull_quote: 'Q', verdict: 'V' };
+assert.deepEqual(missingParts(flat), []);
+assert.deepEqual(cleanReview(flat).paragraphs, ['one', 'two', 'three']); assert.equal(cleanReview(flat).dish_of_the_day.title, 'D');
+const asText = { ...flat, dish_title: undefined, dish_note: undefined, paragraph_1: undefined, paragraph_2: undefined, paragraph_3: undefined, dish_of_the_day: '{"title":"D2","note":"N2"}', paragraphs: '["a","b","c"]' };
+assert.deepEqual(missingParts(asText), []); assert.equal(cleanReview(asText).dish_of_the_day.note, 'N2'); assert.equal(cleanReview(asText).paragraphs[2], 'c');
+assert.deepEqual(missingParts(half), ['pull_quote', 'verdict', 'dish_title', 'dish_note', 'paragraph_1', 'paragraph_2', 'paragraph_3']);
+console.log('9 ok: flat entry and tolerant reading');

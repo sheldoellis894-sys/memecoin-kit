@@ -2,7 +2,7 @@
 
 ## Token (IMMUTABLE after creation — double-check)
 - Name: Chef Rekt (9 characters with the space)
-- Ticker: CHEFREKT (8 characters). Fallback if the form refuses 8: CHEFRKT (7 characters)
+- Ticker: CHEFREKT (8 characters, accepted by the form on 2026-10-06)
 - Image: brand/exports/chefrekt_avatar.png (1000x1000)
 - Video: none in this project
 
@@ -37,8 +37,7 @@ brand/exports/chefrekt_dex_header.png (1500x500)
 
 ## Verified in the live form (2026-10-06, dry run for this project, coin not created)
 - Name "Chef Rekt" (with a space) is accepted
-- Ticker: the owner entered the 7-character fallback CHEFRKT. Whether the field takes the 8-character CHEFREKT: TO CONFIRM.
-  The banner, the site, X and Telegram all say $CHEFREKT, so the ticker in the form must match them on launch day.
+- Ticker "CHEFREKT" (8 characters) is accepted as is. The first run was made with the 7-character fallback; the form screenshot was retaken with the real ticker.
 - All three links (Website, X, Telegram) are accepted
 - The Description field holds the text from this file
 - Image chefrekt_avatar.png and banner chefrekt_dex_header.png upload and preview correctly

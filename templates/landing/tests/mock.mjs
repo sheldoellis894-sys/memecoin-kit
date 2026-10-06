@@ -51,7 +51,7 @@ export const goodScript = (i) => [
   { stop_reason: 'tool_use', content: [{ type: 'text', text: 'The pantry deserves a look.' }, { type: 'tool_use', id: 't2', name: 'look_up_token', input: { id: 'T1' } }, { type: 'tool_use', id: 't3', name: 'look_up_token', input: { id: 'T2' } }] },
   { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't4', name: 'file_review', input: {
     stars: 1, name: 'The Top Buyer’s Arms', cuisine: 'Buying high, served cold', average_check: '1.13 SOL a plate', opening_hours: 'Busiest 00:00–03:00 UTC',
-    dish_of_the_day: { title: 'Soup, sold at a loss', note: 'Bought for 2 SOL. Sold for 0.35 SOL. The spoon was not included.' },
-    paragraphs: ['The room is busy. Nine swaps in four tokens over three days.', 'Two dishes of three came back to the kitchen. The third was edible.', 'The bill: minus 1.85 SOL realized. One bag of 3.5 SOL is still on the stove.'],
+    dish_title: 'Soup, sold at a loss', dish_note: 'Bought for 2 SOL. Sold for 0.35 SOL. The spoon was not included.',
+    paragraph_1: 'The room is busy. Nine swaps in four tokens over three days.', paragraph_2: 'Two dishes of three came back to the kitchen. The third was edible.', paragraph_3: 'The bill: minus 1.85 SOL realized. One bag of 3.5 SOL is still on the stove.',
     pull_quote: 'Bold plating. Tastes like loss.', verdict: 'One star. For the courage.' } }] },
 ][i];
