@@ -207,7 +207,12 @@
       "textTitle": "Ten Keys split sheet",
       "textTotal": "Total 100%. Keys: {n} of {max}.",
       "notContract": "Not a contract. Shares are set on pump.fun by the creator.",
-      "private": "Runs in your browser. Nothing is uploaded. No wallet is connected."
+      "private": "Runs in your browser. Nothing is uploaded. No wallet is connected.",
+      "whySum": "Not sealed. {line}",
+      "whyCount": "Not sealed. More than {max} keys.",
+      "whyPositive": "Not sealed. Key {n} has no share.",
+      "whyWallets": "Not sealed. Key {n}: this is not a Solana address.",
+      "whyUnique": "Not sealed. Keys {a} and {b} have the same wallet."
     },
     "shareText": "{n} keys. 100%. Sealed {code}. Agree on the split. Then launch. $TENKEYS"
   },

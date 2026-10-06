@@ -68,6 +68,7 @@ const data = s ? JSON.stringify({
         </label>
         <p class="vk-small">{L.holderNote}</p>
         <button type="button" class="vk-btn vk-btn-big vk-btn-signal vk-seal" data-seal>{L.seal}</button>
+        <p class="vk-seal-why" data-why aria-live="polite" hidden></p>
         <p class="vk-small">{L.private}</p>
       </aside>
       </div>
@@ -118,6 +119,7 @@ const data = s ? JSON.stringify({
     const checks = [...root.querySelectorAll<HTMLElement>('[data-check]')];
     const holderEl = $<HTMLInputElement>('[data-holder]');
     const sealBtn = $<HTMLButtonElement>('[data-seal]');
+    const whyEl = $('[data-why]');
     const result = $('[data-result]');
     const canvas = $<HTMLCanvasElement>('[data-canvas]');
     const codeEl = $('[data-code]');
@@ -215,6 +217,18 @@ const data = s ? JSON.stringify({
       checks.forEach((c) => c.classList.toggle('is-ok', v[c.dataset.check!]));
       const ok = Object.values(v).every(Boolean);
       sealBtn.disabled = !ok;
+      // say in words what blocks the seal: a greyed-out button alone does not explain itself
+      let why = '';
+      if (!ok) {
+        const bad = (i: number) => !!wallets[i] && !BASE58.test(wallets[i]);
+        const dup = wallets.findIndex((w, i) => !!w && wallets.indexOf(w) !== i);
+        if (!v.count) why = fill(L.whyCount, { max: MAX });
+        else if (!v.positive) why = fill(L.whyPositive, { n: pad(rows.findIndex((r) => !(r.bp > 0)) + 1) });
+        else if (!v.wallets) why = fill(L.whyWallets, { n: pad(wallets.findIndex((_, i) => bad(i)) + 1) });
+        else if (!v.unique) why = fill(L.whyUnique, { a: pad(wallets.indexOf(wallets[dup]) + 1), b: pad(dup + 1) });
+        else why = fill(L.whySum, { line });
+      }
+      whyEl.textContent = why; whyEl.hidden = !why;
       addBtn.disabled = rows.length >= MAX;
       countEl.textContent = fill(L.count, { n: rows.length, max: MAX });
       root.classList.toggle('is-valid', ok);
@@ -415,6 +429,7 @@ const data = s ? JSON.stringify({
 
     // test hook: lets an automated visitor go through every action
     (root as any).split = {
+      why: () => whyEl.textContent || '',
       state: () => ({ rows: rows.map((r) => ({ ...r })), sum: total(), checks: verdict(), sealed: sealed && !stale ? sealed.code : null, stale, holder: holderEl.checked, kept: kept?.code || null }),
       set: (list: { role: string; wallet?: string; share: number }[]) => { rows = list.slice(0, MAX).map((x) => ({ role: x.role, wallet: x.wallet || '', bp: Math.round(x.share * 100), raw: String(x.share) })); renderRows(); changed(); },
       preset, add, remove, seal, text: chatText, csv,

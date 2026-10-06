@@ -1321,6 +1321,9 @@ html.vk-motion .vk-draw:not(.is-in) text { opacity: 0; }
 .vk-switch input:checked + .vk-switch-track i { transform: translateX(22px); }
 .vk-switch input:focus-visible + .vk-switch-track { outline: 3px solid var(--t-secondary); outline-offset: 3px; }
 .vk-seal { width: 100%; }
+.vk-seal-why { margin-top: -4px; padding: 8px 10px; border: 2px dashed var(--t-text); font: 700 .8rem/1.4 var(--vk-mono); color: var(--t-text); }
+.vk-checks li:not(.is-ok) { color: var(--t-text); font-weight: 700; }
+.vk-checks li:not(.is-ok)::before { background-image: repeating-linear-gradient(45deg, transparent 0 3px, var(--t-text) 3px 5px); }
 .vk-split.is-sealed .vk-seal { background: var(--t-text); color: var(--t-bg); }
 .vk-sheet { display: grid; gap: 18px; padding: clamp(12px, 2vw, 20px); border: 2px solid var(--t-text); background: var(--t-surface); scroll-margin-top: calc(var(--vk-bar-h) + 12px); }
 .vk-sheet-pic canvas { display: block; width: 100%; height: auto; border: 1px solid var(--vk-line); }

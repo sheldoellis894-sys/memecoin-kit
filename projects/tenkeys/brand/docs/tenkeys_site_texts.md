@@ -62,6 +62,7 @@ Plate: "Lock 03 / 10 · Closed / Open"
 - Проверки: Сумма ровно 100% · Не больше 10 получателей · Каждая доля больше 0 · Кошельки похожи на адреса Solana · Кошелёк не повторяется
 - Переключатель: Показ режима держателя. Держатели получают лист без подписи сайта, два расклада рядом и файл-таблицу. Этот переключатель — показ. Он ничего не проверяет.
 - Кнопка: Запечатать расклад → Запечатано
+- Если запечатать нельзя, под кнопкой причина: «Не запечатано. У ключей 01 и 02 один кошелёк.» · «Не запечатано. У ключа 03 нет доли.» · «Не запечатано. Ключ 02: это не адрес Solana.» · «Не запечатано. Сумма 95. Осталось 5.»
 - Работает в вашем браузере. Ничего не отправляется. Кошелёк не подключается.
 - После печати: «Запечатано.» · «Печать 6870-F078 · 2026-10-06» · Скачать · Скопировать текст · Поделиться в X
 - X откроется с готовым текстом. Скачанный лист приложите к посту сами.
@@ -82,6 +83,7 @@ Plate: "Lock 03 / 10 · Closed / Open"
 - Checks: Sum is exactly 100% · No more than 10 recipients · Every share is above 0 · Wallets look like Solana addresses · No wallet appears twice
 - Switch: Holder preview. Holders get the sheet without the site tag, two splits side by side and a table file. This switch is a preview. It checks nothing.
 - Button: Seal the split → Sealed
+- When sealing is blocked, the reason is under the button: "Not sealed. Keys 01 and 02 have the same wallet." · "Not sealed. Key 03 has no share." · "Not sealed. Key 02: this is not a Solana address." · "Not sealed. Sum 95. 5 left."
 - Runs in your browser. Nothing is uploaded. No wallet is connected.
 - After sealing: "Sealed." · "Seal 6870-F078 · 2026-10-06" · Download · Copy text · Share on X
 - X opens with the text ready. Attach the downloaded sheet to the post yourself.
