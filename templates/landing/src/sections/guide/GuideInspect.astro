@@ -1,0 +1,500 @@
+---
+// Page 4, the tool of the "guide" layout: "Inspection". The visitor pastes a wallet address, the agent on the server
+// reads the trades, looks things up and files an entry in the guide. Its steps appear in the inspector's notebook
+// while it works; the entry is shown as a guide card and as a picture that can be saved and shared.
+//
+// The agent lives in api/inspect.js (a Vercel Function). When it is not reachable or has no keys
+// (local preview, a fresh deployment), the page says so and offers the sample entry from the config:
+// an invented wallet, clearly marked as a sample.
+//
+// "Holder preview" is a switch that shows the holder mode without checking any wallet.
+// No wallet is ever connected. Test hook: root.inspect.
+import { config, asset } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+const t = config.inspect!;
+const L: Record<string, string> = t.labels;
+const data = JSON.stringify({
+  endpoint: t.endpoint || '/api/inspect',
+  perDay: t.perDay ?? 3,
+  watermark: t.watermark || '',
+  ticker: config.ticker,
+  title: guide.cardTitle || `The ${config.name} Guide`,
+  url: config.url || '',
+  poses: (t.poses || []).map((p) => asset(p.src)),
+  labels: L, errors: t.errors || {}, sample: t.sample, shareText: t.shareText,
+});
+const star = 'M12 1.8l3 6.5 7.1.8-5.3 4.8 1.5 7-6.3-3.6-6.3 3.6 1.5-7L1.9 9.1l7.1-.8z';
+---
+<section id="inspect" class="gd-sec gd-inspect" data-gd-inspect={data}>
+  <div class="gd-in">
+    <GdHead id="inspect" kicker={t.kicker} title={t.title} />
+    {t.lead && <p class="gd-lead">{t.lead}</p>}
+    <div class="gd-tool">
+      <div class="gd-desk">
+        <form class="gd-form" data-form novalidate>
+          <label for="gd-addr" class="gd-tag">{L.address}</label>
+          <input id="gd-addr" data-addr type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="44" placeholder={L.addressPlaceholder} aria-describedby="gd-why" />
+          <div class="gd-form-row">
+            <button type="submit" class="gd-btn gd-btn-big" data-go disabled>{L.go}</button>
+            <button type="button" class="gd-btn gd-btn-big gd-btn-ghost" data-sample>{L.sample}</button>
+          </div>
+          <p class="gd-why" id="gd-why" data-why role="status">{L.whyEmpty}</p>
+        </form>
+        <p class="gd-privacy">{L.privacy}</p>
+
+        <div class="gd-notebook">
+          <p class="gd-notebook-title font-heading">{L.notebook}</p>
+          <ol data-log aria-live="polite"><li class="is-idle">{L.notebookIdle}</li></ol>
+        </div>
+
+        <div class="gd-holder">
+          <label class="gd-switch"><input type="checkbox" data-holder /><span class="gd-switch-knob" aria-hidden="true"></span><span>{L.holder}</span></label>
+          <p>{L.holderNote}</p>
+        </div>
+      </div>
+
+      <div class="gd-result">
+        <div class="gd-entry-empty" data-empty>
+          <p class="font-heading">{L.emptyTitle}</p>
+          <p>{L.emptyText}</p>
+        </div>
+
+        <article class="gd-entry" data-entry hidden aria-live="polite">
+          <header class="gd-entry-top">
+            <div>
+              <p class="gd-entry-guide">{guide.cardTitle || `The ${config.name} Guide`}</p>
+              <p class="gd-entry-no"><b data-f="no"></b><span data-f="wallet"></span></p>
+              <p class="gd-entry-sample" data-f="sample" hidden>{L.sampleTag}</p>
+              <span class="gd-stars gd-stars-big" data-f="stars" role="img">
+                {[0, 1, 2, 3, 4].map(() => <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={star} /></svg>)}
+              </span>
+            </div>
+            <img data-f="pose" alt="" width="160" height="160" />
+          </header>
+          <h3 class="gd-entry-name font-heading" data-f="name"></h3>
+          <dl class="gd-entry-meta">
+            <div><dt>{L.cuisine}</dt><dd data-f="cuisine"></dd></div>
+            <div><dt>{L.check}</dt><dd data-f="check"></dd></div>
+            <div><dt>{L.hours}</dt><dd data-f="hours"></dd></div>
+          </dl>
+          <div class="gd-entry-dish">
+            <p class="gd-tag">{L.dish}</p>
+            <p class="gd-entry-dish-title font-heading" data-f="dishTitle"></p>
+            <p data-f="dishNote"></p>
+          </div>
+          <div class="gd-entry-body" data-f="body"></div>
+          <p class="gd-entry-more" data-f="more" hidden>{L.more}</p>
+          <blockquote class="gd-entry-quote font-heading" data-f="quote"></blockquote>
+          <p class="gd-entry-verdict" data-f="verdict"></p>
+          <ul class="gd-entry-facts" data-f="facts"></ul>
+          <p class="gd-entry-foot"><span data-f="mark">{t.watermark}</span><span class="font-ticker">${config.ticker}</span></p>
+        </article>
+
+        <div class="gd-result-actions" data-actions hidden>
+          <button type="button" class="gd-btn" data-download>{L.download}</button>
+          <button type="button" class="gd-btn gd-btn-ghost" data-share>{L.shareBtn}</button>
+          <button type="button" class="gd-btn gd-btn-ghost" data-copy>{L.copy}</button>
+          <button type="button" class="gd-btn gd-btn-ghost" data-keep hidden>{L.keep}</button>
+        </div>
+        <p class="gd-result-note" data-note hidden>{L.shareNote}</p>
+
+        <div class="gd-compare" data-compare hidden>
+          <p class="gd-tag">{L.compareTitle}</p>
+          <table>
+            <thead><tr><th></th><th data-c="a"></th><th data-c="b"></th></tr></thead>
+            <tbody data-c="rows"></tbody>
+          </table>
+        </div>
+
+        <canvas width="1080" height="1350" data-canvas hidden></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  type Review = { stars: number; name: string; cuisine: string; average_check: string; opening_hours: string;
+    dish_of_the_day: { title: string; note: string }; paragraphs: string[]; pull_quote: string; verdict: string };
+  type Result = { wallet: string; facts: Record<string, any>; review: Review; sample: boolean };
+
+  const root = document.querySelector<HTMLElement>('[data-gd-inspect]');
+  if (root) {
+    const cfg = JSON.parse(root.dataset.gdInspect!);
+    const L: Record<string, string> = cfg.labels, E: Record<string, string> = cfg.errors;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const f = (name: string) => $<HTMLElement>(`[data-f="${name}"]`);
+    const form = $<HTMLFormElement>('[data-form]'), input = $<HTMLInputElement>('[data-addr]');
+    const go = $<HTMLButtonElement>('[data-go]'), sampleBtn = $<HTMLButtonElement>('[data-sample]');
+    const why = $('[data-why]'), logEl = $<HTMLOListElement>('[data-log]');
+    const holderBox = $<HTMLInputElement>('[data-holder]');
+    const entry = $('[data-entry]'), empty = $('[data-empty]'), actions = $('[data-actions]'), note = $('[data-note]');
+    const keepBtn = $<HTMLButtonElement>('[data-keep]'), compare = $('[data-compare]');
+    const canvas = $<HTMLCanvasElement>('[data-canvas]');
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const state = { busy: false, live: null as boolean | null, holder: false, result: null as Result | null, kept: null as Result | null, error: '' };
+    const isAddress = (s: string) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s);
+    const short = (s: string) => (s.length > 12 ? `${s.slice(0, 4)}…${s.slice(-4)}` : s);
+    const fill = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
+    const entryNo = (s: string) => { let h = 7; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 9973; return String(h % 9000 + 1000); };
+
+    // ---- A small daily allowance kept in the browser. The server keeps its own count.
+    const dayKey = () => `gd-inspect-${new Date().toISOString().slice(0, 10)}`;
+    const used = () => { try { return Number(localStorage.getItem(dayKey())) || 0; } catch { return 0; } };
+    const spend = () => { try { localStorage.setItem(dayKey(), String(used() + 1)); } catch { /* private mode */ } };
+    const left = () => Math.max(0, cfg.perDay - used());
+
+    // ---- The button always says why it cannot be pressed
+    const refresh = () => {
+      const v = input.value.trim();
+      let reason = '';
+      if (state.busy) reason = L.whyBusy;
+      else if (!v) reason = L.whyEmpty;
+      else if (!isAddress(v)) reason = L.whyAddress;
+      else if (state.live === false) reason = L.whyClosed;
+      else if (left() <= 0) reason = L.whyLimit;
+      go.disabled = Boolean(reason);
+      sampleBtn.disabled = state.busy;
+      input.disabled = state.busy;
+      why.textContent = reason || state.error || fill(L.ready, { n: left() });
+      why.classList.toggle('is-ok', !reason && !state.error);
+      why.classList.toggle('is-bad', !reason && Boolean(state.error));
+    };
+
+    // ---- Notebook
+    const clearLog = () => { logEl.textContent = ''; };
+    const log = (kind: string, text: string) => {
+      const li = document.createElement('li');
+      li.className = `is-${kind}`;
+      li.textContent = text;
+      logEl.appendChild(li);
+      logEl.scrollTop = logEl.scrollHeight;
+    };
+
+    // ---- Facts printed on the card: numbers from the server, wording from the config
+    const factRows = (facts: Record<string, any>): [string, string][] => {
+      const pnl = Number(facts.realized_pnl_sol) || 0;
+      return [
+        [L.fSwaps, String(facts.swaps ?? 0)],
+        [L.fWin, facts.win_rate_pct === null || facts.win_rate_pct === undefined ? '—' : `${facts.win_rate_pct}%`],
+        [L.fPnl, `${pnl > 0 ? '+' : ''}${pnl} SOL`],
+        [L.fBags, String(facts.bags_still_held ?? 0)],
+      ];
+    };
+
+    // ---- The entry on the page
+    const show = (r: Result) => {
+      state.result = r;
+      const rv = r.review;
+      f('no').textContent = `${L.entry} ${entryNo(r.wallet)}`;
+      f('wallet').textContent = r.sample ? L.sampleWallet : short(r.wallet);
+      f('sample').hidden = !r.sample;
+      const stars = f('stars');
+      stars.setAttribute('aria-label', fill(L.starsOf, { n: rv.stars }));
+      [...stars.children].forEach((s, i) => s.classList.toggle('is-on', i < rv.stars));
+      const pose = f('pose') as HTMLImageElement;
+      if (cfg.poses[rv.stars]) { pose.src = cfg.poses[rv.stars]; pose.hidden = false; } else pose.hidden = true;
+      f('name').textContent = rv.name;
+      f('cuisine').textContent = rv.cuisine;
+      f('check').textContent = rv.average_check;
+      f('hours').textContent = rv.opening_hours;
+      f('dishTitle').textContent = rv.dish_of_the_day.title;
+      f('dishNote').textContent = rv.dish_of_the_day.note;
+      const body = f('body'); body.textContent = '';
+      const shown = state.holder ? rv.paragraphs : rv.paragraphs.slice(0, 1);
+      for (const p of shown) { const el = document.createElement('p'); el.textContent = p; body.appendChild(el); }
+      f('more').hidden = state.holder || rv.paragraphs.length < 2;
+      f('quote').textContent = `“${rv.pull_quote}”`;
+      f('verdict').textContent = rv.verdict;
+      const facts = f('facts'); facts.textContent = '';
+      for (const [label, value] of factRows(r.facts)) {
+        const li = document.createElement('li'), b = document.createElement('b'), s = document.createElement('span');
+        b.textContent = value; s.textContent = label; li.append(b, s); facts.appendChild(li);
+      }
+      f('mark').hidden = state.holder;
+      empty.hidden = true; entry.hidden = false; actions.hidden = false;
+      keepBtn.hidden = !state.holder;
+      keepBtn.textContent = state.kept && state.kept === r ? L.kept : L.keep;
+      renderCompare();
+      draw();
+    };
+
+    // On a narrow screen the entry is below the notebook: bring it into view when it is ready
+    const reveal = () => {
+      const r = entry.getBoundingClientRect();
+      if (r.top > innerHeight * 0.75 || r.top < 0) entry.scrollIntoView({ block: 'start', behavior: calm ? 'auto' : 'smooth' });
+    };
+
+    // ---- Two entries side by side (holder preview)
+    const renderCompare = () => {
+      const a = state.kept, b = state.result;
+      if (!state.holder || !a || !b || a === b) { compare.hidden = true; return; }
+      compare.hidden = false;
+      compare.querySelector('[data-c="a"]')!.textContent = a.review.name;
+      compare.querySelector('[data-c="b"]')!.textContent = b.review.name;
+      const rows = compare.querySelector('[data-c="rows"]')!; rows.textContent = '';
+      const fa = factRows(a.facts), fb = factRows(b.facts);
+      const all: [string, string, string][] = [[L.cStars, `${a.review.stars} / 5`, `${b.review.stars} / 5`], ...fa.map((x, i) => [x[0], x[1], fb[i][1]] as [string, string, string])];
+      for (const row of all) {
+        const tr = document.createElement('tr');
+        row.forEach((c, i) => { const cell = document.createElement(i ? 'td' : 'th'); cell.textContent = c; tr.appendChild(cell); });
+        rows.appendChild(tr);
+      }
+    };
+
+    // ---- The entry as a picture, 1080 × 1350
+    const css = getComputedStyle(document.documentElement);
+    const col = (name: string) => css.getPropertyValue(name).trim();
+    const heading = css.getPropertyValue('--t-font-heading').trim() || 'serif';
+    const bodyFont = css.getPropertyValue('--t-font-body').trim() || 'sans-serif';
+    const poseImgs: (HTMLImageElement | null)[] = cfg.poses.map((src: string) => { const im = new Image(); im.src = src; return im; });
+    const wrap = (ctx: CanvasRenderingContext2D, text: string, max: number, lines: number) => {
+      const words = text.split(/\s+/), out: string[] = []; let cur = '';
+      for (const w of words) {
+        const next = cur ? `${cur} ${w}` : w;
+        if (ctx.measureText(next).width <= max || !cur) cur = next; else { out.push(cur); cur = w; }
+      }
+      if (cur) out.push(cur);
+      if (out.length > lines) {
+        out.length = lines;
+        let last = out[lines - 1];
+        while (last.length > 1 && ctx.measureText(`${last}…`).width > max) last = last.slice(0, -1);
+        out[lines - 1] = `${last.trimEnd()}…`;
+      }
+      return out;
+    };
+    const starPath = (ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) => {
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.45 : r;
+        ctx[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+      }
+      ctx.closePath();
+    };
+    const draw = () => {
+      const r = state.result; if (!r) return;
+      const ctx = canvas.getContext('2d'); if (!ctx) return;
+      const W = 1080, H = 1350, P = 70;
+      const bg = col('--t-bg'), ink = col('--t-text'), red = col('--t-secondary'), green = col('--t-accent'), surface = col('--t-surface'), muted = col('--t-muted');
+      const rv = r.review;
+      ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+      // Cover band
+      const band = r.sample ? 348 : 300;
+      ctx.fillStyle = red; ctx.fillRect(0, 0, W, band);
+      ctx.fillStyle = bg;
+      ctx.font = `700 30px ${bodyFont}`;
+      ctx.fillText(String(cfg.title).toUpperCase(), P, 86);
+      ctx.font = `500 28px ${bodyFont}`;
+      ctx.fillText(`${L.entry} ${entryNo(r.wallet)}  ·  ${r.sample ? L.sampleWallet : short(r.wallet)}`, P, 132);
+      for (let i = 0; i < 5; i++) {
+        starPath(ctx, P + 38 + i * 88, 212, 38);
+        if (i < rv.stars) { ctx.fillStyle = bg; ctx.fill(); }
+        else { ctx.strokeStyle = bg; ctx.lineWidth = 4; ctx.globalAlpha = 0.55; ctx.stroke(); ctx.globalAlpha = 1; }
+      }
+      const pose = poseImgs[rv.stars];
+      if (pose && pose.complete && pose.naturalWidth) ctx.drawImage(pose, W - P - 250, 34, 250, 250);
+      if (r.sample) {
+        ctx.font = `700 24px ${bodyFont}`;
+        const tag = L.sampleTag.toUpperCase(), tw = ctx.measureText(tag).width;
+        ctx.fillStyle = ink; ctx.beginPath(); ctx.roundRect(P, 276, tw + 36, 44, 6); ctx.fill();
+        ctx.fillStyle = bg; ctx.fillText(tag, P + 18, 306);
+      }
+
+      // Name
+      let y = band + 92;
+      ctx.fillStyle = ink;
+      ctx.font = `900 78px ${heading}`;
+      for (const line of wrap(ctx, rv.name, W - P * 2, 2)) { ctx.fillText(line, P, y); y += 84; }
+      y -= 22;
+
+      // Meta
+      const meta: [string, string][] = [[L.cuisine, rv.cuisine], [L.check, rv.average_check], [L.hours, rv.opening_hours]];
+      for (const [label, value] of meta) {
+        ctx.font = `700 22px ${bodyFont}`; ctx.fillStyle = muted;
+        ctx.fillText(label.toUpperCase(), P, y);
+        ctx.font = `500 32px ${bodyFont}`; ctx.fillStyle = ink;
+        ctx.fillText(wrap(ctx, value, W - P * 2 - 300, 1)[0] || '', P + 300, y + 2);
+        y += 50;
+      }
+      y += 6;
+
+      // Dish of the day
+      const dishTop = y;
+      ctx.font = `500 30px ${bodyFont}`;
+      const noteLines = wrap(ctx, rv.dish_of_the_day.note, W - P * 2 - 80, 3);
+      const dishH = 150 + noteLines.length * 40;
+      ctx.fillStyle = surface; ctx.beginPath(); ctx.roundRect(P, dishTop, W - P * 2, dishH, 22); ctx.fill();
+      ctx.fillStyle = green; ctx.beginPath(); ctx.roundRect(P, dishTop, 14, dishH, [22, 0, 0, 22]); ctx.fill();
+      ctx.font = `700 22px ${bodyFont}`; ctx.fillStyle = green;
+      ctx.fillText(L.dish.toUpperCase(), P + 44, dishTop + 50);
+      ctx.font = `700 44px ${heading}`; ctx.fillStyle = ink;
+      ctx.fillText(wrap(ctx, rv.dish_of_the_day.title, W - P * 2 - 80, 1)[0] || '', P + 44, dishTop + 104);
+      ctx.font = `500 30px ${bodyFont}`;
+      noteLines.forEach((line, i) => ctx.fillText(line, P + 44, dishTop + 152 + i * 40));
+      y = dishTop + dishH + 74;
+
+      // Pull quote
+      ctx.font = `700 50px ${heading}`; ctx.fillStyle = red;
+      for (const line of wrap(ctx, `“${rv.pull_quote}”`, W - P * 2, 3)) { ctx.fillText(line, P, y); y += 60; }
+      // Verdict, when there is room above the facts
+      if (y + 20 < H - 290) {
+        ctx.font = `700 32px ${bodyFont}`; ctx.fillStyle = ink;
+        ctx.fillText(wrap(ctx, rv.verdict, W - P * 2, 1)[0] || '', P, y + 6);
+      }
+
+      // Facts strip
+      const rows = factRows(r.facts), stripY = H - 260, cellW = (W - P * 2) / rows.length;
+      ctx.fillStyle = ink; ctx.fillRect(P, stripY, W - P * 2, 3);
+      rows.forEach(([label, value], i) => {
+        const x = P + i * cellW;
+        // The body font: the display font draws old-style figures on a canvas
+        ctx.font = `700 44px ${bodyFont}`; ctx.fillStyle = ink;
+        ctx.fillText(value, x, stripY + 66);
+        ctx.font = `700 20px ${bodyFont}`; ctx.fillStyle = muted;
+        ctx.fillText(label.toUpperCase(), x, stripY + 104);
+      });
+      ctx.fillStyle = ink; ctx.fillRect(P, stripY + 132, W - P * 2, 3);
+
+      // Foot
+      ctx.font = `600 26px ${bodyFont}`; ctx.fillStyle = muted;
+      if (!state.holder && cfg.watermark) ctx.fillText(cfg.watermark, P, H - 62);
+      ctx.font = `900 34px ${heading}`; ctx.fillStyle = ink; ctx.textAlign = 'right';
+      ctx.fillText(`$${cfg.ticker}`, W - P, H - 58);
+      ctx.textAlign = 'left';
+    };
+    const fontsReady = () => (document.fonts?.load
+      ? Promise.all([document.fonts.load(`900 78px ${heading}`), document.fonts.load(`700 44px ${heading}`), document.fonts.load(`500 30px ${bodyFont}`), document.fonts.load(`700 22px ${bodyFont}`)]).catch(() => null)
+      : Promise.resolve(null));
+    poseImgs.forEach((im) => im && im.addEventListener('load', () => { if (state.result) draw(); }));
+
+    // ---- Plain-text version of the entry
+    const asText = (r: Result) => {
+      const rv = r.review;
+      return [
+        `${cfg.title} · ${L.entry} ${entryNo(r.wallet)}`,
+        `${'★'.repeat(rv.stars)}${'☆'.repeat(5 - rv.stars)} ${rv.name}`,
+        `${L.cuisine}: ${rv.cuisine}`, `${L.check}: ${rv.average_check}`, `${L.hours}: ${rv.opening_hours}`,
+        `${L.dish}: ${rv.dish_of_the_day.title}. ${rv.dish_of_the_day.note}`,
+        `“${rv.pull_quote}”`, rv.verdict,
+        factRows(r.facts).map(([l, v]) => `${l}: ${v}`).join(' · '),
+        r.sample ? L.sampleTag : '', cfg.url,
+      ].filter(Boolean).join('\n');
+    };
+    const shareText = (r: Result) => fill(cfg.shareText, { stars: r.review.stars, quote: r.review.pull_quote, url: cfg.url });
+    const blob = () => new Promise<Blob | null>((res) => canvas.toBlob((b) => res(b), 'image/png'));
+    const flash = (btn: HTMLButtonElement, text: string) => { const old = btn.textContent; btn.textContent = text; setTimeout(() => { btn.textContent = old; }, 1600); };
+
+    $<HTMLButtonElement>('[data-download]').addEventListener('click', async () => {
+      const b = await blob(); if (!b || !state.result) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = `chef-rekt-entry-${entryNo(state.result.wallet)}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    });
+    $<HTMLButtonElement>('[data-share]').addEventListener('click', async () => {
+      const r = state.result; if (!r) return;
+      const b = await blob();
+      const file = b ? new File([b], `chef-rekt-entry-${entryNo(r.wallet)}.png`, { type: 'image/png' }) : null;
+      if (file && navigator.canShare?.({ files: [file] })) {
+        try { await navigator.share({ files: [file], text: shareText(r) }); return; } catch (e) { if ((e as Error)?.name === 'AbortError') return; }
+      }
+      note.hidden = false;
+      window.open(`https://x.com/intent/post?text=${encodeURIComponent(shareText(r))}`, '_blank', 'noopener');
+    });
+    $<HTMLButtonElement>('[data-copy]').addEventListener('click', async (e) => {
+      if (!state.result) return;
+      const btn = e.currentTarget as HTMLButtonElement;
+      try { await navigator.clipboard.writeText(asText(state.result)); flash(btn, L.copied); } catch { flash(btn, L.copyFail); }
+    });
+    keepBtn.addEventListener('click', () => { state.kept = state.result; keepBtn.textContent = L.kept; renderCompare(); });
+    holderBox.addEventListener('change', () => {
+      state.holder = holderBox.checked;
+      root.classList.toggle('is-holder', state.holder);
+      if (state.result) show(state.result); else keepBtn.hidden = !state.holder;
+    });
+
+    // ---- Reading the agent's stream
+    const fail = (code: string) => {
+      state.error = E[code] || E.failed || 'Failed.';
+      log('error', state.error);
+    };
+    const handle = (ev: any, acc: { facts: any; review: any }) => {
+      if (ev.type === 'step') log('step', ev.text);
+      else if (ev.type === 'note') log('note', `“${ev.text}”`);
+      else if (ev.type === 'facts') acc.facts = ev.facts;
+      else if (ev.type === 'review') acc.review = ev.review;
+      else if (ev.type === 'error') fail(ev.code);
+    };
+    const run = async (address: string) => {
+      if (state.busy) return false;
+      state.busy = true; state.error = ''; refresh(); clearLog();
+      root.classList.add('is-busy');
+      const acc = { facts: null as any, review: null as any };
+      try {
+        const res = await fetch(cfg.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ address }) });
+        if (!res.ok || !res.body) {
+          let code = 'failed';
+          try { code = (await res.json()).error || code; } catch { if (res.status === 404) code = 'offline'; }
+          if (code === 'closed' || code === 'offline' || code === 'not_found') state.live = false;
+          fail(code === 'not_found' ? 'offline' : code);
+        } else {
+          spend();
+          const reader = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            let i;
+            while ((i = buf.indexOf('\n')) >= 0) {
+              const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+              if (line) { try { handle(JSON.parse(line), acc); } catch { /* a broken line is skipped */ } }
+            }
+          }
+          if (acc.review && acc.facts) { await fontsReady(); show({ wallet: address, facts: acc.facts, review: acc.review, sample: false }); reveal(); }
+          else if (!state.error) fail('failed');
+        }
+      } catch {
+        state.live = false; fail('offline');
+      }
+      state.busy = false; root.classList.remove('is-busy'); refresh();
+      return Boolean(acc.review);
+    };
+
+    // ---- The sample entry: an invented wallet, played from the config
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const sample = async () => {
+      if (state.busy || !cfg.sample) return false;
+      state.busy = true; state.error = ''; refresh(); clearLog();
+      root.classList.add('is-busy');
+      log('step', L.sampleStart);
+      const pause = calm || root.dataset.fast ? 0 : 650;
+      for (const ev of cfg.sample.steps || []) { await wait(pause); handle(ev, { facts: null, review: null }); }
+      await wait(pause); await fontsReady();
+      show({ wallet: cfg.sample.wallet || 'sample', facts: cfg.sample.facts, review: cfg.sample.review, sample: true });
+      reveal();
+      state.busy = false; root.classList.remove('is-busy'); refresh();
+      return true;
+    };
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); if (!go.disabled) run(input.value.trim()); });
+    input.addEventListener('input', () => { state.error = ''; refresh(); });
+    sampleBtn.addEventListener('click', () => { sample(); });
+
+    // Is the kitchen open? (the function exists and has its keys)
+    fetch(cfg.endpoint, { headers: { accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : { live: false }))
+      .then((d) => { state.live = Boolean(d && d.live); })
+      .catch(() => { state.live = false; })
+      .finally(() => { root.classList.toggle('is-closed', state.live === false); refresh(); });
+    refresh();
+
+    (root as any).inspect = {
+      run, sample, state, refresh, draw, canvas,
+      setAddress: (v: string) => { input.value = v; state.error = ''; refresh(); },
+      setHolder: (on: boolean) => { holderBox.checked = on; holderBox.dispatchEvent(new Event('change')); },
+    };
+  }
+</script>

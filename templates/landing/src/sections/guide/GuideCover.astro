@@ -1,0 +1,32 @@
+---
+// Page 1 of the "guide" layout: the cover of the guide. Edition line, name, ticker, slogan, two buttons,
+// the main picture shown whole (16:9) and three short facts about how the guide works.
+// guide.cover.background (optional) = the background color of the main picture, so the picture melts into the cover.
+import { config, asset } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdStars from './GdStars.astro';
+const c = guide.cover || {};
+const facts: { value: string; label: string }[] = c.facts || [];
+---
+<section id="home" class="gd-cover" style={c.background ? `--gd-cover-bg:${c.background}` : undefined}>
+  <div class="gd-in gd-cover-grid">
+    <div class="gd-cover-text">
+      <p class="gd-edition"><GdStars n={5} label="" /><span>{c.edition}</span></p>
+      <h1 class="gd-cover-title font-heading">{config.name}</h1>
+      <p class="gd-cover-ticker font-ticker">${config.ticker}</p>
+      <p class="gd-cover-lead font-heading">{config.tagline}</p>
+      <p class="gd-cover-sub">{config.hero.text}</p>
+      <div class="gd-actions">
+        <a class="gd-btn gd-btn-big gd-btn-cream" href="#inspect">{c.primary}</a>
+        <a class="gd-btn gd-btn-big gd-btn-line" href="#reserve">{c.secondary} <span class="font-ticker">${config.ticker}</span></a>
+      </div>
+    </div>
+    <figure class="gd-cover-fig">
+      <img src={asset(config.assets.hero)} alt={c.imageAlt || config.name} width="1600" height="900" />
+      {c.figure && <figcaption>{c.figure}</figcaption>}
+    </figure>
+  </div>
+  <ul class="gd-in gd-cover-facts">
+    {facts.map((f) => <li><b class="font-heading">{f.value}</b><span>{f.label}</span></li>)}
+  </ul>
+</section>

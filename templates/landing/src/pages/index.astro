@@ -68,6 +68,21 @@ import VaultRules from '../sections/vault/VaultRules.astro';
 import VaultDoor from '../sections/vault/VaultDoor.astro';
 import VaultFooter from '../sections/vault/VaultFooter.astro';
 
+// Layout "guide": the site is a restaurant guide, every section is a page of it; the tool is an agent on the server
+import GuideShell from '../sections/guide/GuideShell.astro';
+import GuideCover from '../sections/guide/GuideCover.astro';
+import GuideAbout from '../sections/guide/GuideAbout.astro';
+import GuideStars from '../sections/guide/GuideStars.astro';
+import GuideInspect from '../sections/guide/GuideInspect.astro';
+import GuideHolders from '../sections/guide/GuideHolders.astro';
+import GuideBook from '../sections/guide/GuideBook.astro';
+import GuideLabel from '../sections/guide/GuideLabel.astro';
+import GuidePlates from '../sections/guide/GuidePlates.astro';
+import GuideEditions from '../sections/guide/GuideEditions.astro';
+import GuideRules from '../sections/guide/GuideRules.astro';
+import GuideReserve from '../sections/guide/GuideReserve.astro';
+import GuideFooter from '../sections/guide/GuideFooter.astro';
+
 const registry: Record<string, any> = {
   header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
   tokenomics: Tokenomics, gallery: Gallery, roadmap: Roadmap, footer: Footer, marquee: Marquee, digGame: DigGame,
@@ -82,7 +97,9 @@ const registry: Record<string, any> = {
   pressInk: PressInk, pressLine: PressLine, pressShifts: PressShifts, pressBuy: PressBuy, pressFooter: PressFooter,
   vaultShell: VaultShell, vaultHero: VaultHero, vaultWhy: VaultWhy, vaultSplit: VaultSplit, vaultHolders: VaultHolders,
   vaultSteps: VaultSteps, vaultRack: VaultRack, vaultCells: VaultCells, vaultPlan: VaultPlan, vaultRules: VaultRules,
-  vaultDoor: VaultDoor, vaultFooter: VaultFooter,
+  vaultDoor: VaultDoor, vaultFooter: VaultFooter,  guideShell: GuideShell, guideCover: GuideCover, guideAbout: GuideAbout, guideStars: GuideStars, guideInspect: GuideInspect,
+  guideHolders: GuideHolders, guideBook: GuideBook, guideLabel: GuideLabel, guidePlates: GuidePlates, guideEditions: GuideEditions,
+  guideRules: GuideRules, guideReserve: GuideReserve, guideFooter: GuideFooter,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);

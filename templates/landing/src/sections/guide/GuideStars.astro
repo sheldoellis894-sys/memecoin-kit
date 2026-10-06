@@ -1,0 +1,29 @@
+---
+// Page 3: how the guide rates. Six rows from zero to five stars; the stars of a row light up when it scrolls into view
+// and every rating has its own pose of the hero (pictures from config.inspect.poses, index = number of stars).
+import { config, asset } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+import GdStars from './GdStars.astro';
+const s = guide.stars || {};
+const rows: { stars: number; title: string; text: string }[] = s.rows || [];
+const poses: { src: string; alt: string }[] = config.inspect?.poses || [];
+---
+<section id="stars" class="gd-sec gd-sec-alt">
+  <div class="gd-in">
+    <GdHead id="stars" kicker={s.kicker} title={s.title} />
+    {s.lead && <p class="gd-lead">{s.lead}</p>}
+    <ol class="gd-scale">
+      {rows.map((r) => (
+        <li class="gd-scale-row" data-gd-in>
+          <GdStars n={r.stars} lit />
+          <div class="gd-scale-text">
+            <h3 class="font-heading">{r.title}</h3>
+            <p>{r.text}</p>
+          </div>
+          {poses[r.stars] && <img class="gd-scale-pose" src={asset(poses[r.stars].src)} alt={poses[r.stars].alt} width="160" height="160" loading="lazy" />}
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

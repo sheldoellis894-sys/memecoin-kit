@@ -1,0 +1,10 @@
+---
+// A row of five stars, "n" of them filled. With "lit" the stars fill one by one when the row scrolls into view.
+const { n = 0, lit = false, label } = Astro.props;
+const d = 'M12 1.8l3 6.5 7.1.8-5.3 4.8 1.5 7-6.3-3.6-6.3 3.6 1.5-7L1.9 9.1l7.1-.8z';
+---
+<span class:list={['gd-stars', lit && 'gd-stars-lit']} role="img" aria-label={label || `${n} of 5 stars`}>
+  {[0, 1, 2, 3, 4].map((i) => (
+    <svg viewBox="0 0 24 24" class:list={[i < n && 'is-on']} style={`--i:${i}`} aria-hidden="true" focusable="false"><path d={d} /></svg>
+  ))}
+</span>

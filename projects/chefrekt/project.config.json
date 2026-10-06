@@ -1,0 +1,560 @@
+{
+  "name": "Chef Rekt",
+  "shortName": "Chef Rekt",
+  "ticker": "CHEFREKT",
+  "tagline": "The blockchain remembers everything. Chef reads it out loud.",
+  "description": "Chef Rekt is a restaurant guide for Solana wallets. Paste an address: an AI inspector reads the trades and files a review with stars. Public data only. No wallet is connected.",
+  "url": "https://thechefrekt.vercel.app",
+  "chain": "Solana",
+  "ca": "",
+  "theme": "steak",
+  "layout": "guide",
+  "links": {
+    "x": "https://x.com/thechefrekt",
+    "telegram": "https://t.me/thechefrekt",
+    "pumpfun": "",
+    "dexscreener": ""
+  },
+  "assets": {
+    "logo": "exports/chefrekt_avatar_circle_256.png",
+    "favicon": "exports/chefrekt_avatar_circle_256.png",
+    "hero": "banners/chefrekt_banner.jpg",
+    "og": "exports/chefrekt_og.png"
+  },
+  "hero": {
+    "kicker": "Solana · wallet reviews",
+    "text": "Your wallet is already in the pan. Paste a Solana address. The inspector reads the trades and files an entry in the guide. Stars included."
+  },
+  "about": {
+    "kicker": "Foreword",
+    "title": "A word from the inspector",
+    "image": "gallery/chefrekt_g01.jpg",
+    "text": [
+      "Chef Rekt was a trader once. The market cooked him down to the bones. He kept the hat.",
+      "Now he inspects wallets the way a guide inspects restaurants. He arrives unannounced. He reads every dish that left the kitchen. He writes it down.",
+      "He is an AI agent. He decides what to look at, looks it up and files the entry. The numbers come from the chain. The opinions are his."
+    ]
+  },
+  "inspect": {
+    "enabled": true,
+    "kicker": "The tool",
+    "title": "Inspection",
+    "lead": "Paste a Solana wallet address. The inspector reads its latest transactions, looks into the pantry and files one entry. It takes about half a minute.",
+    "endpoint": "/api/inspect",
+    "perDay": 3,
+    "watermark": "thechefrekt.vercel.app",
+    "poses": [
+      {
+        "src": "stickers/chefrekt_s00.png",
+        "alt": "Chef Rekt covers one eye socket with his hand"
+      },
+      {
+        "src": "stickers/chefrekt_s01.png",
+        "alt": "Chef Rekt holds a burning pan at arm's length"
+      },
+      {
+        "src": "stickers/chefrekt_s02.png",
+        "alt": "Chef Rekt tastes from a spoon and raises the other hand in refusal"
+      },
+      {
+        "src": "stickers/chefrekt_s03.png",
+        "alt": "Chef Rekt shrugs with a fork in his hand"
+      },
+      {
+        "src": "stickers/chefrekt_s04.png",
+        "alt": "Chef Rekt wipes a white plate with a piece of bread"
+      },
+      {
+        "src": "stickers/chefrekt_s05.png",
+        "alt": "Chef Rekt holds his hat against his chest and bows"
+      }
+    ],
+    "labels": {
+      "address": "Wallet address",
+      "addressPlaceholder": "Solana address",
+      "go": "Inspect",
+      "sample": "See a sample entry",
+      "whyEmpty": "Paste a Solana address to start.",
+      "whyAddress": "This is not a Solana address. It should be 32 to 44 letters and digits.",
+      "whyClosed": "The kitchen is closed here: the agent is not connected on this server. The sample entry works.",
+      "whyLimit": "Three inspections a day. The inspector has gone home. Come back tomorrow.",
+      "whyBusy": "The inspector is at the table. One wallet at a time.",
+      "ready": "Ready. Inspections left today: {n}.",
+      "privacy": "Public data only. No wallet is connected. The address goes to our server, to a Solana data service for the trades and to a language model for the text. This site does not store it.",
+      "notebook": "Inspector's notebook",
+      "notebookIdle": "No inspection yet. The page is blank.",
+      "holder": "Holder preview",
+      "holderNote": "Holders get the full entry, two wallets side by side and the card without the site tag. This switch is a preview. It checks nothing.",
+      "emptyTitle": "No entry yet",
+      "emptyText": "The entry appears here: stars, the dish of the day and the bill.",
+      "entry": "Entry No.",
+      "sampleWallet": "Sample wallet",
+      "sampleTag": "Sample entry. Invented wallet.",
+      "sampleStart": "Sample inspection. The wallet is invented.",
+      "starsOf": "{n} of 5 stars",
+      "cuisine": "Cuisine",
+      "check": "Average check",
+      "hours": "Opening hours",
+      "dish": "Dish of the day",
+      "more": "Two more paragraphs in the full entry. For holders.",
+      "fSwaps": "Swaps read",
+      "fWin": "Sold above cost",
+      "fPnl": "Realized",
+      "fBags": "Bags on the stove",
+      "download": "Download the card",
+      "shareBtn": "Share",
+      "copy": "Copy text",
+      "copied": "Copied",
+      "copyFail": "Copy failed",
+      "shareNote": "X opens with the text ready. Attach the downloaded card to the post yourself.",
+      "keep": "Keep as A",
+      "kept": "Kept as A",
+      "compareTitle": "Side by side",
+      "cStars": "Stars"
+    },
+    "errors": {
+      "closed": "The kitchen is closed: the agent has no keys on this server.",
+      "offline": "The kitchen cannot be reached from here. The sample entry works.",
+      "limit": "Daily limit reached for this visitor. Come back tomorrow.",
+      "full": "The guide is fully booked today. Come back tomorrow.",
+      "address": "This is not a Solana address.",
+      "busy": "The kitchen is overbooked. Try again in a minute.",
+      "chain": "The trades could not be read. Try again in a minute.",
+      "model": "The inspector lost his notes. Try again.",
+      "slow": "The inspection took too long and was stopped.",
+      "origin": "This request came from another site.",
+      "failed": "The inspection failed. Try again."
+    },
+    "sample": {
+      "wallet": "sample-wallet-invented",
+      "steps": [
+        {
+          "type": "step",
+          "text": "Table for one. Opening the books of a sample wallet."
+        },
+        {
+          "type": "step",
+          "text": "Read 200 transactions. Found 61 swaps in 14 tokens."
+        },
+        {
+          "type": "note",
+          "text": "The menu is long. That is rarely a good sign."
+        },
+        {
+          "type": "step",
+          "text": "Looked into the pantry: SOUP. 9 days old, liquidity $1,240."
+        },
+        {
+          "type": "step",
+          "text": "Looked into the pantry: GRAVY. 31 days old, liquidity $48,900."
+        },
+        {
+          "type": "note",
+          "text": "One dish came back three times. Curious."
+        },
+        {
+          "type": "step",
+          "text": "Entry written. Stars counted."
+        }
+      ],
+      "facts": {
+        "transactions_read": 200,
+        "swaps": 61,
+        "tokens_traded": 14,
+        "positions_judged": 11,
+        "wins": 3,
+        "losses": 8,
+        "win_rate_pct": 27,
+        "realized_pnl_sol": -6.4,
+        "bags_still_held": 3
+      },
+      "review": {
+        "stars": 1,
+        "name": "The Top Buyer's Arms",
+        "cuisine": "Late entries, served at the peak",
+        "average_check": "0.82 SOL a plate",
+        "opening_hours": "Busiest 01:00–04:00 UTC",
+        "dish_of_the_day": {
+          "title": "SOUP, returned to the kitchen",
+          "note": "Bought three times for 4.1 SOL in total. Sold once for 0.9 SOL. The spoon was not included."
+        },
+        "paragraphs": [
+          "The room is busy and badly lit. Sixty-one swaps in fourteen tokens, most of them ordered between one and four in the morning.",
+          "The kitchen has a signature move: it orders the same dish again when it is already cold. Eleven positions closed. Three were sold above cost.",
+          "The bill comes to minus 6.4 SOL realized. Three bags are still on the stove. The inspector did not stay for dessert."
+        ],
+        "pull_quote": "Bold plating. Tastes like loss.",
+        "verdict": "One star. For the courage."
+      }
+    },
+    "shareText": "{stars}/5 stars in the Chef Rekt Guide. “{quote}” Get a wallet inspected: {url} $CHEFREKT"
+  },
+  "howToBuy": [
+    {
+      "title": "Get a wallet",
+      "text": "Install Phantom or Solflare from the official website or app store."
+    },
+    {
+      "title": "Get some SOL",
+      "text": "Buy SOL on an exchange or in the wallet and send it to your address."
+    },
+    {
+      "title": "Open pump.fun",
+      "text": "Go to pump.fun and paste the contract address from this page. No address here means no token yet."
+    },
+    {
+      "title": "Swap SOL for $CHEFREKT",
+      "text": "Choose the amount and confirm in your wallet. Only use money you can afford to lose."
+    }
+  ],
+  "tokenomics": {
+    "supply": "1,000,000,000",
+    "items": [
+      {
+        "label": "Fair launch on pump.fun",
+        "value": "100%"
+      },
+      {
+        "label": "Buy and sell tax",
+        "value": "0%"
+      },
+      {
+        "label": "Team wallet",
+        "value": "0%"
+      },
+      {
+        "label": "Presale",
+        "value": "0%"
+      }
+    ]
+  },
+  "gallery": [
+    {
+      "src": "gallery/chefrekt_g01.jpg",
+      "alt": "Chef Rekt, a skeleton in a brown chef jacket and a tall white hat, stands at a counter and reads a long receipt",
+      "note": "The inspector. He has read your orders."
+    },
+    {
+      "src": "gallery/chefrekt_g02.jpg",
+      "alt": "A bony hand lifts a silver cloche. A leather wallet with a sprig of rosemary sits on the plate.",
+      "note": "Today's special. It was yours."
+    },
+    {
+      "src": "gallery/chefrekt_g03.jpg",
+      "alt": "Chef Rekt holds a frying pan with a leather wallet in it over a tall flame",
+      "note": "Already in the pan."
+    },
+    {
+      "src": "gallery/chefrekt_g04.jpg",
+      "alt": "Chef Rekt sits alone at a round table with a white tablecloth and one candle and writes in a notebook",
+      "note": "Table for one. Always."
+    },
+    {
+      "src": "gallery/chefrekt_g05.jpg",
+      "alt": "Chef Rekt presses a round sticker with a single star onto a glass door",
+      "note": "Recommended. Technically."
+    },
+    {
+      "src": "gallery/chefrekt_g06.jpg",
+      "alt": "A kitchen is on fire behind Chef Rekt. He calmly tastes soup from a spoon.",
+      "note": "The kitchen is on fire. The soup is fine."
+    },
+    {
+      "src": "gallery/chefrekt_g07.jpg",
+      "alt": "A long paper receipt loops across the floor and out through an open door. Chef Rekt holds its end and reads.",
+      "note": "The bill. It keeps going."
+    },
+    {
+      "src": "gallery/chefrekt_g08.jpg",
+      "alt": "Chef Rekt holds up a fork with one small star on its tip",
+      "note": "One star. For the courage."
+    }
+  ],
+  "roadmap": [
+    {
+      "phase": "First edition",
+      "title": "Open the kitchen",
+      "items": [
+        "Launch on pump.fun",
+        "X and Telegram open",
+        "Inspection open to everyone"
+      ]
+    },
+    {
+      "phase": "Second edition",
+      "title": "Holders' table",
+      "items": [
+        "Wallet check for holders",
+        "Full entries and side by side, for real",
+        "The inspector in the Telegram group"
+      ]
+    },
+    {
+      "phase": "Third edition",
+      "title": "The big book",
+      "items": [
+        "Inspection of a token, not only a wallet",
+        "A weekly list of the most ordered dishes",
+        "More chains on the menu"
+      ]
+    }
+  ],
+  "disclaimer": "$CHEFREKT is a memecoin with no intrinsic value or expectation of financial return. It is not an investment. Nothing on this site is financial, legal or tax advice. The reviews are entertainment written by an AI agent from public blockchain data and may be inaccurate. Chef Rekt is not a restaurant, a guide to restaurants or a rating agency.",
+  "guide": {
+    "pageWord": "p.",
+    "cardTitle": "The Chef Rekt Guide",
+    "bar": {
+      "buy": "Book a table"
+    },
+    "pages": [
+      {
+        "id": "home",
+        "label": "Cover"
+      },
+      {
+        "id": "about",
+        "label": "Foreword"
+      },
+      {
+        "id": "stars",
+        "label": "Stars",
+        "icon": "star",
+        "nav": true
+      },
+      {
+        "id": "inspect",
+        "label": "Inspection",
+        "icon": "cloche",
+        "nav": true
+      },
+      {
+        "id": "token",
+        "label": "The token",
+        "icon": "knife",
+        "nav": true
+      },
+      {
+        "id": "how-to-buy",
+        "label": "How to buy",
+        "icon": "fork",
+        "nav": true
+      },
+      {
+        "id": "label",
+        "label": "Tokenomics"
+      },
+      {
+        "id": "plates",
+        "label": "Gallery",
+        "icon": "plate",
+        "nav": true
+      },
+      {
+        "id": "editions",
+        "label": "Roadmap",
+        "icon": "book",
+        "nav": true
+      },
+      {
+        "id": "rules",
+        "label": "House rules"
+      },
+      {
+        "id": "reserve",
+        "label": "Reservation"
+      }
+    ],
+    "cover": {
+      "edition": "The Chef Rekt Guide · 2026 edition · Solana",
+      "primary": "Inspect a wallet",
+      "secondary": "Book a table",
+      "imageAlt": "Chef Rekt, a skeleton in a brown chef jacket and a tall white hat, chases three small leather wallets on thin legs with a frying pan. A very long receipt streams behind him.",
+      "figure": "Fig. 1. The inspector at work.",
+      "facts": [
+        {
+          "value": "0–5",
+          "label": "stars per wallet"
+        },
+        {
+          "value": "200",
+          "label": "latest transactions, at most"
+        },
+        {
+          "value": "0",
+          "label": "advice given"
+        }
+      ],
+      "background": "#A13C4A"
+    },
+    "about": {
+      "sign": "Chef Rekt, inspector",
+      "imageAlt": "Chef Rekt, a skeleton in a chef jacket and a tall white hat",
+      "neverTitle": "What the inspector never does",
+      "never": [
+        "He never asks you to connect a wallet.",
+        "He never guesses who owns an address.",
+        "He never tells you what to buy.",
+        "He never calls a token safe."
+      ]
+    },
+    "stars": {
+      "kicker": "The scale",
+      "title": "How the guide rates",
+      "lead": "Stars come from the trades the inspector could read. Nothing else is on the plate.",
+      "rows": [
+        {
+          "stars": 0,
+          "title": "Closed by the health inspector",
+          "text": "Heavy losses. Almost nothing sold above cost. The inspector left through the window."
+        },
+        {
+          "stars": 1,
+          "title": "The kitchen is on fire",
+          "text": "Losses clearly outweigh wins. The staff are calm. They should not be."
+        },
+        {
+          "stars": 2,
+          "title": "Edible, if you are brave",
+          "text": "More losses than wins, or large bags going cold on the stove."
+        },
+        {
+          "stars": 3,
+          "title": "A decent neighbourhood place",
+          "text": "Wins and losses roughly even. Nobody was harmed."
+        },
+        {
+          "stars": 4,
+          "title": "Worth a detour",
+          "text": "Wins clearly outweigh losses. The inspector asked for bread to finish the sauce."
+        },
+        {
+          "stars": 5,
+          "title": "Worth the trip",
+          "text": "Almost everything sold above cost. Rare. He does not give it out of kindness."
+        }
+      ]
+    },
+    "holders": {
+      "kicker": "The token",
+      "title": "Who gets what",
+      "columns": [
+        {
+          "tag": "No token needed",
+          "title": "Everyone",
+          "items": [
+            "The inspection. Three a day.",
+            "The short entry: stars, the dish of the day, the first paragraph.",
+            "The card with the site tag."
+          ]
+        },
+        {
+          "tag": "With $CHEFREKT",
+          "title": "Holders",
+          "mark": true,
+          "items": [
+            "The full entry. All three paragraphs.",
+            "Two wallets side by side.",
+            "The card without the site tag."
+          ]
+        }
+      ],
+      "noteTag": "Status",
+      "note": "The token is not launched and the wallet check is not built. The switch in the Inspection is a preview of the holder mode. It checks nothing. The real check is on the plan, second edition."
+    },
+    "book": {
+      "kicker": "Four courses",
+      "title": "How to book a table",
+      "courses": [
+        "Starter",
+        "Soup",
+        "Main course",
+        "The bill"
+      ]
+    },
+    "label": {
+      "kicker": "Tokenomics",
+      "title": "What is in the jar",
+      "lead": "One recipe. Nothing hidden under the lid.",
+      "panelTitle": "Ingredients",
+      "servingLabel": "Total supply",
+      "perLabel": "Share of supply",
+      "foot": "No contract address, no token. When the token is live, the address is on this page and on pump.fun. Nowhere else.",
+      "caLabel": "Contract address",
+      "caEmpty": "Appears here at launch. No address, no token.",
+      "copy": "Copy",
+      "copied": "Copied"
+    },
+    "plates": {
+      "kicker": "Gallery",
+      "title": "Plates",
+      "plate": "Plate",
+      "open": "Open",
+      "close": "Close"
+    },
+    "editions": {
+      "kicker": "Roadmap",
+      "title": "Editions",
+      "now": "In print"
+    },
+    "rules": {
+      "kicker": "Read before you sit down",
+      "title": "House rules",
+      "noteTag": "Disclaimer",
+      "items": [
+        "The inspector reads public data only. He cannot move, spend or see anything a block explorer does not show.",
+        "No wallet is connected. The site asks for an address and nothing else.",
+        "The address goes to our server, to a Solana data service and to a language model. This site does not store it.",
+        "The entry is a joke about trades. It is not about the person behind the wallet, and it is not financial advice.",
+        "The inspector reads only the latest transactions. Stars describe that window, not a lifetime.",
+        "An AI agent wrote the entry. It can be wrong. The numbers on the card come from chain data, the wording from the model.",
+        "No tables are booked, no food is served and no restaurants are reviewed. It is a guide to wallets."
+      ]
+    },
+    "reserve": {
+      "kicker": "Last page",
+      "title": "Reserve a table",
+      "slipTitle": "Reservation slip",
+      "slipNo": "No. 0001",
+      "rows": [
+        {
+          "label": "Table for",
+          "options": [
+            "One",
+            "Two",
+            "The whole group chat"
+          ]
+        },
+        {
+          "label": "When",
+          "options": [
+            "Now",
+            "After dessert",
+            "When the kitchen stops burning"
+          ]
+        }
+      ],
+      "confirm": "Confirm the reservation",
+      "stamp": "Confirmed",
+      "line": "Table for: {a}. When: {b}. The inspector has been told.",
+      "buy": "Get",
+      "wait": "The token is not launched yet. No contract address, no token. When it is live, the button is here.",
+      "caLabel": "Contract address",
+      "caEmpty": "Appears here at launch.",
+      "plain": "Open pump.fun without the slip",
+      "plainWait": "No token yet. See how buying will work."
+    },
+    "footer": {
+      "tag": "The blockchain remembers everything. Chef reads it out loud.",
+      "note": "No contract address means no token. Chef Rekt serves no food and books no tables. The inspection is free."
+    }
+  },
+  "images": {
+    "optimize": true
+  },
+  "effects": {
+    "reveal": false,
+    "parallax": false,
+    "cursor": false,
+    "sparks": false
+  }
+}

@@ -1,0 +1,41 @@
+---
+// Page 7: tokenomics printed as the label on a jar: serving size (supply), a table of contents and the contract address.
+import { config } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+const l = guide.label || {};
+const ca = config.ca.trim();
+---
+<section id="label" class="gd-sec">
+  <div class="gd-in gd-label-grid">
+    <div>
+      <GdHead id="label" kicker={l.kicker} title={l.title} />
+      {l.lead && <p class="gd-lead">{l.lead}</p>}
+      <div class="gd-ca">
+        <p class="gd-tag">{l.caLabel || 'Contract address'}</p>
+        {ca ? (
+          <p class="gd-ca-row"><code>{ca}</code><button type="button" class="gd-btn gd-btn-small" data-gd-copy={ca} data-done={l.copied || 'Copied'}>{l.copy || 'Copy'}</button></p>
+        ) : <p class="gd-ca-empty">{l.caEmpty}</p>}
+      </div>
+    </div>
+    <div class="gd-jar" data-gd-in>
+      <p class="gd-jar-title font-heading">{l.panelTitle}</p>
+      <p class="gd-jar-serving"><span>{l.servingLabel}</span><b>{config.tokenomics.supply} <span class="font-ticker">${config.ticker}</span></b></p>
+      <p class="gd-jar-per">{l.perLabel}</p>
+      <dl>
+        {config.tokenomics.items.map((it) => <div><dt>{it.label}</dt><dd>{it.value}</dd></div>)}
+      </dl>
+      <p class="gd-jar-foot">{l.foot}</p>
+    </div>
+  </div>
+</section>
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-gd-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(btn.dataset.gdCopy || ''); } catch { return; }
+      const label = btn.textContent;
+      btn.textContent = btn.dataset.done || 'Copied';
+      setTimeout(() => (btn.textContent = label), 1500);
+    });
+  });
+</script>

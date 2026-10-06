@@ -1,0 +1,78 @@
+---
+// Layout "guide": the whole site is a restaurant guide and every section is a page of it.
+// This section draws what stays in place while the page scrolls: the top bar with the pictogram menu
+// and the page marker in the corner. It also runs the shared effects of the layout:
+// blocks and star rows come alive when they scroll into view, the menu follows the page.
+// Wording comes from config.guide, colors from the theme.
+import { config, asset } from '../../lib/project';
+import { guide, pages, total, pad } from '../../lib/guide';
+import GdIcon from './GdIcon.astro';
+const bar = guide.bar || {};
+const nav = pages.filter((p) => p.nav);
+const data = JSON.stringify({ pages: pages.map((p) => ({ id: p.id, label: p.label })), word: guide.pageWord || 'p.' });
+const last = pages[pages.length - 1]?.id || 'reserve';
+---
+<header class="gd-bar" data-gd-shell={data}>
+  <a href="#home" class="gd-brand" aria-label={config.name}>
+    <img src={asset(config.assets.logo)} alt="" width="38" height="38" />
+    <span class="font-heading">{config.shortName || config.name}</span>
+  </a>
+  <nav class="gd-nav" aria-label="Pages">
+    {nav.map((p) => (
+      <a href={`#${p.id}`} data-gd-nav={p.id}><GdIcon name={p.icon || 'star'} /><span>{p.label}</span></a>
+    ))}
+  </nav>
+  <a class="gd-btn gd-btn-small" href={`#${last}`}>{bar.buy || 'Book a table'}</a>
+</header>
+
+<p class="gd-marker" aria-hidden="true">
+  <span data-gd-marker-no>{guide.pageWord || 'p.'} 01</span>
+  <span class="gd-marker-of">/ {pad(total)}</span>
+  <span class="gd-marker-label" data-gd-marker-label>{pages[0]?.label}</span>
+</p>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-gd-shell]');
+  if (bar) {
+    const cfg: { pages: { id: string; label: string }[]; word: string } = JSON.parse(bar.dataset.gdShell!);
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const root = document.documentElement;
+    root.classList.add('gd-js');
+    if (!calm) root.classList.add('gd-motion');
+
+    const marks = cfg.pages.map((p) => document.getElementById(p.id));
+    const navLinks = [...bar.querySelectorAll<HTMLAnchorElement>('[data-gd-nav]')];
+    const no = document.querySelector<HTMLElement>('[data-gd-marker-no]');
+    const label = document.querySelector<HTMLElement>('[data-gd-marker-label]');
+    let current = -1, queued = false;
+    const update = () => {
+      queued = false;
+      const mid = innerHeight * 0.5;
+      const atEnd = innerHeight + scrollY >= root.scrollHeight - 4;
+      let idx = 0;
+      marks.forEach((el, i) => { if (el && el.getBoundingClientRect().top < mid) idx = i; });
+      if (atEnd) idx = marks.length - 1;      // the last page may be too short to reach the middle of the screen
+      if (idx === current) return;
+      current = idx;
+      const page = cfg.pages[idx];
+      if (no) no.textContent = `${cfg.word} ${String(idx + 1).padStart(2, '0')}`;
+      if (label) label.textContent = page.label;
+      navLinks.forEach((a) => a.classList.toggle('is-on', a.dataset.gdNav === page.id));
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+    addEventListener('resize', update);
+    update();
+
+    // Blocks appear and star rows light up when they scroll into view
+    const targets = document.querySelectorAll('[data-gd-in]');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target); e.target.classList.add('is-in');
+      }), { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+      targets.forEach((el) => io.observe(el));
+    } else {
+      targets.forEach((el) => el.classList.add('is-in'));
+    }
+  }
+</script>

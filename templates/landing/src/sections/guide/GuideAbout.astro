@@ -1,0 +1,24 @@
+---
+// Page 2: the foreword. Who writes the guide and what he never does. Text from config.about, the list from config.guide.about.
+import { config, asset } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+const a = guide.about || {};
+const never: string[] = a.never || [];
+---
+<section id="about" class="gd-sec">
+  <div class="gd-in gd-about">
+    <figure class="gd-about-fig" data-gd-in>
+      <img src={asset(config.about.image)} alt={a.imageAlt || ''} width="900" height="900" loading="lazy" />
+    </figure>
+    <div>
+      <GdHead id="about" kicker={config.about.kicker} title={config.about.title} />
+      {config.about.text.map((t) => <p class="gd-text">{t}</p>)}
+      <p class="gd-sign font-heading">{a.sign}</p>
+      <div class="gd-never">
+        <p class="gd-never-title">{a.neverTitle}</p>
+        <ul>{never.map((t) => <li>{t}</li>)}</ul>
+      </div>
+    </div>
+  </div>
+</section>

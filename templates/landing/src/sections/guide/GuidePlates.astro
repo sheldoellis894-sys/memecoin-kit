@@ -1,0 +1,41 @@
+---
+// Page 8: the gallery as plates on a table. Every picture sits on a plate with a place card;
+// a click opens the whole picture with its caption (config.gallery: src, alt, note).
+import { config, asset } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+const p = guide.plates || {};
+---
+<section id="plates" class="gd-sec gd-sec-table">
+  <div class="gd-in">
+    <GdHead id="plates" kicker={p.kicker} title={p.title} light />
+    <ul class="gd-plates">
+      {config.gallery.map((g, i) => (
+        <li data-gd-in style={`--r:${((i * 37) % 9) - 4}deg`}>
+          <button type="button" class="gd-plate" data-gd-plate={i} aria-label={`${p.open || 'Open'}: ${g.alt}`}>
+            <span class="gd-plate-rim"><img src={asset(g.src)} alt={g.alt} width="600" height="600" loading="lazy" /></span>
+          </button>
+          <p class="gd-placecard"><b>{p.plate || 'Plate'} {i + 1}</b>{g.note}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <dialog class="gd-dialog" data-gd-dialog aria-label={p.title}>
+    <form method="dialog"><button class="gd-dialog-close" aria-label={p.close || 'Close'}>×</button></form>
+    <img alt="" data-gd-dialog-img width="1200" height="1200" />
+    <p data-gd-dialog-text></p>
+  </dialog>
+</section>
+<script define:vars={{ items: config.gallery.map((g) => ({ src: asset(g.src), alt: g.alt, note: g.note || '' })) }} is:inline>
+  (() => {
+    const dialog = document.querySelector('[data-gd-dialog]');
+    if (!dialog || !dialog.showModal) return;
+    const img = dialog.querySelector('[data-gd-dialog-img]'), text = dialog.querySelector('[data-gd-dialog-text]');
+    document.querySelectorAll('[data-gd-plate]').forEach((b) => b.addEventListener('click', () => {
+      const it = items[Number(b.dataset.gdPlate)];
+      img.src = it.src; img.alt = it.alt; text.textContent = it.note || it.alt;
+      dialog.showModal();
+    }));
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+  })();
+</script>

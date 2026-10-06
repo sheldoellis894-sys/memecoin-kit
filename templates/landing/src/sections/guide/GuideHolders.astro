@@ -1,0 +1,26 @@
+---
+// Page 5: what the token gives. Two menus (everyone / holders) and an honest note about what is not built yet.
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+import GdIcon from './GdIcon.astro';
+const h = guide.holders || {};
+const cols: { title: string; tag: string; items: string[]; mark?: boolean }[] = h.columns || [];
+---
+<section id="token" class="gd-sec">
+  <div class="gd-in">
+    <GdHead id="token" kicker={h.kicker} title={h.title} />
+    <div class="gd-menus">
+      {cols.map((c) => (
+        <div class:list={['gd-card gd-menu', c.mark && 'is-mark']} data-gd-in>
+          <p class="gd-tag">{c.tag}</p>
+          <h3 class="font-heading"><GdIcon name={c.mark ? 'cloche' : 'plate'} />{c.title}</h3>
+          <ul class="gd-dots">{c.items.map((t) => <li>{t}</li>)}</ul>
+        </div>
+      ))}
+    </div>
+    <div class="gd-note">
+      <p class="gd-tag">{h.noteTag}</p>
+      <p>{h.note}</p>
+    </div>
+  </div>
+</section>

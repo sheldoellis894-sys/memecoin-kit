@@ -1,0 +1,20 @@
+---
+// Page 10: house rules and the disclaimer in full.
+import { config } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+const r = guide.rules || {};
+const items: string[] = r.items || [];
+---
+<section id="rules" class="gd-sec gd-sec-alt">
+  <div class="gd-in gd-narrow">
+    <GdHead id="rules" kicker={r.kicker} title={r.title} />
+    <ol class="gd-rules">
+      {items.map((t, i) => <li><span aria-hidden="true">{i + 1}</span><p>{t}</p></li>)}
+    </ol>
+    <div class="gd-note">
+      <p class="gd-tag">{r.noteTag || 'Disclaimer'}</p>
+      <p>{config.disclaimer}</p>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,10 @@
+---
+// Heading of a page in the "guide" layout: page number, rubric and title, with the double rule of a printed guide.
+import { guide, pageNo, pad } from '../../lib/guide';
+const { id, kicker, title, level = 2, light = false } = Astro.props;
+const H = `h${level}` as any;
+---
+<header class:list={['gd-head', light && 'is-light']} data-gd-in>
+  <p class="gd-rubric"><span class="gd-pageno">{guide.pageWord || 'p.'} {pad(pageNo(id))}</span>{kicker && <span>{kicker}</span>}</p>
+  <H class="gd-title font-heading">{title}</H>
+</header>

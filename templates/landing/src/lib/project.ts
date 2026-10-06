@@ -116,6 +116,26 @@ export type Config = {
     labels: Record<string, string>;
     shareText: string;
   };
+  /** Wording and data of the "guide" layout (sections guide*). See projects/chefrekt/project.config.json for a full example. */
+  guide?: Record<string, any>;
+  /** Agent tool "Inspection" (section guideInspect): a wallet address goes to the function api/inspect.js, the answer is a guide entry. */
+  inspect?: {
+    enabled: boolean; kicker?: string; title: string; lead?: string;
+    /** Address of the function. Default "/api/inspect". */
+    endpoint?: string;
+    /** Inspections a day kept in the visitor's browser. Default 3. The function keeps its own count. */
+    perDay?: number;
+    /** Small tag printed in the corner of every card unless the holder preview is on. */
+    watermark?: string;
+    /** Pictures of the hero for every rating, index = number of stars (0…5). Transparent background. */
+    poses: { src: string; alt: string }[];
+    labels: Record<string, string>;
+    /** Short messages for the error codes of the function. */
+    errors: Record<string, string>;
+    /** An invented wallet shown as a sample when the function is not reachable or has no keys. */
+    sample: { wallet: string; steps: { type: string; text: string }[]; facts: Record<string, any>; review: Record<string, any> };
+    shareText: string;
+  };
   /** Mascot that grows while the page is scrolled (section bossGrow). */
   boss?: { sprite: string; label: string; unit: string; from: number; to: number; note?: string; dismiss?: string };
   /** Wording of the "contract" layout (sections paper*). See projects/fch/project.config.json for a full example. */

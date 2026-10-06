@@ -1,0 +1,15 @@
+---
+// Pictograms of the "guide" layout, drawn as flat shapes. name: star | fork | knife | bill | plate | cloche | book | door.
+const { name, class: cls } = Astro.props;
+const paths: Record<string, string> = {
+  star: 'M12 1.8l3 6.5 7.1.8-5.3 4.8 1.5 7-6.3-3.6-6.3 3.6 1.5-7L1.9 9.1l7.1-.8z',
+  fork: 'M7 2h1.6v6H10V2h1.6v6H13V2h1.6v7.2c0 1.7-1.1 3-2.6 3.5V22H9.6v-9.3C8.1 12.2 7 10.9 7 9.2z',
+  knife: 'M14.5 2c2.5 1.5 4 4.5 4 8.5V13h-3v9h-2.4V2z',
+  bill: 'M5 2h14v20l-2.3-1.6-2.4 1.6-2.3-1.6L9.7 22l-2.4-1.6L5 22zm3 5v2h8V7zm0 4v2h8v-2zm0 4v2h5v-2z',
+  plate: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z',
+  cloche: 'M12 4.2a1.6 1.6 0 0 1 1.5 2.2 8.5 8.5 0 0 1 7 8.6h-17a8.5 8.5 0 0 1 7-8.6A1.6 1.6 0 0 1 12 4.2zM2 16.5h20v2.3H2z',
+  book: 'M4 3h7.2c.3 0 .6.1.8.3.2-.2.5-.3.8-.3H20v16h-6.8c-.5 0-.9.3-1.2.8-.3-.5-.7-.8-1.2-.8H4zm2 2v12h4.8V5zm7.2 0v12H18V5z',
+  door: 'M5 2h14v20H5zm2.5 2.5v15h9v-15zm6 6.5h1.8v2.5h-1.8z',
+};
+---
+<svg class:list={['gd-icon', cls]} viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d={paths[name] || paths.star} /></svg>

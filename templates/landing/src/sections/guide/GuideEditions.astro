@@ -1,0 +1,21 @@
+---
+// Page 9: the roadmap as editions of the guide (config.roadmap). The first one is marked as in print.
+import { config } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+const e = guide.editions || {};
+---
+<section id="editions" class="gd-sec">
+  <div class="gd-in">
+    <GdHead id="editions" kicker={e.kicker} title={e.title} />
+    <ol class="gd-editions">
+      {config.roadmap.map((r, i) => (
+        <li class:list={['gd-card gd-edition-card', i === 0 && 'is-now']} data-gd-in>
+          <p class="gd-tag">{r.phase}{i === 0 && e.now && <span class="gd-now">{e.now}</span>}</p>
+          <h3 class="font-heading">{r.title}</h3>
+          <ul class="gd-dots">{r.items.map((t) => <li>{t}</li>)}</ul>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

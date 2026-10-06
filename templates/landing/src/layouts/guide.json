@@ -1,0 +1,4 @@
+{
+  "name": "guide",
+  "sections": ["guideShell", "guideCover", "guideAbout", "guideStars", "guideInspect", "guideHolders", "guideBook", "guideLabel", "guidePlates", "guideEditions", "guideRules", "guideReserve", "guideFooter"]
+}

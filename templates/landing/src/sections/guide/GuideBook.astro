@@ -1,0 +1,24 @@
+---
+// Page 6: how to buy, told as booking a table in four steps (config.howToBuy).
+import { config } from '../../lib/project';
+import { guide } from '../../lib/guide';
+import GdHead from './GdHead.astro';
+const b = guide.book || {};
+---
+<section id="how-to-buy" class="gd-sec gd-sec-alt">
+  <div class="gd-in">
+    <GdHead id="how-to-buy" kicker={b.kicker} title={b.title} />
+    <ol class="gd-courses">
+      {config.howToBuy.map((s, i) => (
+        <li class="gd-course" data-gd-in>
+          <span class="gd-course-no" aria-hidden="true">{i + 1}</span>
+          <div>
+            <p class="gd-tag">{(b.courses || [])[i] || `${b.step || 'Step'} ${i + 1}`}</p>
+            <h3 class="font-heading">{s.title}</h3>
+            <p>{s.text}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

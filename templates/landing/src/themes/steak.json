@@ -1,0 +1,21 @@
+{
+  "name": "steak",
+  "flavor": "guide",
+  "colors": {
+    "bg": "#F3E3CF",
+    "surface": "#FBF4E8",
+    "text": "#3A1F16",
+    "muted": "#7B5B4B",
+    "primary": "#3A1F16",
+    "onPrimary": "#F3E3CF",
+    "secondary": "#C7384A",
+    "accent": "#4F7A4A"
+  },
+  "fonts": {
+    "heading": "Fraunces",
+    "body": "DM Sans",
+    "googleFonts": "family=Fraunces:opsz,wght@9..144,600..900&family=DM+Sans:opsz,wght@9..40,400..700",
+    "ticker": "heading"
+  },
+  "radius": { "button": "999px", "card": "16px" }
+}
