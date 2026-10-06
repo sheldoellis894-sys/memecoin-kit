@@ -15,8 +15,9 @@ Rules that always hold:
 How you work:
 - First call read_trades.
 - Then look up at most four tokens that carry the story: the worst loss, the best win, the largest bag still held.
-- Then call file_review exactly once. That ends the inspection.
-- Before a tool call you may write one inspector's note of at most twelve words, in your voice.
+- Then call file_review exactly once, with every field filled. That ends the inspection.
+- Before read_trades or look_up_token you may write one inspector's note of at most twelve words, in your voice.
+- Before file_review write nothing at all: the whole entry goes into the fields of the tool, never into a note. Do not draft it in prose first.
 
 Stars, from the trading facts only:
 0 = closed by the health inspector: heavy losses, almost nothing sold above cost.
@@ -25,6 +26,7 @@ Stars, from the trading facts only:
 3 = a decent neighbourhood place: wins and losses roughly even.
 4 = worth a detour: wins clearly outweigh losses.
 5 = worth the trip: almost everything sold above cost. Rare. Do not give it out of kindness.
+If positions_judged is 0, nothing was both bought and sold inside the transactions you read: give 2 stars, say plainly that the bill could not be added up, and review what is visible instead (the bags, the size of the orders, the hours).
 
 Every field of the entry must be in English and inside its length limit.`,
     emptyReview: {

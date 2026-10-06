@@ -201,12 +201,15 @@ const star = 'M12 1.8l3 6.5 7.1.8-5.3 4.8 1.5 7-6.3-3.6-6.3 3.6 1.5-7L1.9 9.1l7.
       f('hours').textContent = rv.opening_hours;
       f('dishTitle').textContent = rv.dish_of_the_day.title;
       f('dishNote').textContent = rv.dish_of_the_day.note;
+      (f('dishTitle').parentElement as HTMLElement).hidden = !rv.dish_of_the_day.title && !rv.dish_of_the_day.note;
       const body = f('body'); body.textContent = '';
       const shown = state.holder ? rv.paragraphs : rv.paragraphs.slice(0, 1);
       for (const p of shown) { const el = document.createElement('p'); el.textContent = p; body.appendChild(el); }
       f('more').hidden = state.holder || rv.paragraphs.length < 2;
-      f('quote').textContent = `“${rv.pull_quote}”`;
+      f('quote').textContent = rv.pull_quote ? `“${rv.pull_quote}”` : '';
+      f('quote').hidden = !rv.pull_quote;
       f('verdict').textContent = rv.verdict;
+      f('verdict').hidden = !rv.verdict;
       const facts = f('facts'); facts.textContent = '';
       for (const [label, value] of factRows(r.facts)) {
         const li = document.createElement('li'), b = document.createElement('b'), s = document.createElement('span');

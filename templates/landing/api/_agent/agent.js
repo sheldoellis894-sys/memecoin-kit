@@ -66,6 +66,44 @@ export function cleanReview(r) {
   };
 }
 
+/** Which required parts of the entry are missing or empty. */
+export function missingParts(r) {
+  const has = (v) => typeof v === 'string' && v.trim().length > 0;
+  const m = [];
+  for (const k of ['name', 'cuisine', 'average_check', 'opening_hours', 'pull_quote', 'verdict']) if (!has(r?.[k])) m.push(k);
+  if (!has(r?.dish_of_the_day?.title) || !has(r?.dish_of_the_day?.note)) m.push('dish_of_the_day');
+  if (!Array.isArray(r?.paragraphs) || r.paragraphs.filter(has).length < 3) m.push('paragraphs');
+  return m;
+}
+
+/**
+ * Last resort: when the model still leaves parts of the entry empty, they are written from the facts
+ * in plain sentences, so the card is never half empty and never says more than the numbers do.
+ */
+export function completeReview(review, facts, label = (m) => shortMint(m)) {
+  const r = { ...review, dish_of_the_day: { ...review.dish_of_the_day }, paragraphs: [...(review.paragraphs || [])] };
+  const sol = (n) => `${n > 0 ? '+' : ''}${n} SOL`;
+  if (!r.cuisine) r.cuisine = `${facts.swaps} swaps in ${facts.tokens_traded} tokens`;
+  if (!r.average_check) r.average_check = facts.avg_buy_sol ? `${facts.avg_buy_sol} SOL a plate` : 'Nothing bought in this window';
+  if (!r.opening_hours) r.opening_hours = facts.busiest_hours_utc ? `Busiest ${facts.busiest_hours_utc} UTC` : 'No regular hours';
+  if (!r.dish_of_the_day.title || !r.dish_of_the_day.note) {
+    if (facts.worst) r.dish_of_the_day = { title: `${label(facts.worst.mint)}, sent back`, note: `Closed at ${sol(facts.worst.pnl_sol)} inside the transactions that were read.` };
+    else if (facts.bags_still_held) r.dish_of_the_day = { title: 'The bag on the stove', note: `${facts.bags_still_held} bought for ${facts.bags_cost_sol} SOL in total and not sold yet.` };
+    else r.dish_of_the_day = { title: 'The house special', note: `${facts.swaps} swaps in ${facts.tokens_traded} tokens. Nothing stands out.` };
+  }
+  const plain = [
+    `The inspector read ${facts.transactions_read} transactions and found ${facts.swaps} swaps in ${facts.tokens_traded} tokens.`,
+    facts.positions_judged
+      ? `${facts.positions_judged} positions could be judged. ${facts.wins} sold above cost, ${facts.losses} below.`
+      : 'Nothing was both bought and sold inside the transactions that were read. The bill could not be added up.',
+    `Realized: ${sol(facts.realized_pnl_sol)}. Bags still on the stove: ${facts.bags_still_held}.`,
+  ];
+  for (let i = 0; i < 3; i++) if (!r.paragraphs[i]) r.paragraphs[i] = plain[i];
+  if (!r.pull_quote) r.pull_quote = 'The books were read. The numbers speak.';
+  if (!r.verdict) r.verdict = `${r.stars} of 5. By the book.`;
+  return r;
+}
+
 /** Numbers printed on the card come from code, never from the model. */
 export function publicFacts(facts) {
   const { tokens, worst, best, fastest_flip_mint, ...rest } = facts;
@@ -78,7 +116,7 @@ async function callModel(env, system, messages, force) {
     headers: { 'content-type': 'application/json', 'x-api-key': env.LLM_API_KEY, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
       model: env.LLM_MODEL || 'claude-haiku-4-5-20251001',
-      max_tokens: 1100,
+      max_tokens: 2200,
       system,
       tools: TOOLS,
       tool_choice: force ? { type: 'tool', name: 'file_review' } : { type: 'auto' },
@@ -97,7 +135,7 @@ async function callModel(env, system, messages, force) {
  */
 export async function inspect({ wallet, persona, env, emit }) {
   const short = shortMint(wallet);
-  let facts = null, view = null, ids = null, lookups = 0;
+  let facts = null, view = null, ids = null, lookups = 0, rewrites = 0;
   const labels = new Map();
 
   const loadTrades = async () => {
@@ -145,7 +183,7 @@ export async function inspect({ wallet, persona, env, emit }) {
 
   const messages = [{ role: 'user', content: `Inspect the Solana wallet ${wallet} and file one entry in the guide.` }];
   for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const force = turn === MAX_TURNS - 1;
+    const force = turn === MAX_TURNS - 1 || rewrites > 0;   // a rewrite must come back as the tool call, nothing else
     const out = await callModel(env, persona.system, messages, force);
     const blocks = Array.isArray(out.content) ? out.content : [];
     const calls = blocks.filter((b) => b.type === 'tool_use');
@@ -153,8 +191,23 @@ export async function inspect({ wallet, persona, env, emit }) {
 
     const filed = calls.find((c) => c.name === 'file_review');
     if (filed) {
+      const gaps = missingParts(filed.input);
+      // An unfinished entry (the model ran out of room or skipped fields) goes back once for a rewrite.
+      if (gaps.length && rewrites < 1 && turn < MAX_TURNS - 1) {
+        rewrites++;
+        emit({ type: 'step', text: 'The entry came back unfinished. The inspector writes it again.' });
+        const results = [];
+        for (const c of calls) {
+          if (c === filed) results.push({ type: 'tool_result', tool_use_id: c.id, is_error: true, content: `Not filed: the entry is incomplete. Missing or empty: ${gaps.join(', ')}. Call file_review again with every field filled. Write no text before the tool call.` });
+          else results.push({ type: 'tool_result', tool_use_id: c.id, content: JSON.stringify(await tool(c.name, c.input)) });
+        }
+        messages.push({ role: 'assistant', content: blocks });
+        messages.push({ role: 'user', content: results });
+        continue;
+      }
+      const review = cleanReview(filed.input);
       emit({ type: 'step', text: 'Entry written. Stars counted.' });
-      emit({ type: 'review', review: cleanReview(filed.input) });
+      emit({ type: 'review', review: gaps.length ? cleanReview(completeReview(review, facts, (m) => labels.get(m) || shortMint(m))) : review });
       return;
     }
     if (!calls.length) {

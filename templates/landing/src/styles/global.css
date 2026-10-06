@@ -1633,7 +1633,7 @@ html.gd-motion .gd-stars-lit svg { transition: transform .3s; }
 .gd-privacy { margin: 10px 0 0; font-size: .86rem; color: var(--t-muted); }
 .gd-notebook { margin-top: 22px; padding: 18px 20px 16px; border-radius: var(--t-radius-card); background: var(--t-text); color: var(--t-bg); }
 .gd-notebook-title { margin: 0 0 12px; font-size: 1.2rem; font-weight: 700; }
-.gd-notebook ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; max-height: 260px; overflow-y: auto; scrollbar-width: thin; font-size: .93rem; }
+.gd-notebook ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--t-bg) 45%, transparent) transparent; font-size: .93rem; }
 .gd-notebook li { position: relative; padding-left: 20px; }
 .gd-notebook li::before { content: ""; position: absolute; left: 0; top: .5em; width: 8px; height: 8px; border-radius: 50%; background: var(--t-accent); }
 .gd-notebook li.is-note { font-family: var(--font-heading); font-style: italic; font-size: 1.02rem; color: color-mix(in srgb, var(--t-bg) 88%, var(--t-secondary)); }

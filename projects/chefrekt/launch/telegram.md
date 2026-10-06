@@ -1,6 +1,6 @@
 # Chef Rekt — Telegram setup
 
-Status on 2026-10-06: NOT SET UP YET. This file is the plan. The username thechefrekt looked free on the public page https://t.me/s/thechefrekt; it is confirmed only when the channel is created.
+Status on 2026-10-06: set up, token is not live. The channel https://t.me/thechefrekt exists. The portal was read on the public page https://t.me/s/thechefrekt: the text matches this file word for word, the verify button and the three link buttons are in place, the picture is confirmed by the screenshot case/06_tg_portal.png. The channel name was first saved as "Chef Rekt | $CHEFREK"; the owner fixed it, the public page shows "Chef Rekt | $CHEFREKT" (checked 2026-10-06, 20:50). The screenshot case/06_tg_portal.png was retaken with the right name.
 
 ## 1. Structure
 
@@ -110,11 +110,11 @@ Allowed links:
 
 | Check | Command | Result |
 |---|---|---|
-| Welcome | `/welcome noformat` | not done yet |
-| Locks | `/locks` | not done yet |
-| Antiflood | `/flood` | not done yet |
-| Allowed links | `/allowlist` | not done yet |
-| Automatic antiraid | `/autoantiraid` | not done yet |
+| Welcome | `/setwelcome` | set by the owner on 2026-10-06, the bot reply was not saved |
+| Locks | `/locks` | set by the owner on 2026-10-06, the status command reply was not saved |
+| Antiflood | `/flood` | set by the owner on 2026-10-06, the status command reply was not saved |
+| Allowed links | `/allowlist` | set by the owner on 2026-10-06, the status command reply was not saved |
+| Automatic antiraid | `/autoantiraid` | set by the owner on 2026-10-06, the status command reply was not saved |
 
 Note: `/antiraid` shows the manual mode only. If it offers to switch on for 6 hours, press Cancel.
 The automatic protection is checked with `/autoantiraid` without a number.
@@ -126,7 +126,7 @@ Captcha commands, in case bots get through on launch day (sent in the group):
 
 A new member passes one check: the Safeguard portal.
 
-Entry path with a second account (portal, Safeguard check, welcome): not done yet.
+Entry path with a second account (portal, Safeguard check, welcome): checked by the owner on 2026-10-06.
 
 ## 5. Buy bot (launch day)
 

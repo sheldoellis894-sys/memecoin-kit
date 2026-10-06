@@ -8,7 +8,7 @@ Images: paths are relative to projects/chefrekt/brand/
 Posting times (Moscow time): ~16:00 and ~21:00 — afternoon and evening for Europe, morning and midday for the US.
 
 Posts marked PUBLISH are the four chosen for scheduling. The rest stay in the plan.
-Status on 2026-10-06: texts, pictures and dates handed to the owner. Profile, pinned post and schedule: not confirmed yet.
+Status on 2026-10-06: profile set up and post 1 pinned (screenshot case/05_x_profile.png). The owner pinned the post with exports/chefrekt_og.png instead of the banner. The four PUBLISH posts are scheduled (confirmed by the owner on 2026-10-06).
 
 ## Profile
 

@@ -35,13 +35,16 @@ brand/exports/chefrekt_dex_header.png (1500x500)
 - [ ] Post CA in Telegram, pin it
 - [ ] Holder mode in the Inspection: the "Holder preview" switch stays a preview until the wallet check is built (plan, second edition)
 
-## Dry run of the form: NOT DONE YET
-To do with the owner: fill the form on a separate work wallet, do not press "Create coin", sign nothing, keep the wallet address out of the frame.
-To check in this run:
-- does the ticker field take 8 characters (CHEFREKT). The earlier projects only proved 7
-- name "Chef Rekt" with a space
-- the three links, the image and the banner
-Screenshots for the case: launch/pumpfun_form.png, launch/pumpfun_preview.png.
+## Verified in the live form (2026-10-06, dry run for this project, coin not created)
+- Name "Chef Rekt" (with a space) is accepted
+- Ticker: the owner entered the 7-character fallback CHEFRKT. Whether the field takes the 8-character CHEFREKT: TO CONFIRM.
+  The banner, the site, X and Telegram all say $CHEFREKT, so the ticker in the form must match them on launch day.
+- All three links (Website, X, Telegram) are accepted
+- The Description field holds the text from this file
+- Image chefrekt_avatar.png and banner chefrekt_dex_header.png upload and preview correctly
+- Screenshots: pumpfun_form.png, pumpfun_preview.png (no wallet address in the frame)
+- The form opened in German for the owner; the fields were matched by position and content
+- Nothing new in the form compared with the dry runs of the earlier projects
 
 ## AI agent features of pump.fun: not used
 - "Tokenized Agents" (agent revenue buys back and burns the token) was launched on 2026-03-13 and removed on 2026-06-30 (news, not checked in the form). The project does not rely on it.
