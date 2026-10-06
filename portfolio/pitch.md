@@ -12,6 +12,7 @@
 | 4 | Scootini Goosini ($GOOSINI) | Мемкойн, Solana | 3 часа | https://scootinigoosini.vercel.app |
 | 5 | Inkmaxx ($INKMAXX) | Утилитарный токен, Solana | 3,5 часа | https://inkmaxxing.vercel.app |
 | 6 | Ten Keys ($TENKEYS) | Утилитарный токен, Solana | 4 часа | https://thetenkeys.vercel.app |
+| 7 | Chef Rekt ($CHEFREKT) | Токен с ИИ-агентом, Solana | 4 часа | https://thechefrekt.vercel.app |
 
 ## Сроки
 
@@ -19,7 +20,7 @@
 |---|---|---|
 | Мемкойн | 1 рабочий день | 3 часа (Scootini Goosini), 5 часов (Fat Cat Holdings), 5,5 часа (Turbo Shiba Cop 3000) |
 | Утилитарный токен | 1 рабочий день | 3,5 часа (Inkmaxx), 4 часа (Ten Keys) |
-| Проект с ИИ-агентом | до 2 рабочих дней | пока нет |
+| Проект с ИИ-агентом | до 2 рабочих дней | 4 часа (Chef Rekt) |
 
 Правило: в текстах стоит только подтверждённый срок. Цель переходит в текст после проекта, сделанного за это время.
 Срок считается как чистое рабочее время по шагам, учёт лежит в `projects/<имя>/brand/docs/`.
@@ -31,7 +32,7 @@
 3. Во всех текстах ниже заменить срок на новый подтверждённый.
 4. В блоке с примерами держать 2–3 лучших проекта, не все.
 5. С третьего проекта добавить в сообщение команде строку «В портфолио N проектов: мемкойны, утилиты, ИИ-агенты».
-6. После первого проекта с ИИ-агентом добавить в список «Что вы получаете» пункт про агента.
+6. Пункт про ИИ-агента в списке «Что входит в пакет» добавлен после Chef Rekt. После второго проекта с агентом уточнить его формулировку.
 7. После реального запуска добавить цифры: держатели, объём, участники в Telegram.
 
 ---
@@ -51,7 +52,10 @@ From an idea to "just press Create coin" in 3 hours: character, website with a p
 
 **Упаковываю токены под запуск. Целиком и быстро.**
 
-Шесть проектов. У каждого свой стиль, свой сайт и своя игра или рабочий инструмент.
+Семь проектов. У каждого свой стиль, свой сайт и своя игра, рабочий инструмент или ИИ-агент.
+
+Chef Rekt ($CHEFREKT): токен с ИИ-агентом, 4 часа.
+Скелет-шеф пишет рецензии на кошельки: вставляете адрес, агент сам читает сделки, смотрит токены и выдаёт запись в ресторанном гиде со звёздами.
 
 Ten Keys ($TENKEYS): утилитарный токен, 4 часа.
 Сайт — дверь хранилища на десять замков, а внутри рабочий калькулятор: команда делит комиссии создателя и получает лист с печатью.
@@ -72,14 +76,20 @@ Turbo Shiba Cop 3000 ($TSC3000): 5,5 часа.
 
 - герой, которого узнают с аватарки, и фирменный стиль под все площадки;
 - сайт с игрой или рабочим инструментом: посетитель остаётся, играет или делает свой мем и делится результатом в X;
+- ИИ-агент, если он нужен проекту: серверная часть, инструменты агента, защита от чужого текста в данных, лимиты расходов и тесты;
 - короткая анимация героя для закреплённого поста и первого экрана;
 - профиль в X с закреплённым постом и контентом на неделю прогрева;
 - Telegram с проверкой на входе, капчей и защитой от спама и набегов ботов;
 - пакет на день запуска: поля pump.fun и DexScreener заполнены и сверены с живой формой.
 
-Сайты собираю на собственном шаблоне. В нём уже шесть стилей, шесть макетов, четыре игры, генератор мемов и калькулятор долей, новые добавляются под нарратив.
+Сайты собираю на собственном шаблоне. В нём уже семь стилей, семь макетов, четыре игры, генератор мемов, калькулятор долей и ИИ-агент на серверной функции, новые добавляются под нарратив.
 
-Стек: Astro, Tailwind CSS, TypeScript, Canvas, Figma, Vercel, Telegram (Rose, Safeguard).
+Стек: Astro, Tailwind CSS, TypeScript, Canvas, Vercel Functions, API языковой модели с вызовом инструментов, данные Solana (Helius, DexScreener), Figma, Vercel, Telegram (Rose, Safeguard).
+
+Chef Rekt
+сайт https://thechefrekt.vercel.app
+X https://x.com/thechefrekt
+Telegram https://t.me/thechefrekt
 
 Ten Keys
 сайт https://thetenkeys.vercel.app
@@ -115,7 +125,10 @@ Telegram https://t.me/moltymole
 
 **I package tokens for launch. The whole thing, fast.**
 
-Six projects. Each has its own style, its own website and its own game or working tool.
+Seven projects. Each has its own style, its own website and its own game, working tool or AI agent.
+
+Chef Rekt ($CHEFREKT): a token with an AI agent, 4 hours.
+A skeleton chef reviews wallets: paste an address, and the agent reads the trades, looks up the tokens and files an entry in a restaurant guide, stars included.
 
 Ten Keys ($TENKEYS): a utility token, 4 hours.
 The website is a vault door with ten locks, and inside is a working calculator: a team splits its creator fees and gets a sealed sheet.
@@ -136,14 +149,20 @@ What the package includes:
 
 - a character people recognise from the avatar, and a brand kit for every platform;
 - a website with a game or a working tool: visitors stay, play or make their own meme and share the result on X;
+- an AI agent when the project needs one: the server side, the agent's tools, protection from untrusted text in the data, spending limits and tests;
 - a short animation of the character for the pinned post and the first screen;
 - an X profile with a pinned post and a week of warm-up content;
 - Telegram with a verification portal, captcha, and protection from spam and bot raids;
 - a launch-day package: pump.fun and DexScreener fields filled in and checked against the live form.
 
-I build the websites on my own template. It already has six styles, six layouts, four games, a meme maker and a fee split calculator, and new ones are added to fit the narrative.
+I build the websites on my own template. It already has seven styles, seven layouts, four games, a meme maker, a fee split calculator and an AI agent on a serverless function, and new ones are added to fit the narrative.
 
-Stack: Astro, Tailwind CSS, TypeScript, Canvas, Figma, Vercel, Telegram (Rose, Safeguard).
+Stack: Astro, Tailwind CSS, TypeScript, Canvas, Vercel Functions, a language model API with tool calling, Solana data (Helius, DexScreener), Figma, Vercel, Telegram (Rose, Safeguard).
+
+Chef Rekt
+website https://thechefrekt.vercel.app
+X https://x.com/thechefrekt
+Telegram https://t.me/thechefrekt
 
 Ten Keys
 website https://thetenkeys.vercel.app
@@ -181,7 +200,7 @@ Telegram https://t.me/moltymole
 
 ### Short version (first message)
 
-Основной вариант начинается со сцены из игры и сразу зовёт сыграть. Вариант «Договор» начинается со сцены из третьего проекта и зовёт подписать. Вариант «Доставка» начинается со сцены из четвёртого проекта и зовёт остановить курьера. Вариант «Станок» начинается со сцены из пятого проекта и зовёт напечатать свой мем. Вариант «Счётная комната» начинается с действия посетителя в шестом проекте и зовёт разделить доли. Запасной начинается с цифры и быстрее объясняет суть.
+Основной вариант начинается со сцены из игры и сразу зовёт сыграть. Вариант «Договор» начинается со сцены из третьего проекта и зовёт подписать. Вариант «Доставка» начинается со сцены из четвёртого проекта и зовёт остановить курьера. Вариант «Станок» начинается со сцены из пятого проекта и зовёт напечатать свой мем. Вариант «Счётная комната» начинается с действия посетителя в шестом проекте и зовёт разделить доли. Вариант «Инспекция» начинается с действия посетителя в седьмом проекте и зовёт проверить кошелёк. Запасной начинается с цифры и быстрее объясняет суть.
 
 #### Основной вариант — «Игра» (выбран 04.10.2026)
 
@@ -213,7 +232,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Это сайт мемкойна, и его надо подписать: https://fatcatholdings.vercel.app
 
-Весь проект — герой, сайт с игрой, анимация, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 5 часов. В портфолио шесть проектов, все сайты разные.
+Весь проект — герой, сайт с игрой, анимация, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 5 часов. В портфолио семь проектов, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
@@ -223,7 +242,7 @@ An employment agreement. The employer is a very fat cat. Probation is for life, 
 
 This is a memecoin website, and you have to sign it: https://fatcatholdings.vercel.app
 
-The whole project — character, website with a game, animation, X, Telegram with bot protection and a pump.fun package — took 5 hours. Six projects in the portfolio, no two websites alike.
+The whole project — character, website with a game, animation, X, Telegram with bot protection and a pump.fun package — took 5 hours. Seven projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
@@ -235,7 +254,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Это сайт мемкойна в виде приложения доставки, и курьера можно попробовать остановить: https://scootinigoosini.vercel.app
 
-Весь проект — герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3 часа. В портфолио шесть проектов, все сайты разные.
+Весь проект — герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3 часа. В портфолио семь проектов, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
@@ -245,7 +264,7 @@ You ordered a pizza. The order was handed to a goose. The goose is half scooter,
 
 This is a memecoin website built as a delivery app, and you can try to stop the courier: https://scootinigoosini.vercel.app
 
-The whole project — character, website with a game, X, Telegram with bot protection and a pump.fun package — took 3 hours. Six projects in the portfolio, no two websites alike.
+The whole project — character, website with a game, X, Telegram with bot protection and a pump.fun package — took 3 hours. Seven projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
@@ -257,7 +276,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Это сайт токена с рабочим станком для мемов: https://inkmaxxing.vercel.app
 
-Весь проект — герой, сайт с генератором мемов, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио шесть проектов, все сайты разные.
+Весь проект — герой, сайт с генератором мемов, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио семь проектов, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
@@ -267,7 +286,7 @@ Upload any picture. An octopus turns it into a meme. He will not say thank you.
 
 This is a token website with a working meme press: https://inkmaxxing.vercel.app
 
-The whole project — character, website with a meme maker, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Six projects in the portfolio, no two websites alike.
+The whole project — character, website with a meme maker, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Seven projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
@@ -279,7 +298,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Это сайт токена с рабочим калькулятором долей: https://thetenkeys.vercel.app
 
-Весь проект — бренд, сайт с инструментом, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 4 часа. В портфолио шесть проектов, все сайты разные.
+Весь проект — бренд, сайт с инструментом, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 4 часа. В портфолио семь проектов, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
@@ -289,7 +308,29 @@ Enter your team and the shares. The site checks that it comes to exactly 100. Yo
 
 This is a token website with a working fee split calculator: https://thetenkeys.vercel.app
 
-The whole project — brand, website with a tool, X, Telegram with bot protection and a pump.fun package — took 4 hours. Six projects in the portfolio, no two websites alike.
+The whole project — brand, website with a tool, X, Telegram with bot protection and a pump.fun package — took 4 hours. Seven projects in the portfolio, no two websites alike.
+
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+
+#### Вариант «Инспекция» (добавлен после Chef Rekt, утверждён 06.10.2026)
+
+**RU**
+
+Вставьте адрес кошелька. Скелет в поварском колпаке прочитает ваши сделки. Потом поставит одну звезду. За смелость.
+
+Это сайт токена с рабочим ИИ-агентом: https://thechefrekt.vercel.app
+
+Весь проект — герой, сайт с агентом, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 4 часа. В портфолио семь проектов, все сайты разные.
+
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+
+**EN**
+
+Paste a wallet address. A skeleton in a chef's hat reads your trades. Then he gives it one star. For the courage.
+
+This is a token website with a working AI agent: https://thechefrekt.vercel.app
+
+The whole project — character, website with an agent, X, Telegram with bot protection and a pump.fun package — took 4 hours. Seven projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
@@ -335,7 +376,8 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Чего не делаю: ботов объёма, платных трендов и накруток.
 
-Ещё четыре проекта, каждый в своём стиле:
+Ещё пять проектов, каждый в своём стиле:
+сайт-гид, где ИИ-агент пишет рецензию на любой кошелёк Solana — https://thechefrekt.vercel.app
 сайт-хранилище с калькулятором, который делит комиссии команды — https://thetenkeys.vercel.app
 сайт-станок, который печатает мем из любой картинки — https://inkmaxxing.vercel.app
 сайт-приложение доставки, где гуся-курьера надо остановить у двери — https://scootinigoosini.vercel.app
@@ -363,7 +405,8 @@ What you get:
 
 What I do not do: volume bots, paid trending, fake engagement.
 
-Four more projects, each in its own style:
+Five more projects, each in its own style:
+a website that is a restaurant guide, where an AI agent reviews any Solana wallet — https://thechefrekt.vercel.app
 a website that is a vault door, with a calculator that splits a team's creator fees — https://thetenkeys.vercel.app
 a website that is a printing press and turns any picture into a meme — https://inkmaxxing.vercel.app
 a website that is a delivery app where you have to stop the goose courier at the door — https://scootinigoosini.vercel.app
