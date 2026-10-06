@@ -1,0 +1,22 @@
+{
+  "name": "concrete",
+  "flavor": "vault",
+  "colors": {
+    "bg": "#E7E8EA",
+    "surface": "#F3F4F5",
+    "text": "#14171A",
+    "muted": "#55616E",
+    "primary": "#14171A",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#4A6079",
+    "accent": "#FF5A1F"
+  },
+  "fonts": {
+    "heading": "Saira Stencil One",
+    "body": "Saira",
+    "mono": "Roboto Mono",
+    "googleFonts": "family=Saira+Stencil+One&family=Saira:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700",
+    "ticker": "heading"
+  },
+  "radius": { "button": "2px", "card": "4px" }
+}

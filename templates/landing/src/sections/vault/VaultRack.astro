@@ -1,0 +1,58 @@
+---
+// Lock 6: tokenomics as a rack of ten keys. Every key is a button: pointing at it or tapping it shows its share
+// in the readout. Nine keys are steel, the last one is the orange one. Numbers below roll in like counters.
+import { config } from '../../lib/project';
+import { vault, lockNo, pad, total } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+import VkKey from './VkKey.astro';
+import VkOdo from './VkOdo.astro';
+const r = vault.rack || {};
+const keys = Array.from({ length: total }, (_, i) => ({
+  no: pad(i + 1),
+  text: (i === total - 1 && r.last ? r.last : r.each || '').replace('{n}', pad(i + 1)),
+}));
+---
+<section id="keys" class="vk-sec" data-vk-lock={lockNo('keys')}>
+  <div class="vk-in">
+    <VkLock n={lockNo('keys')} kicker={r.kicker} title={r.title} />
+    <div class="vk-rack" data-vk-rack data-idle={r.idle}>
+      <div class="vk-rack-rail" data-vk-in>
+        {keys.map((k, i) => (
+          <button type="button" class:list={['vk-rack-key', i === total - 1 && 'is-signal']} data-text={k.text} style={`--i:${i}`} aria-label={k.text}>
+            <span class="vk-rack-hook" aria-hidden="true"></span>
+            <VkKey />
+            <span class="vk-rack-no" aria-hidden="true">{k.no}</span>
+          </button>
+        ))}
+      </div>
+      <p class="vk-readout" data-vk-readout aria-live="polite">{r.idle}</p>
+    </div>
+    <dl class="vk-figures">
+      <div><dt>{r.supplyLabel || 'Total supply'}</dt><dd><VkOdo value={config.tokenomics.supply} /></dd></div>
+      {config.tokenomics.items.map((it) => <div><dt>{it.label}</dt><dd><VkOdo value={it.value} /></dd></div>)}
+    </dl>
+    <div class="vk-ca">
+      <span class="vk-ca-label">{r.caLabel || 'Contract address'}</span>
+      {config.ca.trim() ? <code title={config.ca.trim()}>{config.ca.trim()}</code> : <span class="vk-ca-empty">{r.caEmpty}</span>}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-vk-rack]').forEach((root) => {
+    const out = root.querySelector<HTMLElement>('[data-vk-readout]')!;
+    const keys = [...root.querySelectorAll<HTMLButtonElement>('.vk-rack-key')];
+    let pinned: HTMLButtonElement | null = null;
+    const show = (k: HTMLButtonElement | null) => {
+      keys.forEach((x) => x.classList.toggle('is-on', x === k));
+      out.textContent = k ? k.dataset.text || '' : root.dataset.idle || '';
+    };
+    keys.forEach((k) => {
+      k.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') show(k); });
+      k.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') show(pinned); });
+      k.addEventListener('focus', () => show(k));
+      k.addEventListener('blur', () => show(pinned));
+      k.addEventListener('click', () => { pinned = pinned === k ? null : k; show(pinned); });
+    });
+  });
+</script>

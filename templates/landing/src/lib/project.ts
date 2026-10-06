@@ -100,6 +100,22 @@ export type Config = {
     labels: Record<string, string>;
     shareText: string;
   };
+  /** Wording and data of the "vault" layout (sections vault*). See projects/tenkeys/project.config.json for a full example. */
+  vault?: Record<string, any>;
+  /** Fee split calculator "Counting room" (section vaultSplit): up to "max" recipients, checks, SOL breakdown, a sealed sheet as a picture. */
+  split?: {
+    enabled: boolean; kicker?: string; title: string; lead?: string;
+    /** Most recipients allowed. Default 10. */
+    max?: number;
+    /** Small tag printed in the corner of every sheet unless the holder preview is on. */
+    watermark?: string;
+    /** Rows shown when the page opens. Shares are percentages. */
+    start: { role: string; share: number }[];
+    /** One-click layouts. mode "equal" divides 100% between the rows that are already there. */
+    presets: { label: string; mode?: 'equal'; rows?: { role: string; share: number }[] }[];
+    labels: Record<string, string>;
+    shareText: string;
+  };
   /** Mascot that grows while the page is scrolled (section bossGrow). */
   boss?: { sprite: string; label: string; unit: string; from: number; to: number; note?: string; dismiss?: string };
   /** Wording of the "contract" layout (sections paper*). See projects/fch/project.config.json for a full example. */
@@ -129,6 +145,8 @@ export type Theme = {
   colors: Record<'bg' | 'surface' | 'text' | 'muted' | 'primary' | 'onPrimary' | 'secondary' | 'accent', string>;
   fonts: {
     heading: string; body: string; googleFonts: string;
+    /** Monospaced font for numbers and addresses (flavor "vault"). Optional. */
+    mono?: string;
     /** Handwriting font for notes in the "paper" flavor. Optional. */
     hand?: string;
     /** Wide display fonts need smaller headings: 0.5 = half size. Default 1. */

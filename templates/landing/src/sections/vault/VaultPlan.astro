@@ -1,0 +1,23 @@
+---
+// Lock 8: the roadmap as three counts. The first count carries the "now" mark, the single orange object here.
+import { config } from '../../lib/project';
+import { vault, lockNo } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+const p = vault.plan || {};
+---
+<section id="plan" class="vk-sec" data-vk-lock={lockNo('plan')}>
+  <div class="vk-in">
+    <VkLock n={lockNo('plan')} kicker={p.kicker} title={p.title} />
+    <ol class="vk-plan">
+      {config.roadmap.map((ph, i) => (
+        <li class="vk-panel" data-vk-in style={`--i:${i}`}>
+          <p class="vk-plan-phase">{ph.phase}{i === 0 && p.now && <span class="vk-now">{p.now}</span>}</p>
+          <h3 class="vk-plan-title font-heading">{ph.title}</h3>
+          <ul class="vk-ticks">
+            {ph.items.map((t) => <li>{t}</li>)}
+          </ul>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

@@ -23,6 +23,7 @@ const vars = [
   f.headingLeading && `--t-heading-leading:${f.headingLeading}`,
   f.headingMin && `--t-heading-min:${f.headingMin}`,
   f.bodyScale && `--t-body-scale:${f.bodyScale}`,
+  f.mono && `--t-font-mono:'${f.mono}'`,
 ].filter(Boolean).join(';');
 
 const title = `${config.name} ($${config.ticker})`;

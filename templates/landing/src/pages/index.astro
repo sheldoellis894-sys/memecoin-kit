@@ -54,6 +54,19 @@ import PressLine from '../sections/press/PressLine.astro';
 import PressShifts from '../sections/press/PressShifts.astro';
 import PressBuy from '../sections/press/PressBuy.astro';
 import PressFooter from '../sections/press/PressFooter.astro';
+// Layout "vault": the site is a vault door with ten locks, every section is one lock
+import VaultShell from '../sections/vault/VaultShell.astro';
+import VaultHero from '../sections/vault/VaultHero.astro';
+import VaultWhy from '../sections/vault/VaultWhy.astro';
+import VaultSplit from '../sections/vault/VaultSplit.astro';
+import VaultHolders from '../sections/vault/VaultHolders.astro';
+import VaultSteps from '../sections/vault/VaultSteps.astro';
+import VaultRack from '../sections/vault/VaultRack.astro';
+import VaultCells from '../sections/vault/VaultCells.astro';
+import VaultPlan from '../sections/vault/VaultPlan.astro';
+import VaultRules from '../sections/vault/VaultRules.astro';
+import VaultDoor from '../sections/vault/VaultDoor.astro';
+import VaultFooter from '../sections/vault/VaultFooter.astro';
 
 const registry: Record<string, any> = {
   header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
@@ -67,6 +80,9 @@ const registry: Record<string, any> = {
   appOrder: AppOrder, appFooter: AppFooter,
   pressShell: PressShell, pressHero: PressHero, pressAbout: PressAbout, pressStudio: PressStudio, pressWorkout: PressWorkout,
   pressInk: PressInk, pressLine: PressLine, pressShifts: PressShifts, pressBuy: PressBuy, pressFooter: PressFooter,
+  vaultShell: VaultShell, vaultHero: VaultHero, vaultWhy: VaultWhy, vaultSplit: VaultSplit, vaultHolders: VaultHolders,
+  vaultSteps: VaultSteps, vaultRack: VaultRack, vaultCells: VaultCells, vaultPlan: VaultPlan, vaultRules: VaultRules,
+  vaultDoor: VaultDoor, vaultFooter: VaultFooter,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);

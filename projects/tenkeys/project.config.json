@@ -1,0 +1,526 @@
+{
+  "name": "Ten Keys",
+  "shortName": "Ten Keys",
+  "ticker": "TENKEYS",
+  "tagline": "Agree on the split. Then launch.",
+  "description": "Ten Keys is a counting room for creator fees: set up to ten shares, check that they add up to 100%, and seal the sheet before launch. It runs in your browser. $TENKEYS on Solana.",
+  "url": "https://thetenkeys.vercel.app",
+  "chain": "Solana",
+  "ca": "",
+  "theme": "concrete",
+  "layout": "vault",
+  "links": {
+    "x": "https://x.com/thetenkeys",
+    "telegram": "https://t.me/thetenkeys",
+    "pumpfun": "",
+    "dexscreener": ""
+  },
+  "assets": {
+    "logo": "exports/tenkeys_avatar_circle_256.png",
+    "favicon": "exports/tenkeys_avatar_circle_256.png",
+    "hero": "banners/tenkeys_banner.jpg",
+    "og": "exports/tenkeys_og.png"
+  },
+  "hero": {
+    "kicker": "Solana · creator fees",
+    "text": "pump.fun lets a creator send fees to up to 10 wallets. Ten Keys is the counting room. Set the shares. Check the sum. Seal the sheet. Then launch."
+  },
+  "about": {
+    "kicker": "Three numbers",
+    "title": "Count first",
+    "text": [
+      "Most teams count after launch.",
+      "After launch is late."
+    ]
+  },
+  "split": {
+    "enabled": true,
+    "kicker": "The tool",
+    "title": "Counting room",
+    "lead": "A fee split calculator. Up to ten recipients. It runs in your browser and connects to nothing.",
+    "max": 10,
+    "watermark": "thetenkeys.vercel.app",
+    "start": [
+      {
+        "role": "Dev",
+        "share": 40
+      },
+      {
+        "role": "Art",
+        "share": 25
+      },
+      {
+        "role": "Community",
+        "share": 20
+      },
+      {
+        "role": "Treasury",
+        "share": 15
+      }
+    ],
+    "presets": [
+      {
+        "label": "Equal",
+        "mode": "equal"
+      },
+      {
+        "label": "Founder + crew",
+        "rows": [
+          {
+            "role": "Founder",
+            "share": 40
+          },
+          {
+            "role": "Dev",
+            "share": 20
+          },
+          {
+            "role": "Art",
+            "share": 20
+          },
+          {
+            "role": "Community",
+            "share": 20
+          }
+        ]
+      },
+      {
+        "label": "By role",
+        "rows": [
+          {
+            "role": "Dev",
+            "share": 30
+          },
+          {
+            "role": "Art",
+            "share": 20
+          },
+          {
+            "role": "Community",
+            "share": 20
+          },
+          {
+            "role": "Marketing",
+            "share": 20
+          },
+          {
+            "role": "Treasury",
+            "share": 10
+          }
+        ]
+      },
+      {
+        "label": "All ten",
+        "rows": [
+          {
+            "role": "Key 01",
+            "share": 10
+          },
+          {
+            "role": "Key 02",
+            "share": 10
+          },
+          {
+            "role": "Key 03",
+            "share": 10
+          },
+          {
+            "role": "Key 04",
+            "share": 10
+          },
+          {
+            "role": "Key 05",
+            "share": 10
+          },
+          {
+            "role": "Key 06",
+            "share": 10
+          },
+          {
+            "role": "Key 07",
+            "share": 10
+          },
+          {
+            "role": "Key 08",
+            "share": 10
+          },
+          {
+            "role": "Key 09",
+            "share": 10
+          },
+          {
+            "role": "Key 10",
+            "share": 10
+          }
+        ]
+      }
+    ],
+    "labels": {
+      "coin": "Coin",
+      "coinPlaceholder": "$TICKER",
+      "fees": "Fees to split, SOL",
+      "feesPlaceholder": "0",
+      "presets": "Presets",
+      "key": "Key",
+      "role": "Role",
+      "rolePlaceholder": "Role",
+      "wallet": "Wallet",
+      "walletPlaceholder": "Solana address, optional",
+      "share": "Share",
+      "amount": "Amount",
+      "remove": "Remove key",
+      "add": "Add a key",
+      "count": "{n} of {max} keys",
+      "sum": "Sum",
+      "sumOk": "Sum 100. It adds up.",
+      "sumUnder": "Sum {sum}. {diff} left.",
+      "sumOver": "Sum {sum}. {diff} over.",
+      "checkSum": "Sum is exactly 100%",
+      "checkCount": "No more than 10 recipients",
+      "checkPositive": "Every share is above 0",
+      "checkWallets": "Wallets look like Solana addresses",
+      "checkUnique": "No wallet appears twice",
+      "holder": "Holder preview",
+      "holderNote": "Holders get the sheet without the site tag, two splits side by side and a table file. This switch is a preview. It checks nothing.",
+      "holderOn": "Holder preview. On.",
+      "holderOff": "Holder preview. Off.",
+      "seal": "Seal the split",
+      "sealedShort": "Sealed",
+      "sealed": "Sealed.",
+      "stale": "Changed. Seal again.",
+      "sealedLine": "Sealed. Code {code}.",
+      "sealWord": "Seal",
+      "sheetTitle": "SPLIT SHEET",
+      "sheetAlt": "The sealed split sheet: roles, shares and the seal code",
+      "totalWord": "TOTAL",
+      "download": "Download",
+      "copy": "Copy text",
+      "copied": "Copied",
+      "copyFail": "Copy failed",
+      "shareBtn": "Share on X",
+      "shareNote": "X opens with the text ready. Attach the downloaded sheet to the post yourself.",
+      "holderTools": "For holders",
+      "keep": "Keep as A",
+      "kept": "Kept",
+      "csv": "Export table",
+      "delta": "Change",
+      "textTitle": "Ten Keys split sheet",
+      "textTotal": "Total 100%. Keys: {n} of {max}.",
+      "notContract": "Not a contract. Shares are set on pump.fun by the creator.",
+      "private": "Runs in your browser. Nothing is uploaded. No wallet is connected."
+    },
+    "shareText": "{n} keys. 100%. Sealed {code}. Agree on the split. Then launch. $TENKEYS"
+  },
+  "howToBuy": [
+    {
+      "title": "Get a wallet",
+      "text": "Install Phantom or Solflare from the official website or app store."
+    },
+    {
+      "title": "Get some SOL",
+      "text": "Buy SOL on an exchange and send it to your wallet."
+    },
+    {
+      "title": "Open pump.fun",
+      "text": "Connect your wallet and paste the $TENKEYS contract address."
+    },
+    {
+      "title": "Swap for $TENKEYS",
+      "text": "Choose the amount and confirm the swap. One transaction. Done."
+    }
+  ],
+  "tokenomics": {
+    "supply": "1,000,000,000",
+    "items": [
+      {
+        "label": "Fair launch on pump.fun",
+        "value": "100%"
+      },
+      {
+        "label": "Buy and sell tax",
+        "value": "0%"
+      },
+      {
+        "label": "Team wallet",
+        "value": "0%"
+      },
+      {
+        "label": "Network",
+        "value": "Solana"
+      }
+    ]
+  },
+  "gallery": [
+    {
+      "src": "gallery/tenkeys_g01.jpg",
+      "alt": "Ten keys hang on a dark steel rail: nine steel, one orange",
+      "note": "10 hooks. 10 keys. Counted twice."
+    },
+    {
+      "src": "gallery/tenkeys_g02.jpg",
+      "alt": "An open steel box on concrete with a single orange key inside",
+      "note": "1 box. 1 key. Nothing else."
+    },
+    {
+      "src": "gallery/tenkeys_g03.jpg",
+      "alt": "A balance scale: a pile of steel keys on the left pan, one orange key on the right pan, perfectly level",
+      "note": "A pile on the left. 1 on the right. Level."
+    },
+    {
+      "src": "gallery/tenkeys_g04.jpg",
+      "alt": "Steel keys fallen in a row like dominoes, the orange key at the end still standing",
+      "note": "All down. 1 standing."
+    },
+    {
+      "src": "references/tenkeys_main.jpg",
+      "alt": "Two identical keys side by side: one steel, one orange",
+      "note": "2 keys. 1 cut. 1 in orange."
+    },
+    {
+      "src": "gallery/tenkeys_g06.jpg",
+      "alt": "A wall of steel deposit boxes with one orange door slightly open",
+      "note": "1 door open. The rest can wait."
+    },
+    {
+      "src": "gallery/tenkeys_g07.jpg",
+      "alt": "Steel keys fanned out in a circle on a ring, one of them orange",
+      "note": "1 ring. 1 in orange."
+    },
+    {
+      "src": "gallery/tenkeys_g08.jpg",
+      "alt": "A round steel vault door with twelve bolts around its rim and an orange key in the central lock",
+      "note": "12 bolts. 1 key. Turn once."
+    }
+  ],
+  "roadmap": [
+    {
+      "phase": "Count 1",
+      "title": "Open the room",
+      "items": [
+        "Launch on pump.fun",
+        "X and Telegram open",
+        "Counting room open to everyone"
+      ]
+    },
+    {
+      "phase": "Count 2",
+      "title": "Add locks",
+      "items": [
+        "DexScreener profile",
+        "Presets from real teams",
+        "The sheet in more formats"
+      ]
+    },
+    {
+      "phase": "Count 3",
+      "title": "Check the keys",
+      "items": [
+        "Wallet check for holders. Not built yet.",
+        "Holder tools unlocked by balance",
+        "Saved splits"
+      ]
+    }
+  ],
+  "disclaimer": "$TENKEYS is a memecoin with no intrinsic value or expectation of financial return. It is not an investment. Nothing on this site is financial or legal advice. Crypto is risky — never spend more than you can afford to lose. The split sheet is not a contract, and this site does not hold, move or distribute any fees.",
+  "vault": {
+    "railTitle": "Locks",
+    "bar": {
+      "label": "Locks open",
+      "buy": "Get"
+    },
+    "plate": {
+      "lock": "Lock",
+      "closed": "Closed",
+      "open": "Open"
+    },
+    "status": {
+      "start": "10 locks. 0 open.",
+      "line": "Lock {n}. Open. {left} left.",
+      "last": "Lock 10. Open. 0 left. Turn the key."
+    },
+    "locks": [
+      {
+        "id": "home",
+        "label": "Entry"
+      },
+      {
+        "id": "why",
+        "label": "Why"
+      },
+      {
+        "id": "split",
+        "label": "Counting room",
+        "nav": "Room"
+      },
+      {
+        "id": "holders",
+        "label": "Holders",
+        "nav": "Holders"
+      },
+      {
+        "id": "how-to-buy",
+        "label": "How to buy",
+        "nav": "Buy"
+      },
+      {
+        "id": "keys",
+        "label": "Keys",
+        "nav": "Keys"
+      },
+      {
+        "id": "cells",
+        "label": "Cells",
+        "nav": "Cells"
+      },
+      {
+        "id": "plan",
+        "label": "Plan"
+      },
+      {
+        "id": "rules",
+        "label": "Rules",
+        "nav": "Rules"
+      },
+      {
+        "id": "door",
+        "label": "Door"
+      }
+    ],
+    "hero": {
+      "primary": "Open the counting room",
+      "secondary": "Get",
+      "imageAlt": "A dark steel panel with a row of keyholes. An orange key hangs in front of it, about to go in.",
+      "figure": "Fig. 01 · One to go.",
+      "stats": [
+        {
+          "value": "10",
+          "label": "keys max"
+        },
+        {
+          "value": "100%",
+          "label": "exactly"
+        },
+        {
+          "value": "0",
+          "label": "arguments"
+        }
+      ]
+    },
+    "why": {
+      "facts": [
+        {
+          "value": "10",
+          "title": "Wallets. Maximum.",
+          "text": "pump.fun lets a creator share fees with up to ten wallets. Ten keys. No eleventh.",
+          "signal": true
+        },
+        {
+          "value": "100",
+          "title": "Percent. Exactly.",
+          "text": "Not 99. Not 101. The counting room seals nothing else."
+        },
+        {
+          "value": "0",
+          "title": "Arguments. Target.",
+          "text": "Everyone holds the same sheet with the same seal code before the first trade."
+        }
+      ]
+    },
+    "holders": {
+      "kicker": "The token",
+      "title": "Who gets what",
+      "columns": [
+        {
+          "tag": "No token needed",
+          "title": "Everyone",
+          "items": [
+            "The counting room. All of it.",
+            "The sealed sheet with the site tag.",
+            "The text for the team chat."
+          ]
+        },
+        {
+          "tag": "Holding $TENKEYS",
+          "title": "Holders",
+          "signal": true,
+          "items": [
+            "The sealed sheet without the site tag.",
+            "Two splits side by side.",
+            "The split as a table file."
+          ]
+        }
+      ],
+      "noteTag": "Status",
+      "note": "The wallet check is not built. The switch in the counting room is a preview of the holder mode. It checks nothing. The real check is on the plan, lock 08."
+    },
+    "steps": {
+      "kicker": "Four moves",
+      "title": "How to buy"
+    },
+    "rack": {
+      "kicker": "Tokenomics",
+      "title": "Ten keys",
+      "each": "Key {n}. 10% of supply. Public.",
+      "last": "Key {n}. 10% of supply. Public. Same as the other nine.",
+      "idle": "10 keys. 10 public. 0 for the team.",
+      "supplyLabel": "Total supply",
+      "caLabel": "Contract address",
+      "caEmpty": "Appears here at launch. No address, no token."
+    },
+    "cells": {
+      "kicker": "Gallery",
+      "title": "Cells",
+      "cell": "Cell",
+      "status": "Cell {n}. Open.",
+      "empty": "8 cells. 8 closed. Pick one."
+    },
+    "plan": {
+      "kicker": "Roadmap",
+      "title": "Plan",
+      "now": "Now"
+    },
+    "rules": {
+      "kicker": "Read before you count",
+      "title": "Rules",
+      "prefix": "R",
+      "items": [
+        "The sheet is not a contract. It is a record of what the team agreed.",
+        "The counting room does not set or move fees. Shares are set on pump.fun by the creator or the community admin.",
+        "Rules on pump.fun can change. Check the live form before launch.",
+        "Everything is calculated in your browser. Nothing is uploaded. No wallet is connected.",
+        "Holder preview is a switch, not a check. The wallet check is not built.",
+        "The seal code shows that two sheets have the same content. It proves nothing else."
+      ],
+      "noteTag": "Disclaimer"
+    },
+    "door": {
+      "kicker": "Last lock",
+      "title": "The door",
+      "hintLocked": "{n} of {total} locks open. {left} closed.",
+      "hintReady": "{n} of {total} locks open. Turn the key.",
+      "hintDone": "Door open.",
+      "turn": "Turn the key",
+      "turning": "Turning…",
+      "skip": "Open without the ceremony",
+      "status": "Lock 10. Open. Door open.",
+      "doneTitle": "Open.",
+      "doneText": "No contract address, no token. When the token is live, the address is here and on pump.fun. Nowhere else.",
+      "buyLabel": "Get",
+      "caLabel": "Contract address",
+      "caEmpty": "Appears here at launch."
+    },
+    "footer": {
+      "tag": "Agree on the split. Then launch.",
+      "note": "No contract address means no token. Ten Keys sells no splits, contracts or advice. The counting room is free."
+    }
+  },
+  "images": {
+    "optimize": true
+  },
+  "effects": {
+    "reveal": false,
+    "parallax": false,
+    "cursor": false,
+    "sparks": false
+  }
+}

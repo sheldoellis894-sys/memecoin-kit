@@ -1,0 +1,107 @@
+---
+// Lock 10: the door itself. A round vault door drawn in SVG with ten bolts: one bolt pulls back for every lock
+// opened on the way down. When all ten are open the visitor turns the orange key, the wheel spins, the door swings
+// and the buy button is behind it. Keyboard: the "turn" button works with Enter and Space; a plain link opens the door at once.
+import { config, buyUrl } from '../../lib/project';
+import { vault, lockNo, total, pad } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+const d = vault.door || {};
+const ca = config.ca.trim();
+const external = buyUrl.startsWith('http');
+const data = JSON.stringify({ locked: d.hintLocked || '', ready: d.hintReady || '', done: d.hintDone || '', turn: d.turn || '', turning: d.turning || '', status: d.status || '' });
+const ten = Array.from({ length: total }, (_, i) => i);
+---
+<section id="door" class="vk-sec vk-door-sec" data-vk-lock={lockNo('door')}>
+  <div class="vk-in">
+    <VkLock n={lockNo('door')} kicker={d.kicker} title={d.title} />
+    <div class="vk-door" data-vk-door={data}>
+      <div class="vk-door-frame">
+        <div class="vk-door-room" data-vk-room inert>
+          <p class="vk-door-open font-heading">{d.doneTitle}</p>
+          <a class="vk-btn vk-btn-big vk-btn-signal" href={buyUrl} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>{d.buyLabel} <span class="font-ticker">${config.ticker}</span></a>
+        </div>
+        <button type="button" class="vk-door-leaf" data-vk-leaf aria-label={d.turn} disabled>
+          <svg viewBox="0 0 400 400" aria-hidden="true" focusable="false">
+            {ten.map((i) => <g class="vk-bolt-wrap" style={`transform:rotate(${(i * 360) / total}deg)`}><rect class="vk-bolt" data-vk-bolt x="191" y="2" width="18" height="34" rx="2" /></g>)}
+            <circle cx="200" cy="200" r="178" class="vk-door-rim" />
+            <circle cx="200" cy="200" r="160" class="vk-door-plate" />
+            <circle cx="200" cy="200" r="128" class="vk-door-groove" />
+            <g class="vk-door-wheel" data-vk-wheel>
+              {[0, 1, 2, 3, 4].map((i) => <rect x="194" y="84" width="12" height="74" rx="3" style={`transform:rotate(${i * 72}deg)`} class="vk-door-spoke" />)}
+              <circle cx="200" cy="200" r="116" class="vk-door-ring" />
+            </g>
+            <circle cx="200" cy="200" r="46" class="vk-door-hub" />
+            <g class="vk-door-key" data-vk-doorkey>
+              <svg x="182" y="152" width="36" height="96" viewBox="0 0 40 106"><use href="#vk-key" /></svg>
+            </g>
+          </svg>
+        </button>
+      </div>
+      <div class="vk-door-side">
+        <p class="vk-door-count font-heading"><span data-vk-door-n>00</span><span class="vk-door-of"> / {pad(total)}</span></p>
+        <p class="vk-door-hint" data-vk-door-hint aria-live="polite">{d.hintLocked}</p>
+        <div class="vk-door-actions" data-vk-door-actions>
+          <button type="button" class="vk-btn vk-btn-big" data-vk-turn disabled>{d.turn}</button>
+          <button type="button" class="vk-link" data-vk-door-skip>{d.skip}</button>
+        </div>
+        <noscript><a class="vk-btn vk-btn-big" href={buyUrl}>{d.buyLabel} ${config.ticker}</a></noscript>
+        <div class="vk-door-done" data-vk-door-done hidden>
+          <p class="vk-text">{d.doneText}</p>
+          <p class="vk-ca-label">{d.caLabel}</p>
+          {ca ? <code class="vk-ca-code" title={ca}>{ca}</code> : <p class="vk-ca-empty">{d.caEmpty}</p>}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-vk-door]').forEach((root) => {
+    const cfg: Record<string, string> = JSON.parse(root.dataset.vkDoor!);
+    const leaf = root.querySelector<HTMLButtonElement>('[data-vk-leaf]')!;
+    const turn = root.querySelector<HTMLButtonElement>('[data-vk-turn]')!;
+    const skip = root.querySelector<HTMLButtonElement>('[data-vk-door-skip]')!;
+    const room = root.querySelector<HTMLElement>('[data-vk-room]')!;
+    const hint = root.querySelector<HTMLElement>('[data-vk-door-hint]')!;
+    const nEl = root.querySelector<HTMLElement>('[data-vk-door-n]')!;
+    const actions = root.querySelector<HTMLElement>('[data-vk-door-actions]')!;
+    const done = root.querySelector<HTMLElement>('[data-vk-door-done]')!;
+    const bolts = [...root.querySelectorAll<SVGRectElement>('[data-vk-bolt]')];
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let open = 0, total = bolts.length, state: 'locked' | 'ready' | 'turning' | 'open' = 'locked';
+    const fill = (t: string) => t.replace('{n}', String(open)).replace('{total}', String(total)).replace('{left}', String(total - open));
+    const paint = () => {
+      nEl.textContent = String(open).padStart(2, '0');
+      bolts.forEach((b, i) => b.classList.toggle('is-back', i < open));
+      if (state === 'locked' && open >= total) state = 'ready';
+      if (state === 'locked') hint.textContent = fill(cfg.locked);
+      if (state === 'ready') hint.textContent = fill(cfg.ready);
+      const can = state === 'ready';
+      turn.disabled = !can; leaf.disabled = !can;
+      root.dataset.state = state;
+    };
+    const finish = () => {
+      state = 'open'; root.dataset.state = state;
+      hint.textContent = fill(cfg.done);
+      room.removeAttribute('inert'); leaf.disabled = true; leaf.setAttribute('aria-hidden', 'true');
+      actions.hidden = true; done.hidden = false;
+      (window as any).vkStatus?.(cfg.status, 6000);
+    };
+    const go = (instant = false) => {
+      if (state === 'open' || state === 'turning') return;
+      open = total; bolts.forEach((b) => b.classList.add('is-back')); nEl.textContent = String(open).padStart(2, '0');
+      if (instant || calm) { root.classList.add('is-instant'); return finish(); }
+      state = 'turning'; root.dataset.state = state;
+      turn.disabled = true; leaf.disabled = true; turn.textContent = cfg.turning || turn.textContent;
+      window.setTimeout(finish, 1500);
+    };
+    turn.addEventListener('click', () => go());
+    leaf.addEventListener('click', () => go());
+    skip.addEventListener('click', () => go(true));
+    addEventListener('vk:locks', (e) => { if (state === 'locked') { open = (e as CustomEvent).detail.open; total = (e as CustomEvent).detail.total || total; paint(); } });
+    const now = (window as any).vkLocks;
+    if (now) open = now.open();
+    paint();
+    (root as any).door = { go, state: () => state, open: () => open };
+  });
+</script>

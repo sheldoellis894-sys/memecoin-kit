@@ -1,0 +1,424 @@
+---
+// Lock 3, the tool of the site: the "Counting room", a creator-fee split calculator.
+// Up to "max" recipients (pump.fun allows ten), each with a role, an optional wallet and a share in percent.
+// It checks the split (exactly 100%, no more than ten recipients, no zero shares, wallets look like Solana
+// addresses, no wallet twice), converts a fee amount in SOL into amounts per recipient, and "seals" the result:
+// a sheet drawn on a canvas (download as PNG), a text for the team chat and a short seal code made from the content,
+// so two people can check they hold the same sheet.
+// Everything runs in the browser: nothing is uploaded or stored, no wallet is connected.
+// "Holder preview" shows the holder mode without any wallet check: no site tag on the sheet, compare with a kept
+// split, export as a table. All wording comes from config.split, colors and fonts from the theme.
+import { config } from '../../lib/project';
+import { lockNo } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+const s = config.split;
+const L = s?.labels || {};
+const max = s?.max || 10;
+const data = s ? JSON.stringify({
+  max, start: s.start, presets: s.presets, labels: L, shareText: s.shareText, watermark: s.watermark || '',
+  name: config.name, url: config.url || '', file: (config.shortName || config.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+}) : '';
+---
+{s?.enabled && (
+<section id="split" class="vk-sec vk-split-sec" data-vk-lock={lockNo('split')}>
+  <div class="vk-in">
+    <VkLock n={lockNo('split')} kicker={s.kicker} title={s.title} />
+    {s.lead && <p class="vk-lead vk-split-lead">{s.lead}</p>}
+    <div class="vk-split" data-vk-split={data}>
+      <div class="vk-split-work">
+      <div class="vk-split-main vk-panel">
+        <div class="vk-split-top">
+          <label class="vk-field"><span>{L.coin}</span><input type="text" data-coin maxlength="24" placeholder={L.coinPlaceholder} autocomplete="off" /></label>
+          <label class="vk-field"><span>{L.fees}</span><input type="text" inputmode="decimal" data-fees maxlength="12" placeholder={L.feesPlaceholder} autocomplete="off" /></label>
+        </div>
+        <div class="vk-presets">
+          <span class="vk-presets-label">{L.presets}</span>
+          {s.presets.map((p, i) => <button type="button" class="vk-chip" data-preset={i}>{p.label}</button>)}
+        </div>
+        <div class="vk-rows-head" aria-hidden="true"><span>{L.key}</span><span>{L.role}</span><span>{L.wallet}</span><span>{L.share}</span><span>{L.amount}</span><span></span></div>
+        <ol class="vk-rows" data-rows></ol>
+        <div class="vk-rows-foot">
+          <button type="button" class="vk-btn vk-btn-small vk-btn-ghost" data-add>{L.add}</button>
+          <span class="vk-rows-count" data-count></span>
+        </div>
+      </div>
+
+      <aside class="vk-split-side">
+        <div class="vk-meter">
+          <p class="vk-meter-label">{L.sum}</p>
+          <p class="vk-meter-value font-heading" data-sum-label>
+            <span class="vk-odo is-in" data-sum-odo aria-hidden="true">
+              {[0, 1, 2].map((i) => <i style={`--d:0;--i:${i}`}><b>0<br />1<br />2<br />3<br />4<br />5<br />6<br />7<br />8<br />9</b></i>)}<span>.</span>{[3, 4].map((i) => <i style={`--d:0;--i:${i}`}><b>0<br />1<br />2<br />3<br />4<br />5<br />6<br />7<br />8<br />9</b></i>)}
+            </span><span class="vk-meter-unit" aria-hidden="true">%</span>
+          </p>
+          <div class="vk-meter-bar" data-bar aria-hidden="true"></div>
+          <p class="vk-meter-line" data-line aria-live="polite"></p>
+        </div>
+        <ul class="vk-checks" data-checks>
+          <li data-check="sum">{L.checkSum}</li>
+          <li data-check="count">{L.checkCount}</li>
+          <li data-check="positive">{L.checkPositive}</li>
+          <li data-check="wallets">{L.checkWallets}</li>
+          <li data-check="unique">{L.checkUnique}</li>
+        </ul>
+        <label class="vk-switch">
+          <input type="checkbox" data-holder />
+          <span class="vk-switch-track" aria-hidden="true"><i></i></span>
+          <span class="vk-switch-text">{L.holder}</span>
+        </label>
+        <p class="vk-small">{L.holderNote}</p>
+        <button type="button" class="vk-btn vk-btn-big vk-btn-signal vk-seal" data-seal>{L.seal}</button>
+        <p class="vk-small">{L.private}</p>
+      </aside>
+      </div>
+
+      <div class="vk-sheet" data-result hidden>
+        <div class="vk-sheet-pic"><canvas data-canvas width="1200" height="1500" role="img" aria-label={L.sheetAlt}></canvas></div>
+        <div class="vk-sheet-side">
+          <p class="vk-sheet-title font-heading" data-sheet-title>{L.sealed}</p>
+          <p class="vk-sheet-code" data-code></p>
+          <div class="vk-sheet-actions">
+            <button type="button" class="vk-btn" data-download>{L.download}</button>
+            <button type="button" class="vk-btn vk-btn-ghost" data-copy>{L.copy}</button>
+            <button type="button" class="vk-btn vk-btn-ghost" data-share>{L.shareBtn}</button>
+          </div>
+          <p class="vk-small">{L.shareNote}</p>
+          <div class="vk-tools" data-tools>
+            <p class="vk-col-tag">{L.holderTools}</p>
+            <div class="vk-sheet-actions">
+              <button type="button" class="vk-btn vk-btn-small vk-btn-ghost" data-keep disabled>{L.keep}</button>
+              <button type="button" class="vk-btn vk-btn-small vk-btn-ghost" data-csv disabled>{L.csv}</button>
+            </div>
+            <div class="vk-compare" data-compare hidden></div>
+          </div>
+          <p class="vk-small">{L.notContract}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+)}
+
+<script>
+  type Row = { role: string; wallet: string; bp: number; raw: string };
+  document.querySelectorAll<HTMLElement>('[data-vk-split]').forEach((root) => {
+    const cfg = JSON.parse(root.dataset.vkSplit!);
+    const L: Record<string, string> = cfg.labels;
+    const MAX: number = cfg.max;
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const rowsEl = $<HTMLOListElement>('[data-rows]');
+    const coinEl = $<HTMLInputElement>('[data-coin]');
+    const feesEl = $<HTMLInputElement>('[data-fees]');
+    const addBtn = $<HTMLButtonElement>('[data-add]');
+    const countEl = $('[data-count]');
+    const wheels = [...root.querySelectorAll<HTMLElement>('[data-sum-odo] i')];
+    const sumLabel = $('[data-sum-label]');
+    const barEl = $('[data-bar]');
+    const lineEl = $('[data-line]');
+    const checks = [...root.querySelectorAll<HTMLElement>('[data-check]')];
+    const holderEl = $<HTMLInputElement>('[data-holder]');
+    const sealBtn = $<HTMLButtonElement>('[data-seal]');
+    const result = $('[data-result]');
+    const canvas = $<HTMLCanvasElement>('[data-canvas]');
+    const codeEl = $('[data-code]');
+    const titleEl = $('[data-sheet-title]');
+    const keepBtn = $<HTMLButtonElement>('[data-keep]');
+    const csvBtn = $<HTMLButtonElement>('[data-csv]');
+    const compareEl = $('[data-compare]');
+    const status = (t: string) => (window as any).vkStatus?.(t);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const fill = (t: string, v: Record<string, string | number>) => Object.entries(v).reduce((a, [k, x]) => a.split(`{${k}}`).join(String(x)), t || '');
+
+    // ---- numbers: shares are kept as whole hundredths of a percent, so 33.33 + 33.33 + 33.34 is exactly 100
+    const parseShare = (raw: string) => {
+      const v = Number(raw.trim().replace(',', '.').replace('%', ''));
+      return Number.isFinite(v) && v >= 0 ? Math.round(v * 100) : NaN;
+    };
+    const fmt = (bp: number) => (bp / 100).toFixed(2).replace(/\.?0+$/, '');
+    const fmtSol = (v: number) => (v >= 100 ? v.toFixed(2) : v.toFixed(4)).replace(/\.?0+$/, '');
+    const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    const short = (w: string) => (w.length > 12 ? `${w.slice(0, 4)}…${w.slice(-4)}` : w);
+
+    let rows: Row[] = cfg.start.map((r: { role: string; share: number }) => ({ role: r.role, wallet: '', bp: Math.round(r.share * 100), raw: String(r.share) }));
+    let sealed: { code: string; rows: Row[]; coin: string; fees: number } | null = null;
+    let kept: { code: string; rows: Row[] } | null = null;
+    let stale = false;
+
+    const fees = () => { const v = Number(feesEl.value.trim().replace(',', '.')); return Number.isFinite(v) && v > 0 ? v : 0; };
+    const total = () => rows.reduce((a, r) => a + (Number.isNaN(r.bp) ? 0 : r.bp), 0);
+    const verdict = () => {
+      const wallets = rows.map((r) => r.wallet.trim()).filter(Boolean);
+      return {
+        sum: total() === 10000 && rows.every((r) => !Number.isNaN(r.bp)),
+        count: rows.length >= 1 && rows.length <= MAX,
+        positive: rows.every((r) => r.bp > 0),
+        wallets: wallets.every((w) => BASE58.test(w)),
+        unique: new Set(wallets).size === wallets.length,
+      } as Record<string, boolean>;
+    };
+
+    // ---- drawing the rows (only when their number or order changes, so typing never loses focus)
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string) => {
+      const e = document.createElement(tag); e.className = cls; if (text != null) e.textContent = text; return e;
+    };
+    const renderRows = () => {
+      rowsEl.textContent = '';
+      rows.forEach((r, i) => {
+        const li = el('li', 'vk-row');
+        const no = el('span', 'vk-row-no', pad(i + 1));
+        const role = el('input', 'vk-row-role'); role.type = 'text'; role.maxLength = 28; role.value = r.role; role.placeholder = L.rolePlaceholder || '';
+        role.setAttribute('aria-label', `${L.role} ${pad(i + 1)}`);
+        const wallet = el('input', 'vk-row-wallet'); wallet.type = 'text'; wallet.maxLength = 44; wallet.value = r.wallet; wallet.placeholder = L.walletPlaceholder || '';
+        wallet.spellcheck = false; wallet.autocomplete = 'off'; wallet.setAttribute('autocapitalize', 'off'); wallet.setAttribute('aria-label', `${L.wallet} ${pad(i + 1)}`);
+        const shareWrap = el('span', 'vk-row-share');
+        const share = el('input', ''); share.type = 'text'; share.inputMode = 'decimal'; share.maxLength = 6; share.value = r.raw;
+        share.setAttribute('aria-label', `${L.share} ${pad(i + 1)}`);
+        shareWrap.append(share, el('span', '', '%'));
+        const amount = el('span', 'vk-row-amount');
+        const x = el('button', 'vk-row-x', '×'); x.type = 'button'; x.setAttribute('aria-label', `${L.remove} ${pad(i + 1)}`);
+        role.addEventListener('input', () => { r.role = role.value; changed(); });
+        wallet.addEventListener('input', () => { r.wallet = wallet.value.trim(); changed(); });
+        share.addEventListener('input', () => { r.raw = share.value; r.bp = parseShare(share.value); changed(); });
+        x.addEventListener('click', () => remove(i));
+        li.append(no, role, wallet, shareWrap, amount, x);
+        rowsEl.append(li);
+      });
+    };
+
+    // ---- everything that follows from the numbers
+    const paint = () => {
+      const v = verdict();
+      const sum = total();
+      const f = fees();
+      const items = [...rowsEl.children] as HTMLElement[];
+      const wallets = rows.map((r) => r.wallet.trim());
+      rows.forEach((r, i) => {
+        const li = items[i]; if (!li) return;
+        li.querySelector('.vk-row-amount')!.textContent = f && r.bp > 0 ? `${fmtSol((f * r.bp) / 10000)} SOL` : '—';
+        li.querySelector('.vk-row-share')!.classList.toggle('is-bad', !(r.bp > 0));
+        const w = wallets[i];
+        li.querySelector('.vk-row-wallet')!.classList.toggle('is-bad', !!w && (!BASE58.test(w) || wallets.indexOf(w) !== i || wallets.lastIndexOf(w) !== i));
+        li.querySelector<HTMLButtonElement>('.vk-row-x')!.disabled = rows.length <= 1;
+      });
+      const shown = String(Math.min(99999, sum)).padStart(5, '0');
+      wheels.forEach((w, i) => w.style.setProperty('--d', shown[i]));
+      sumLabel.setAttribute('aria-label', `${fmt(sum)}%`);
+      barEl.textContent = '';
+      const scale = Math.max(10000, sum);
+      rows.forEach((r, i) => {
+        if (!(r.bp > 0)) return;
+        const seg = el('i', i % 2 ? 'is-b' : 'is-a'); seg.style.width = `${(r.bp / scale) * 100}%`; barEl.append(seg);
+      });
+      barEl.classList.toggle('is-over', sum > 10000);
+      const line = sum === 10000 ? L.sumOk : sum < 10000 ? fill(L.sumUnder, { sum: fmt(sum), diff: fmt(10000 - sum) }) : fill(L.sumOver, { sum: fmt(sum), diff: fmt(sum - 10000) });
+      lineEl.textContent = line;
+      checks.forEach((c) => c.classList.toggle('is-ok', v[c.dataset.check!]));
+      const ok = Object.values(v).every(Boolean);
+      sealBtn.disabled = !ok;
+      addBtn.disabled = rows.length >= MAX;
+      countEl.textContent = fill(L.count, { n: rows.length, max: MAX });
+      root.classList.toggle('is-valid', ok);
+      root.classList.toggle('has-fees', f > 0);
+      root.classList.toggle('is-sealed', !!sealed && !stale);
+      sealBtn.textContent = sealed && !stale ? L.sealedShort : L.seal;
+      return { ok, line };
+    };
+    let lastLine = '';
+    const changed = () => {
+      if (sealed) { stale = true; titleEl.textContent = L.stale; }
+      const { line } = paint();
+      if (line !== lastLine) { lastLine = line; status(line); }
+    };
+
+    // ---- changing the list
+    const add = () => { if (rows.length >= MAX) return; rows.push({ role: '', wallet: '', bp: 0, raw: '' }); renderRows(); changed(); (rowsEl.lastElementChild?.querySelector('input') as HTMLInputElement | null)?.focus(); };
+    const remove = (i: number) => { if (rows.length <= 1) return; rows.splice(i, 1); renderRows(); changed(); };
+    const equal = () => {
+      const n = rows.length, base = Math.floor(10000 / n), rest = 10000 - base * n;
+      rows.forEach((r, i) => { r.bp = base + (i < rest ? 1 : 0); r.raw = fmt(r.bp); });
+    };
+    const preset = (i: number) => {
+      const p = cfg.presets[i]; if (!p) return;
+      if (p.mode === 'equal') equal();
+      else rows = (p.rows as { role: string; share: number }[]).slice(0, MAX).map((x, k) => ({ role: x.role, wallet: rows[k]?.wallet || '', bp: Math.round(x.share * 100), raw: String(x.share) }));
+      renderRows(); changed();
+    };
+
+    // ---- the seal: a short code made from the content of the sheet (FNV-1a), same content gives the same code
+    const codeOf = (list: Row[], coin: string) => {
+      const text = `${coin.trim().toLowerCase()}|` + list.map((r) => `${r.role.trim().toLowerCase()}:${r.wallet.trim()}:${r.bp}`).join(';');
+      let h = 0x811c9dc5;
+      for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+      const hex = (h >>> 0).toString(16).toUpperCase().padStart(8, '0');
+      return `${hex.slice(0, 4)}-${hex.slice(4)}`;
+    };
+    const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+
+    const KEY = 'M20 0a19 19 0 0 1 3 37.8V84h11v4h-4v3h4v4h-4v3h4v4H23v4h-6v-4H6v-4h4v-3H6v-4h4v-3H6v-4h11V37.8A19 19 0 0 1 20 0Zm0 10a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z';
+    const draw = async (s: NonNullable<typeof sealed>, holder: boolean) => {
+      const css = getComputedStyle(document.documentElement);
+      const v = (n: string, d: string) => css.getPropertyValue(n).trim() || d;
+      const C = { bg: v('--t-bg', '#E7E8EA'), ink: v('--t-text', '#14171A'), steel: v('--t-secondary', '#4A6079'), signal: v('--t-accent', '#FF5A1F') };
+      const F = { head: v('--t-font-heading', 'sans-serif'), body: v('--t-font-body', 'sans-serif'), mono: v('--t-font-mono', 'monospace') };
+      try { await Promise.all([`72px ${F.head}`, `600 34px ${F.body}`, `500 26px ${F.mono}`, `700 36px ${F.mono}`].map((f) => document.fonts.load(f))); } catch { /* draw with what is there */ }
+      const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d')!;
+      const text = (t: string, x: number, y: number, font: string, color: string, align: CanvasTextAlign = 'left') => { ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.fillText(t, x, y); };
+      const clip = (t: string, font: string, w: number) => { ctx.font = font; if (ctx.measureText(t).width <= w) return t; let out = t; while (out.length > 1 && ctx.measureText(`${out}…`).width > w) out = out.slice(0, -1); return `${out}…`; };
+      const key = (x: number, y: number, h: number, color: string, solid = true) => {
+        ctx.save(); ctx.translate(x, y); ctx.scale(h / 106, h / 106);
+        const p = new Path2D(KEY);
+        if (solid) { ctx.fillStyle = color; ctx.fill(p, 'evenodd'); } else { ctx.strokeStyle = color; ctx.lineWidth = 2.4; ctx.stroke(p); }
+        ctx.restore();
+      };
+      ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 0.09; ctx.strokeStyle = C.steel; ctx.lineWidth = 1;
+      for (let x = 60; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 60; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.strokeRect(40, 40, W - 80, H - 80);
+      [[66, 66], [W - 66, 66], [66, H - 66], [W - 66, H - 66]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fillStyle = C.ink; ctx.fill(); });
+
+      const X0 = 96, X1 = W - 96;
+      text(cfg.name.toUpperCase(), X0, 172, `72px ${F.head}`, C.ink);
+      text(L.sheetTitle, X1, 116, `500 26px ${F.mono}`, C.ink, 'right');
+      text(today(), X1, 152, `500 24px ${F.mono}`, C.steel, 'right');
+      text(`${L.sealWord} ${s.code}`, X1, 188, `700 24px ${F.mono}`, C.ink, 'right');
+      ctx.fillStyle = C.ink; ctx.fillRect(X0, 214, X1 - X0, 3);
+
+      let y = 250;
+      if (s.coin || s.fees) {
+        if (s.coin) { text(L.coin.toUpperCase(), X0, y + 24, `500 20px ${F.mono}`, C.steel); text(clip(s.coin, `600 40px ${F.body}`, 560), X0, y + 70, `600 40px ${F.body}`, C.ink); }
+        if (s.fees) { text(L.fees.toUpperCase(), X1, y + 24, `500 20px ${F.mono}`, C.steel, 'right'); text(`${fmtSol(s.fees)} SOL`, X1, y + 70, `700 38px ${F.mono}`, C.ink, 'right'); }
+        y += 104;
+      }
+      text(L.key.toUpperCase(), X0, y + 22, `500 20px ${F.mono}`, C.steel);
+      text(L.role.toUpperCase(), X0 + 90, y + 22, `500 20px ${F.mono}`, C.steel);
+      text(L.wallet.toUpperCase(), X0 + 560, y + 22, `500 20px ${F.mono}`, C.steel);
+      text(L.share.toUpperCase(), X1, y + 22, `500 20px ${F.mono}`, C.steel, 'right');
+      y += 38;
+      const bottom = 1166;
+      const rowH = Math.min(120, (bottom - y) / s.rows.length);
+      const big = rowH >= 70;
+      s.rows.forEach((r, i) => {
+        const top = y + i * rowH, base = top + Math.min(rowH * 0.5, 52);
+        ctx.fillStyle = C.steel; ctx.globalAlpha = 0.28; ctx.fillRect(X0, top, X1 - X0, 1); ctx.globalAlpha = 1;
+        text(pad(i + 1), X0, base, `500 30px ${F.mono}`, C.steel);
+        text(clip(r.role.trim() || '—', `600 34px ${F.body}`, 440), X0 + 90, base, `600 34px ${F.body}`, C.ink);
+        text(r.wallet ? short(r.wallet) : '—', X0 + 560, base, `500 24px ${F.mono}`, C.steel);
+        text(`${fmt(r.bp)}%`, X1, base, `700 36px ${F.mono}`, C.ink, 'right');
+        if (s.fees && big) text(`${fmtSol((s.fees * r.bp) / 10000)} SOL`, X1, base + 26, `500 20px ${F.mono}`, C.steel, 'right');
+        const track = X1 - X0 - 90 - (s.fees && big ? 200 : 0);
+        ctx.fillStyle = C.ink; ctx.fillRect(X0 + 90, base + (big ? 20 : 12), Math.max(4, (track * r.bp) / 10000), big ? 6 : 4);
+      });
+      ctx.fillStyle = C.ink; ctx.fillRect(X0, 1184, X1 - X0, 3);
+      text(L.totalWord, X0, 1236, `500 26px ${F.mono}`, C.steel);
+      text('100%', X1, 1296, `104px ${F.head}`, C.ink, 'right');
+      text(L.sumOk, X0, 1284, `700 30px ${F.mono}`, C.ink);
+      for (let i = 0; i < MAX; i++) {
+        const used = i < s.rows.length;
+        key(X0 + i * 40, 1308, 82, used ? (i === s.rows.length - 1 ? C.signal : C.ink) : C.steel, used);
+      }
+      text(fill(L.count, { n: s.rows.length, max: MAX }), X0 + MAX * 40 + 24, 1382, `500 24px ${F.mono}`, C.steel);
+      text(clip(L.notContract, `500 19px ${F.mono}`, holder ? X1 - X0 : X1 - X0 - 320), X0, H - 76, `500 19px ${F.mono}`, C.steel);
+      if (!holder && cfg.watermark) text(cfg.watermark, X1, H - 76, `700 20px ${F.mono}`, C.ink, 'right');
+    };
+
+    const chatText = () => {
+      if (!sealed) return '';
+      const s = sealed, out: string[] = [`${L.textTitle} · ${L.sealWord.toLowerCase()} ${s.code}`];
+      if (s.coin) out.push(`${L.coin}: ${s.coin}`);
+      if (s.fees) out.push(`${L.fees}: ${fmtSol(s.fees)} SOL`);
+      s.rows.forEach((r, i) => out.push([pad(i + 1), r.role.trim() || '—', `${fmt(r.bp)}%`, r.wallet || null, s.fees ? `${fmtSol((s.fees * r.bp) / 10000)} SOL` : null].filter(Boolean).join(' · ')));
+      out.push(fill(L.textTotal, { n: s.rows.length, max: MAX }), L.notContract);
+      if (cfg.url) out.push(cfg.url);
+      return out.join('\n');
+    };
+
+    const seal = async () => {
+      if (!Object.values(verdict()).every(Boolean)) return false;
+      const copy = rows.map((r) => ({ ...r, wallet: r.wallet.trim() }));
+      sealed = { code: codeOf(copy, coinEl.value), rows: copy, coin: coinEl.value.trim(), fees: fees() };
+      stale = false;
+      await draw(sealed, holderEl.checked);
+      result.hidden = false;
+      titleEl.textContent = L.sealed;
+      codeEl.textContent = `${L.sealWord} ${sealed.code} · ${today()}`;
+      paint(); compare();
+      status(fill(L.sealedLine, { code: sealed.code }));
+      root.dispatchEvent(new CustomEvent('vk:sealed', { detail: sealed.code }));
+      if (matchMedia('(max-width: 1023px)').matches) result.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      return true;
+    };
+
+    // ---- holder preview: no site tag on the sheet, compare with a kept split, export as a table
+    const compare = () => {
+      const on = holderEl.checked;
+      keepBtn.disabled = !on || !sealed; csvBtn.disabled = !on || !sealed;
+      root.classList.toggle('is-holder', on);
+      if (!on || !kept || !sealed) { compareEl.hidden = true; return; }
+      const n = Math.max(kept.rows.length, sealed.rows.length);
+      const table = el('table', '');
+      const head = el('tr', ''); [L.key, L.role, `A · ${kept.code}`, `B · ${sealed.code}`, L.delta].forEach((t) => head.append(el('th', '', t)));
+      table.append(head);
+      for (let i = 0; i < n; i++) {
+        const a = kept.rows[i], b = sealed.rows[i], tr = el('tr', '');
+        const d = (b?.bp || 0) - (a?.bp || 0);
+        [pad(i + 1), (b || a).role.trim() || '—', a ? `${fmt(a.bp)}%` : '—', b ? `${fmt(b.bp)}%` : '—', d === 0 ? '0' : `${d > 0 ? '+' : '−'}${fmt(Math.abs(d))}`].forEach((t) => tr.append(el('td', '', t)));
+        table.append(tr);
+      }
+      compareEl.textContent = ''; compareEl.append(table); compareEl.hidden = false;
+    };
+    const csv = () => {
+      if (!sealed) return '';
+      const q = (t: string) => `"${t.replace(/"/g, '""')}"`;
+      const s = sealed;
+      return [['key', 'role', 'wallet', 'share_percent', 'amount_sol'].join(','), ...s.rows.map((r, i) => [pad(i + 1), q(r.role.trim()), q(r.wallet), fmt(r.bp), s.fees ? fmtSol((s.fees * r.bp) / 10000) : ''].join(','))].join('\n');
+    };
+    const save = (blob: Blob, name: string) => {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    };
+    const flash = (btn: HTMLButtonElement, t: string) => { const old = btn.textContent; btn.textContent = t; setTimeout(() => { btn.textContent = old; }, 1600); };
+
+    addBtn.addEventListener('click', add);
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => b.addEventListener('click', () => preset(Number(b.dataset.preset))));
+    coinEl.addEventListener('input', changed);
+    feesEl.addEventListener('input', changed);
+    sealBtn.addEventListener('click', () => { seal(); });
+    holderEl.addEventListener('change', async () => {
+      if (sealed) await draw(sealed, holderEl.checked);
+      compare(); status(holderEl.checked ? L.holderOn : L.holderOff);
+    });
+    $<HTMLButtonElement>('[data-download]').addEventListener('click', () => {
+      if (!sealed) return;
+      const code = sealed.code;
+      canvas.toBlob((b) => { if (b) save(b, `${cfg.file}-split-${code}.png`); }, 'image/png');
+    });
+    $<HTMLButtonElement>('[data-copy]').addEventListener('click', async (e) => {
+      const t = chatText(); let ok = false;
+      try { await navigator.clipboard.writeText(t); ok = true; } catch {
+        const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0'; document.body.append(ta); ta.select();
+        try { ok = document.execCommand('copy'); } catch { ok = false; } ta.remove();
+      }
+      flash(e.currentTarget as HTMLButtonElement, ok ? L.copied : L.copyFail);
+    });
+    $<HTMLButtonElement>('[data-share]').addEventListener('click', () => {
+      if (!sealed) return;
+      const t = fill(cfg.shareText, { n: sealed.rows.length, max: MAX, code: sealed.code });
+      window.open(`https://x.com/intent/post?text=${encodeURIComponent(t)}${cfg.url ? `&url=${encodeURIComponent(cfg.url)}` : ''}`, '_blank', 'noopener');
+    });
+    keepBtn.addEventListener('click', () => { if (!sealed) return; kept = { code: sealed.code, rows: sealed.rows.map((r) => ({ ...r })) }; compare(); flash(keepBtn, L.kept); });
+    csvBtn.addEventListener('click', () => { if (sealed) save(new Blob([csv()], { type: 'text/csv' }), `${cfg.file}-split-${sealed.code}.csv`); });
+
+    renderRows();
+    lastLine = paint().line;
+
+    // test hook: lets an automated visitor go through every action
+    (root as any).split = {
+      state: () => ({ rows: rows.map((r) => ({ ...r })), sum: total(), checks: verdict(), sealed: sealed && !stale ? sealed.code : null, stale, holder: holderEl.checked, kept: kept?.code || null }),
+      set: (list: { role: string; wallet?: string; share: number }[]) => { rows = list.slice(0, MAX).map((x) => ({ role: x.role, wallet: x.wallet || '', bp: Math.round(x.share * 100), raw: String(x.share) })); renderRows(); changed(); },
+      preset, add, remove, seal, text: chatText, csv,
+      holder: (on: boolean) => { holderEl.checked = on; holderEl.dispatchEvent(new Event('change')); },
+    };
+  });
+</script>

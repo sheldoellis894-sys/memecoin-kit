@@ -1,0 +1,17 @@
+---
+// Heading of a section in the "vault" layout: the lock plate (number, keyhole, closed/open) and the title.
+// The plate switches to "open" when VaultShell marks the section as passed.
+import { vault, total, pad } from '../../lib/vault';
+const { n, kicker, title, level = 2 } = Astro.props;
+const H = `h${level}` as any;
+const w = vault.plate || {};
+---
+<header class="vk-head" data-vk-in>
+  <p class="vk-plate">
+    <span class="vk-hole" aria-hidden="true"><i></i></span>
+    <span class="vk-plate-no">{w.lock || 'Lock'} {pad(n)} / {pad(total)}</span>
+    <span class="vk-plate-state"><span class="vk-s-closed">{w.closed || 'Closed'}</span><span class="vk-s-open">{w.open || 'Open'}</span></span>
+  </p>
+  {kicker && <p class="vk-kicker">{kicker}</p>}
+  <H class="vk-title font-heading">{title}</H>
+</header>

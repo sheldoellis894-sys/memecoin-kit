@@ -1,0 +1,30 @@
+---
+// Lock 4: what the token gives. Two columns (everyone / holders) and an honest note about what is not built yet.
+import { vault, lockNo } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+import VkKey from './VkKey.astro';
+import VkDraw from './VkDraw.astro';
+const h = vault.holders || {};
+const cols: { title: string; tag: string; items: string[]; signal?: boolean }[] = h.columns || [];
+---
+<section id="holders" class="vk-sec" data-vk-lock={lockNo('holders')}>
+  <VkDraw name="key" class="vk-bg vk-bg-r" />
+  <div class="vk-in">
+    <VkLock n={lockNo('holders')} kicker={h.kicker} title={h.title} />
+    <div class="vk-cols">
+      {cols.map((c) => (
+        <div class:list={['vk-panel vk-col', c.signal && 'is-signal']}>
+          <p class="vk-col-tag">{c.tag}</p>
+          <h3 class="vk-col-title font-heading"><VkKey />{c.title}</h3>
+          <ul class="vk-list">
+            {c.items.map((t) => <li>{t}</li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
+    <div class="vk-note">
+      <p class="vk-note-tag">{h.noteTag}</p>
+      <p>{h.note}</p>
+    </div>
+  </div>
+</section>

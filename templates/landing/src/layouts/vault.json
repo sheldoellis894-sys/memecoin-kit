@@ -1,0 +1,4 @@
+{
+  "name": "vault",
+  "sections": ["vaultShell", "vaultHero", "vaultWhy", "vaultSplit", "vaultHolders", "vaultSteps", "vaultRack", "vaultCells", "vaultPlan", "vaultRules", "vaultDoor", "vaultFooter"]
+}

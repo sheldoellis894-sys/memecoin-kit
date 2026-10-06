@@ -1,0 +1,24 @@
+---
+// Lock 5: how to buy, four numbered steps. The last step carries the orange mark.
+import { config } from '../../lib/project';
+import { vault, lockNo, pad } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+import VkDraw from './VkDraw.astro';
+const s = vault.steps || {};
+const last = config.howToBuy.length - 1;
+---
+<section id="how-to-buy" class="vk-sec" data-vk-lock={lockNo('how-to-buy')}>
+  <VkDraw name="lock" class="vk-bg vk-bg-r" />
+  <div class="vk-in">
+    <VkLock n={lockNo('how-to-buy')} kicker={s.kicker} title={s.title} />
+    <ol class="vk-steps">
+      {config.howToBuy.map((step, i) => (
+        <li class:list={['vk-panel', i === last && 'is-signal']} data-vk-in style={`--i:${i}`}>
+          <span class="vk-step-no font-heading">{pad(i + 1)}</span>
+          <h3 class="vk-step-title">{step.title}</h3>
+          <p class="vk-text">{step.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

@@ -28,13 +28,14 @@ Windows PowerShell: `$env:PROJECT="tsc3000"; npm run dev -- --host 127.0.0.1`
 
 | | Options |
 |---|---|
-| Themes | `mine` (warm dark, rounded cards), `sunset` (pixel fonts, square panels, hard shadows; flavor `arcade`), `office` (paper sheets on a dark wooden desk; flavor `paper`), `sky` (light sky, white cards with thick outlines; flavor `app`), `riso` (a two-ink print on cream paper; flavor `press`) |
-| Layouts | `longread`, `arcade` (boot screen + title-screen hero), `contract` (the site is a document: numbered sheets, folder tabs, a signature at the end), `delivery` (the site is a food-delivery app on a phone screen), `press` (the site is a printing press, the visitor is a sheet of paper going through it) |
+| Themes | `mine` (warm dark, rounded cards), `sunset` (pixel fonts, square panels, hard shadows; flavor `arcade`), `office` (paper sheets on a dark wooden desk; flavor `paper`), `sky` (light sky, white cards with thick outlines; flavor `app`), `riso` (a two-ink print on cream paper; flavor `press`), `concrete` (light concrete, dark steel and one signal color; flavor `vault`) |
+| Layouts | `longread`, `arcade` (boot screen + title-screen hero), `contract` (the site is a document: numbered sheets, folder tabs, a signature at the end), `delivery` (the site is a food-delivery app on a phone screen), `press` (the site is a printing press, the visitor is a sheet of paper going through it), `vault` (the site is a vault door with ten locks, every section is one lock) |
 | Sections | `header`, `hero`, `heroArcade`, `boot`, `marquee`, `about`, `digGame`, `chaseGame`, `howToBuy`, `tokenomics`, `gallery`, `roadmap`, `footer` |
 | Sections of `contract` | `paperFx`, `paperTabs`, `bossGrow`, `paperCover`, `paperClauses`, `feedGame`, `paperDuties`, `paperPayroll`, `deskPhotos`, `paperOrders`, `paperSign`, `paperFooter` (in `src/sections/paper/`) |
 | Sections of `delivery` | `appShell`, `appHome`, `appMap`, `appCourier`, `appChat`, `stopGame`, `appRate`, `appCheckout`, `appReceipt`, `appStories`, `appNext`, `appOrder`, `appFooter` (in `src/sections/app/`) |
 | Sections of `press` | `pressShell`, `pressHero`, `pressAbout`, `pressStudio`, `pressWorkout`, `pressInk`, `pressLine`, `pressShifts`, `pressBuy`, `pressFooter` (in `src/sections/press/`) |
-| Tools | `pressStudio` (meme maker: base picture, two-ink print filter, captions, stickers, print, download, share; config key `studio`) |
+| Sections of `vault` | `vaultShell`, `vaultHero`, `vaultWhy`, `vaultSplit`, `vaultHolders`, `vaultSteps`, `vaultRack`, `vaultCells`, `vaultPlan`, `vaultRules`, `vaultDoor`, `vaultFooter` (in `src/sections/vault/`) |
+| Tools | `pressStudio` (meme maker: base picture, two-ink print filter, captions, stickers, print, download, share; config key `studio`), `vaultSplit` (creator-fee split calculator: up to ten recipients, checks, SOL breakdown, a sealed sheet as a picture; config key `split`) |
 | Games | `digGame` (pick a tile, config key `game`), `chaseGame` (side-scrolling runner, config key `chase`), `feedGame` (catch falling food, config key `feed`), `stopGame` (brake exactly at the door, config key `stop`) |
 
 ## Images
@@ -45,7 +46,7 @@ With `"images": { "optimize": true }` in the config, big pictures are shrunk and
 
 ## New site in 5 steps
 
-1. Copy `projects/molty`, `projects/tsc3000`, `projects/fch`, `projects/goosini` or `projects/inkmaxx` → `projects/<name>`, replace images in `brand/`.
+1. Copy `projects/molty`, `projects/tsc3000`, `projects/fch`, `projects/goosini`, `projects/inkmaxx` or `projects/tenkeys` → `projects/<name>`, replace images in `brand/`.
 2. Edit `project.config.json` (texts, links, image paths).
 3. Pick `theme` and `layout` in the config.
 4. `$env:PROJECT="<name>"; npm run dev -- --host 127.0.0.1` — check on desktop and phone widths.

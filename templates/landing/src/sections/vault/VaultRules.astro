@@ -1,0 +1,20 @@
+---
+// Lock 9: the rules. Numbered plain statements about what the tool is and is not, then the disclaimer.
+import { config } from '../../lib/project';
+import { vault, lockNo, pad } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+const r = vault.rules || {};
+const items: string[] = r.items || [];
+---
+<section id="rules" class="vk-sec" data-vk-lock={lockNo('rules')}>
+  <div class="vk-in">
+    <VkLock n={lockNo('rules')} kicker={r.kicker} title={r.title} />
+    <ol class="vk-rules">
+      {items.map((t, i) => <li><span class="vk-rule-no">{r.prefix || 'R'}-{pad(i + 1)}</span><span>{t}</span></li>)}
+    </ol>
+    <div class="vk-note vk-note-warn">
+      <p class="vk-note-tag"><span class="vk-warn" aria-hidden="true">!</span>{r.noteTag}</p>
+      <p>{config.disclaimer}</p>
+    </div>
+  </div>
+</section>

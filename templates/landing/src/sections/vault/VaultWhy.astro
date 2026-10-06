@@ -1,0 +1,29 @@
+---
+// Lock 2: why the split is agreed before launch. Three facts, each one a big number that rolls in like a counter.
+// The fact marked "signal" is the single orange object of this screen.
+import { config } from '../../lib/project';
+import { vault, lockNo } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+import VkOdo from './VkOdo.astro';
+import VkDraw from './VkDraw.astro';
+const w = vault.why || {};
+const facts: { value: string; title: string; text: string; signal?: boolean }[] = w.facts || [];
+---
+<section id="why" class="vk-sec" data-vk-lock={lockNo('why')}>
+  <VkDraw name="split" class="vk-bg vk-bg-r" />
+  <div class="vk-in">
+    <VkLock n={lockNo('why')} kicker={config.about.kicker} title={config.about.title} />
+    <ol class="vk-facts">
+      {facts.map((f) => (
+        <li class:list={[f.signal && 'is-signal']}>
+          <p class="vk-fact-n font-heading"><VkOdo value={f.value} /></p>
+          <p class="vk-fact-t">{f.title}</p>
+          <p class="vk-text">{f.text}</p>
+        </li>
+      ))}
+    </ol>
+    <div class="vk-why-text">
+      {config.about.text.map((t) => <p class="vk-line">{t}</p>)}
+    </div>
+  </div>
+</section>

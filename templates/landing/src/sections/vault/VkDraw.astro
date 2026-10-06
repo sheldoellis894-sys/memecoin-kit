@@ -1,0 +1,79 @@
+---
+// Technical drawings used as section backgrounds in the "vault" layout. Thin lines that draw themselves
+// when the section scrolls into view (every shape has pathLength="1", see .vk-draw in global.css).
+// name: "door" | "key" | "split" | "cells" | "lock"
+const { name, class: cls } = Astro.props;
+const ten = Array.from({ length: 10 }, (_, i) => i);
+const pt = (r: number, i: number, of = 10, cx = 200, cy = 200) => {
+  const a = -Math.PI / 2 + (i * 2 * Math.PI) / of;
+  return [+(cx + Math.cos(a) * r).toFixed(1), +(cy + Math.sin(a) * r).toFixed(1)];
+};
+---
+<svg class:list={['vk-draw', cls]} viewBox="0 0 400 400" fill="none" aria-hidden="true" focusable="false" data-vk-in>
+  {name === 'door' && (
+    <g>
+      <circle cx="200" cy="200" r="176" pathLength="1" />
+      <circle cx="200" cy="200" r="150" pathLength="1" />
+      <circle cx="200" cy="200" r="58" pathLength="1" />
+      <circle cx="200" cy="200" r="16" pathLength="1" />
+      {ten.map((i) => { const [x, y] = pt(163, i); return <circle cx={x} cy={y} r="7" pathLength="1" />; })}
+      {[0, 1, 2, 3, 4].map((i) => { const [x1, y1] = pt(58, i, 5); const [x2, y2] = pt(118, i, 5); return <line x1={x1} y1={y1} x2={x2} y2={y2} pathLength="1" />; })}
+      <path d="M8 200H392M200 8V392" pathLength="1" class="vk-draw-axis" />
+      <path d="M24 150v100M16 150h16M16 250h16" pathLength="1" />
+      <text x="40" y="376">Ø 10 · FRONT</text>
+    </g>
+  )}
+  {name === 'key' && (
+    <g>
+      <circle cx="200" cy="78" r="52" pathLength="1" />
+      <circle cx="200" cy="78" r="23" pathLength="1" />
+      <path d="M191 129V352H209V129" pathLength="1" />
+      <path d="M209 296h34v12h-12v10h12v12h-12v10h12v12h-34" pathLength="1" />
+      <path d="M191 296h-34v12h12v10h-12v12h12v10h-12v12h34" pathLength="1" />
+      <path d="M200 10V390" pathLength="1" class="vk-draw-axis" />
+      <path d="M296 26V352M286 26h20M286 352h20" pathLength="1" />
+      <path d="M148 372h104M148 364v16M252 364v16" pathLength="1" />
+      <text x="304" y="196">L</text>
+      <text x="58" y="388">KEY 10 · 1:1</text>
+    </g>
+  )}
+  {name === 'split' && (
+    <g>
+      <circle cx="200" cy="200" r="168" pathLength="1" />
+      <circle cx="200" cy="200" r="34" pathLength="1" />
+      {ten.map((i) => { const [x1, y1] = pt(34, i); const [x2, y2] = pt(168, i); return <line x1={x1} y1={y1} x2={x2} y2={y2} pathLength="1" />; })}
+      <path d="M200 14a186 186 0 0 1 109.3 35.5" pathLength="1" />
+      <path d="M200 6v16M313.6 42.6l-9.4 13" pathLength="1" />
+      <text x="262" y="22">36°</text>
+      <text x="40" y="388">10 × 10%</text>
+    </g>
+  )}
+  {name === 'cells' && (
+    <g>
+      {[0, 1, 2, 3].flatMap((r) => [0, 1, 2, 3, 4].map((c) => (
+        <>
+          <rect x={30 + c * 68} y={40 + r * 78} width="60" height="70" pathLength="1" />
+          <circle cx={76 + c * 68} cy={75 + r * 78} r="5" pathLength="1" />
+        </>
+      )))}
+      <path d="M30 364H362M30 356v16M362 356v16" pathLength="1" />
+      <text x="150" y="388">5 × 4</text>
+    </g>
+  )}
+  {name === 'lock' && (
+    <g>
+      <rect x="40" y="110" width="320" height="180" pathLength="1" />
+      <path d="M40 232H360" pathLength="1" />
+      {[0, 1, 2, 3, 4].map((i) => (
+        <>
+          <path d={`M${88 + i * 56} 110V${196 - (i % 3) * 14}`} pathLength="1" />
+          <path d={`M${104 + i * 56} 110V${196 - (i % 3) * 14}`} pathLength="1" />
+          <path d={`M${88 + i * 56} ${196 - (i % 3) * 14}h16v${36 + (i % 3) * 14}h-16z`} pathLength="1" />
+        </>
+      ))}
+      <path d="M20 250H78l10-14 18 14 38-28 18 28 38-14 18 14 38-28 18 28H380" pathLength="1" />
+      <path d="M8 200H392" pathLength="1" class="vk-draw-axis" />
+      <text x="40" y="318">SECTION A–A</text>
+    </g>
+  )}
+</svg>

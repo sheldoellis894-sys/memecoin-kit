@@ -1,0 +1,81 @@
+---
+// Lock 7: the gallery as a wall of safe deposit boxes. Every picture sits behind a small steel door.
+// Opening a cell swings its door and puts the picture on the tray next to the wall; only one cell is open at a time,
+// so there is never more than one orange object on the screen. The first cell opens by itself when the wall scrolls into view.
+import { config, asset } from '../../lib/project';
+import { vault, lockNo, pad } from '../../lib/vault';
+import VkLock from './VkLock.astro';
+import VkDraw from './VkDraw.astro';
+const c = vault.cells || {};
+const data = JSON.stringify({ cell: c.cell || 'Cell', status: c.status || '' });
+---
+<section id="cells" class="vk-sec" data-vk-lock={lockNo('cells')}>
+  <VkDraw name="cells" class="vk-bg vk-bg-l" />
+  <div class="vk-in">
+    <VkLock n={lockNo('cells')} kicker={c.kicker} title={c.title} />
+    <div class="vk-cells" data-vk-cells={data}>
+      <div class="vk-wall">
+        {config.gallery.map((g, i) => (
+          <button type="button" class="vk-cell" data-src={asset(g.src)} data-alt={g.alt} data-note={g.note || ''} aria-pressed="false" aria-label={`${c.cell || 'Cell'} ${pad(i + 1)}`}>
+            <span class="vk-cell-in" aria-hidden="true"></span>
+            <span class="vk-cell-door" aria-hidden="true"><span class="vk-cell-no">{pad(i + 1)}</span><i class="vk-cell-hole"></i><i class="vk-cell-pull"></i></span>
+          </button>
+        ))}
+      </div>
+      <figure class="vk-tray">
+        <div class="vk-tray-pic">
+          <img data-vk-tray-img alt="" width="1024" height="1024" hidden />
+          <p class="vk-tray-empty" data-vk-tray-empty>{c.empty}</p>
+        </div>
+        <figcaption>
+          <p class="vk-tray-no" data-vk-tray-no>{c.cell || 'Cell'} --</p>
+          <p class="vk-tray-note" data-vk-tray-note></p>
+          <p class="vk-text" data-vk-tray-alt></p>
+        </figcaption>
+      </figure>
+    </div>
+    <noscript>
+      <div class="vk-wall-plain">
+        {config.gallery.map((g) => <img src={asset(g.src)} alt={g.alt} width="512" height="512" loading="lazy" />)}
+      </div>
+    </noscript>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-vk-cells]').forEach((root) => {
+    const cfg: { cell: string; status: string } = JSON.parse(root.dataset.vkCells!);
+    const cells = [...root.querySelectorAll<HTMLButtonElement>('.vk-cell')];
+    const img = root.querySelector<HTMLImageElement>('[data-vk-tray-img]')!;
+    const empty = root.querySelector<HTMLElement>('[data-vk-tray-empty]')!;
+    const no = root.querySelector<HTMLElement>('[data-vk-tray-no]')!;
+    const note = root.querySelector<HTMLElement>('[data-vk-tray-note]')!;
+    const alt = root.querySelector<HTMLElement>('[data-vk-tray-alt]')!;
+    const tray = root.querySelector<HTMLElement>('.vk-tray')!;
+    let current = -1;
+    const open = (i: number, quiet = false) => {
+      if (i === current) return;
+      current = i;
+      cells.forEach((c, k) => { c.classList.toggle('is-open', k === i); c.setAttribute('aria-pressed', String(k === i)); });
+      const c = cells[i];
+      const n = String(i + 1).padStart(2, '0');
+      tray.classList.remove('is-in'); void tray.offsetWidth; tray.classList.add('is-in');
+      img.hidden = false; empty.hidden = true;
+      img.src = c.dataset.src || ''; img.alt = c.dataset.alt || '';
+      no.textContent = `${cfg.cell} ${n}`;
+      note.textContent = c.dataset.note || '';
+      alt.textContent = c.dataset.alt || '';
+      if (!quiet) (window as any).vkStatus?.(cfg.status.replace('{n}', n));
+    };
+    cells.forEach((c, i) => c.addEventListener('click', () => open(i)));
+    // the first cell opens by itself once the wall is on screen
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.disconnect(); if (current < 0) open(0, true);
+      }), { threshold: 0.35 });
+      io.observe(root.querySelector('.vk-wall')!);
+    } else open(0, true);
+    (root as any).cells = { open, current: () => current, count: cells.length };
+  });
+</script>
