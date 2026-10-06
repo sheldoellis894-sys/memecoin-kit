@@ -11,13 +11,14 @@
 | 3 | Fat Cat Holdings ($FCH) | Мемкойн, Solana | 5 часов | https://fatcatholdings.vercel.app |
 | 4 | Scootini Goosini ($GOOSINI) | Мемкойн, Solana | 3 часа | https://scootinigoosini.vercel.app |
 | 5 | Inkmaxx ($INKMAXX) | Утилитарный токен, Solana | 3,5 часа | https://inkmaxxing.vercel.app |
+| 6 | Ten Keys ($TENKEYS) | Утилитарный токен, Solana | 4 часа | https://thetenkeys.vercel.app |
 
 ## Сроки
 
 | Тип проекта | Цель | Подтверждено |
 |---|---|---|
 | Мемкойн | 1 рабочий день | 3 часа (Scootini Goosini), 5 часов (Fat Cat Holdings), 5,5 часа (Turbo Shiba Cop 3000) |
-| Утилитарный токен | 1 рабочий день | 3,5 часа (Inkmaxx) |
+| Утилитарный токен | 1 рабочий день | 3,5 часа (Inkmaxx), 4 часа (Ten Keys) |
 | Проект с ИИ-агентом | до 2 рабочих дней | пока нет |
 
 Правило: в текстах стоит только подтверждённый срок. Цель переходит в текст после проекта, сделанного за это время.
@@ -50,7 +51,10 @@ From an idea to "just press Create coin" in 3 hours: character, website with a p
 
 **Упаковываю токены под запуск. Целиком и быстро.**
 
-Пять проектов. У каждого свой герой, свой сайт и своя игра или рабочий инструмент.
+Шесть проектов. У каждого свой стиль, свой сайт и своя игра или рабочий инструмент.
+
+Ten Keys ($TENKEYS): утилитарный токен, 4 часа.
+Сайт — дверь хранилища на десять замков, а внутри рабочий калькулятор: команда делит комиссии создателя и получает лист с печатью.
 
 Inkmaxx ($INKMAXX): утилитарный токен, 3,5 часа.
 Осьминог с восемью руками держит станок для мемов, и станок работает: любая картинка становится оттиском в две краски прямо в браузере.
@@ -73,9 +77,14 @@ Turbo Shiba Cop 3000 ($TSC3000): 5,5 часа.
 - Telegram с проверкой на входе, капчей и защитой от спама и набегов ботов;
 - пакет на день запуска: поля pump.fun и DexScreener заполнены и сверены с живой формой.
 
-Сайты собираю на собственном шаблоне. В нём уже пять стилей, пять макетов, четыре игры и генератор мемов, новые добавляются под нарратив.
+Сайты собираю на собственном шаблоне. В нём уже шесть стилей, шесть макетов, четыре игры, генератор мемов и калькулятор долей, новые добавляются под нарратив.
 
 Стек: Astro, Tailwind CSS, TypeScript, Canvas, Figma, Vercel, Telegram (Rose, Safeguard).
+
+Ten Keys
+сайт https://thetenkeys.vercel.app
+X https://x.com/thetenkeys
+Telegram https://t.me/thetenkeys
 
 Inkmaxx
 сайт https://inkmaxxing.vercel.app
@@ -106,7 +115,10 @@ Telegram https://t.me/moltymole
 
 **I package tokens for launch. The whole thing, fast.**
 
-Five projects. Each has its own character, its own website and its own game or working tool.
+Six projects. Each has its own style, its own website and its own game or working tool.
+
+Ten Keys ($TENKEYS): a utility token, 4 hours.
+The website is a vault door with ten locks, and inside is a working calculator: a team splits its creator fees and gets a sealed sheet.
 
 Inkmaxx ($INKMAXX): a utility token, 3.5 hours.
 An octopus with eight arms runs a meme press, and the press works: any picture becomes a two-ink print right in the browser.
@@ -129,9 +141,14 @@ What the package includes:
 - Telegram with a verification portal, captcha, and protection from spam and bot raids;
 - a launch-day package: pump.fun and DexScreener fields filled in and checked against the live form.
 
-I build the websites on my own template. It already has five styles, five layouts, four games and a meme maker, and new ones are added to fit the narrative.
+I build the websites on my own template. It already has six styles, six layouts, four games, a meme maker and a fee split calculator, and new ones are added to fit the narrative.
 
 Stack: Astro, Tailwind CSS, TypeScript, Canvas, Figma, Vercel, Telegram (Rose, Safeguard).
+
+Ten Keys
+website https://thetenkeys.vercel.app
+X https://x.com/thetenkeys
+Telegram https://t.me/thetenkeys
 
 Inkmaxx
 website https://inkmaxxing.vercel.app
@@ -164,7 +181,7 @@ Telegram https://t.me/moltymole
 
 ### Short version (first message)
 
-Основной вариант начинается со сцены из игры и сразу зовёт сыграть. Вариант «Договор» начинается со сцены из третьего проекта и зовёт подписать. Вариант «Доставка» начинается со сцены из четвёртого проекта и зовёт остановить курьера. Вариант «Станок» начинается со сцены из пятого проекта и зовёт напечатать свой мем. Запасной начинается с цифры и быстрее объясняет суть.
+Основной вариант начинается со сцены из игры и сразу зовёт сыграть. Вариант «Договор» начинается со сцены из третьего проекта и зовёт подписать. Вариант «Доставка» начинается со сцены из четвёртого проекта и зовёт остановить курьера. Вариант «Станок» начинается со сцены из пятого проекта и зовёт напечатать свой мем. Вариант «Счётная комната» начинается с действия посетителя в шестом проекте и зовёт разделить доли. Запасной начинается с цифры и быстрее объясняет суть.
 
 #### Основной вариант — «Игра» (выбран 04.10.2026)
 
@@ -196,7 +213,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Это сайт мемкойна, и его надо подписать: https://fatcatholdings.vercel.app
 
-Весь проект — герой, сайт с игрой, анимация, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 5 часов. В портфолио пять проектов, все сайты разные.
+Весь проект — герой, сайт с игрой, анимация, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 5 часов. В портфолио шесть проектов, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
@@ -206,7 +223,7 @@ An employment agreement. The employer is a very fat cat. Probation is for life, 
 
 This is a memecoin website, and you have to sign it: https://fatcatholdings.vercel.app
 
-The whole project — character, website with a game, animation, X, Telegram with bot protection and a pump.fun package — took 5 hours. Five projects in the portfolio, no two websites alike.
+The whole project — character, website with a game, animation, X, Telegram with bot protection and a pump.fun package — took 5 hours. Six projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
@@ -218,7 +235,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Это сайт мемкойна в виде приложения доставки, и курьера можно попробовать остановить: https://scootinigoosini.vercel.app
 
-Весь проект — герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3 часа. В портфолио пять проектов, все сайты разные.
+Весь проект — герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3 часа. В портфолио шесть проектов, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
@@ -228,7 +245,7 @@ You ordered a pizza. The order was handed to a goose. The goose is half scooter,
 
 This is a memecoin website built as a delivery app, and you can try to stop the courier: https://scootinigoosini.vercel.app
 
-The whole project — character, website with a game, X, Telegram with bot protection and a pump.fun package — took 3 hours. Five projects in the portfolio, no two websites alike.
+The whole project — character, website with a game, X, Telegram with bot protection and a pump.fun package — took 3 hours. Six projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
@@ -240,7 +257,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Это сайт токена с рабочим станком для мемов: https://inkmaxxing.vercel.app
 
-Весь проект — герой, сайт с генератором мемов, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио пять проектов, все сайты разные.
+Весь проект — герой, сайт с генератором мемов, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио шесть проектов, все сайты разные.
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
 
@@ -250,7 +267,29 @@ Upload any picture. An octopus turns it into a meme. He will not say thank you.
 
 This is a token website with a working meme press: https://inkmaxxing.vercel.app
 
-The whole project — character, website with a meme maker, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Five projects in the portfolio, no two websites alike.
+The whole project — character, website with a meme maker, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Six projects in the portfolio, no two websites alike.
+
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+
+#### Вариант «Счётная комната» (добавлен после Ten Keys, утверждён 06.10.2026)
+
+**RU**
+
+Впишите команду и доли. Сайт проверит, что вышло ровно 100. Спорить будете до запуска, а не после.
+
+Это сайт токена с рабочим калькулятором долей: https://thetenkeys.vercel.app
+
+Весь проект — бренд, сайт с инструментом, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 4 часа. В портфолио шесть проектов, все сайты разные.
+
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+
+**EN**
+
+Enter your team and the shares. The site checks that it comes to exactly 100. You argue before launch, not after.
+
+This is a token website with a working fee split calculator: https://thetenkeys.vercel.app
+
+The whole project — brand, website with a tool, X, Telegram with bot protection and a pump.fun package — took 4 hours. Six projects in the portfolio, no two websites alike.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
 
@@ -296,7 +335,8 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Чего не делаю: ботов объёма, платных трендов и накруток.
 
-Ещё три проекта, каждый в своём стиле:
+Ещё четыре проекта, каждый в своём стиле:
+сайт-хранилище с калькулятором, который делит комиссии команды — https://thetenkeys.vercel.app
 сайт-станок, который печатает мем из любой картинки — https://inkmaxxing.vercel.app
 сайт-приложение доставки, где гуся-курьера надо остановить у двери — https://scootinigoosini.vercel.app
 сайт-договор, который надо подписать — https://fatcatholdings.vercel.app
@@ -323,7 +363,8 @@ What you get:
 
 What I do not do: volume bots, paid trending, fake engagement.
 
-Three more projects, each in its own style:
+Four more projects, each in its own style:
+a website that is a vault door, with a calculator that splits a team's creator fees — https://thetenkeys.vercel.app
 a website that is a printing press and turns any picture into a meme — https://inkmaxxing.vercel.app
 a website that is a delivery app where you have to stop the goose courier at the door — https://scootinigoosini.vercel.app
 a website that is a contract you have to sign — https://fatcatholdings.vercel.app

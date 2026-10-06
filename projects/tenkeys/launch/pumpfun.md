@@ -34,17 +34,22 @@ brand/exports/tenkeys_dex_header.png (1500x500)
 - [ ] Post CA in Telegram, pin it
 - [ ] Holder check in the counting room: the "Holder preview" switch stays a preview until the wallet check is built (plan, Count 3)
 
-## Dry run of the form: NOT DONE YET (2026-10-06)
-To do with a separate work wallet, without pressing "Create coin" and without signing anything:
-- [ ] Name "Ten Keys" (with a space) and ticker "TENKEYS" are accepted as is
-- [ ] All three links (Website, X, Telegram) are accepted
-- [ ] Image tenkeys_avatar.png and banner tenkeys_dex_header.png upload and preview correctly
-- [ ] Screenshots saved by the owner: launch/pumpfun_form.png, launch/pumpfun_preview.png (wallet address out of the frame)
+## Verified in the live form (2026-10-06, dry run for this project, coin not created)
+- Name "Ten Keys" (with a space) and ticker "TENKEYS" (7 characters) are accepted as is
+- All three links (Website, X, Telegram) are accepted
+- The Description field holds the text from this file
+- Image tenkeys_avatar.png and banner tenkeys_dex_header.png upload and preview correctly
+- Screenshots: pumpfun_form.png, pumpfun_preview.png (no wallet address in the frame)
+- The form opened in German for the owner; the fields were matched by position and content
+- Nothing new in the form compared with the dry runs of the earlier projects
 
 ## Creator fee sharing: what the site says and what to check in the live form
 The site and the tool are built on these statements. Sources: news from January 2026 (Cointelegraph, The Block)
 and the "Share creator rewards" block seen in the form during the dry run of the previous project on 2026-10-05.
-- Fees can be shared with up to 10 wallets — to confirm in the live form (the site says "up to 10 wallets" in three places)
+- Checked in the live form on 2026-10-06: the "Share creator rewards" block says the rewards can be shared with wallets or charities
+  from the coin page after the coin is created. The form shows NO number of wallets.
+- Fees can be shared with up to 10 wallets — still only from the news, cannot be confirmed without a live coin
+  (the site says "up to 10 wallets" in three places)
 - Shares are set after launch by the creator or the community admin — to confirm
 - Recipients can claim at any time — from the news, cannot be checked without a live coin
 - NOT KNOWN: can the shares be changed later; is there a minimum share; how many decimals a share may have

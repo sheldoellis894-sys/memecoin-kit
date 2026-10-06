@@ -18,3 +18,4 @@ Reusable kit for building memecoin and utility-token projects fast.
 | [Fat Cat Holdings ($FCH)](projects/fch/README.md) | Memecoin, fat cat boss and an employment agreement | https://fatcatholdings.vercel.app |
 | [Scootini Goosini ($GOOSINI)](projects/goosini/README.md) | Memecoin, goose-scooter courier and a delivery app | https://scootinigoosini.vercel.app |
 | [Inkmaxx ($INKMAXX)](projects/inkmaxx/README.md) | Utility token, octopus printer and a working meme press | https://inkmaxxing.vercel.app |
+| [Ten Keys ($TENKEYS)](projects/tenkeys/README.md) | Utility token, a vault door with ten locks and a working fee split calculator | https://thetenkeys.vercel.app |

@@ -1,6 +1,8 @@
 # Ten Keys — Telegram setup
 
-Status on 2026-10-06: plan written, channel and group not created yet. The username `thetenkeys` looked free on the public page; it is confirmed only when the channel is created.
+Status on 2026-10-06: set up, token is not live. The channel https://t.me/thetenkeys exists: the verify button and two link buttons were checked on the public page https://t.me/s/thetenkeys, the picture is confirmed by the screenshot case/06_tg_portal.png.
+
+Known flaw, left as is by the owner's decision (2026-10-06): the portal text was replaced by the message meant for the third button. The post reads "Counting room" with the link instead of the text below, so the "not live yet" line is missing from the portal and there is no "Counting room" button. To fix before launch: set the portal text again in the chat with Safeguard.
 
 ## 1. Structure
 
@@ -106,11 +108,11 @@ Allowed links:
 
 | Check | Command | Result |
 |---|---|---|
-| Welcome | `/setwelcome` | not set yet |
-| Locks | `/locks` | not set yet |
-| Antiflood | `/flood` | not set yet |
-| Allowed links | `/allowlist` | not set yet |
-| Automatic antiraid | `/autoantiraid` | not set yet |
+| Welcome | `/setwelcome` | set by the owner on 2026-10-06, the bot reply was not saved |
+| Locks | `/locks` | set by the owner on 2026-10-06, the status command reply was not saved |
+| Antiflood | `/flood` | set by the owner on 2026-10-06, the status command reply was not saved |
+| Allowed links | `/allowlist` | set by the owner on 2026-10-06, the status command reply was not saved |
+| Automatic antiraid | `/autoantiraid` | set by the owner on 2026-10-06, the status command reply was not saved |
 
 Note: `/antiraid` shows the manual mode only. If it offers to switch on for 6 hours, press Cancel.
 The automatic protection is checked with `/autoantiraid` without a number.
@@ -122,7 +124,7 @@ Captcha commands, in case bots get through on launch day (sent in the group):
 
 A new member passes one check: the Safeguard portal.
 
-Entry path with a second account (portal, Safeguard check, welcome): not checked yet.
+Entry path with a second account (portal, Safeguard check, welcome): passed, confirmed by the owner on 2026-10-06.
 
 ## 5. Buy bot (launch day)
 
@@ -144,7 +146,7 @@ Not used: volume bots, paid trending, paid boosts.
 
 ## 6. Launch-day checklist
 
-- [ ] Portal text: replace the "not live yet" line with the contract address.
+- [ ] Portal text: set the full text again (see the known flaw at the top) with the contract address instead of the "not live yet" line.
 - [ ] Welcome text in Rose: replace the "not live yet" line with the contract address.
 - [ ] Pinned message in the group: contract address + pump.fun link.
 - [ ] Rose: `/allowlist pump.fun dexscreener.com`
