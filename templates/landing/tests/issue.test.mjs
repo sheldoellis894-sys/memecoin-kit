@@ -1,7 +1,7 @@
 // Checks the scheduled agent without keys: market data and the model API are replaced by scripted answers, storage lives in memory.
 // Run inside templates/landing:  node tests/issue.test.mjs
 import assert from 'node:assert/strict';
-import { install as rawInstall, setNow, goodScript, fullIssue, memoryStore, SIGNS } from './mock-issue.mjs';
+import { install as rawInstall, setNow, goodScript, fullIssue, chartOf, memoryStore, SIGNS } from './mock-issue.mjs';
 const run = (await import(new URL('../api/issue-run.js', import.meta.url))).handle;
 const read = (await import(new URL('../api/issue.js', import.meta.url))).handle;
 const { skyAt, drawChart, longitudes } = await import(new URL('../api/_agent/sky.js', import.meta.url));
@@ -65,30 +65,47 @@ console.log('4 ok: hour gate, secret, forced rewrite keeps the number');
 // 5. Unfinished issue goes back once; what is still empty is filled from the numbers
 store = memoryStore();
 calls = install({ modelScript: (i, body) => i === 0 ? goodScript(0) : i === 1 ? goodScript(1)
-  : { stop_reason: i === 2 ? 'max_tokens' : 'tool_use', content: [{ type: 'tool_use', id: 'f' + i, name: 'file_issue', input: fullIssue({ pisces: '', leo: i === 2 ? '' : 'Jupiter did it, Leo.', closing: '' }) }] } });
+  : { stop_reason: i === 2 ? 'max_tokens' : 'tool_use', content: [{ type: 'tool_use', id: 'f' + i, name: 'file_issue', input: fullIssue({ pisces: '', leo: i === 2 ? '' : `${chartOf(body).leo} did it, Leo.`, closing: '' }, body) }] } });
 out = await (await get(run, '/api/issue-run', ENV, { store, now: at('2026-10-08T06:20:00Z') })).json();
 issue = JSON.parse(store.state.text).issues[0];
 assert.equal(calls.model, 4); assert.equal(out.filled, 2); assert.equal(calls.bodies[3].tool_choice.type, 'tool');
-assert.ok(issue.signs.find((s) => s.id === 'pisces').text.startsWith(issue.signs.find((s) => s.id === 'pisces').why)); assert.equal(issue.signs.find((s) => s.id === 'leo').text, 'Jupiter did it, Leo.');
+assert.ok(issue.signs.find((s) => s.id === 'pisces').text.startsWith(issue.signs.find((s) => s.id === 'pisces').why)); assert.equal(issue.signs.find((s) => s.id === 'leo').text, `${issue.signs.find((s) => s.id === 'leo').planet} did it, Leo.`);
 assert.ok(issue.closing.length > 10);
 console.log('5 ok: rewrite once, then fill ->', issue.signs.find((s) => s.id === 'pisces').text);
 
 // 6. Files too early, nested shape, tickers and links: asked to read first, then understood and cleaned
 store = memoryStore();
-calls = install({ modelScript: (i) => [
+calls = install({ modelScript: (i, body) => [
   { content: [{ type: 'tool_use', id: 'a', name: 'file_issue', input: fullIssue() }] },
   { content: [{ type: 'tool_use', id: 'b', name: 'read_sky', input: {} }] },
-  { content: [{ type: 'tool_use', id: 'c', name: 'file_issue', input: fullIssue() }] },
+  { content: [{ type: 'tool_use', id: 'c', name: 'file_issue', input: fullIssue({}, body) }] },
   { content: [{ type: 'tool_use', id: 'd', name: 'read_newborns', input: {} }] },
   { content: [{ type: 'tool_use', id: 'e', name: 'file_issue', input: { headline: 'H'.repeat(200), sky: ['Buy $EVIL at https://evil.example now', 'Second <b>line</b>'], closing: 'c',
-    signs: JSON.stringify(SIGNS.map((id) => ({ id, text: `Entry for ${id} 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU ok` }))) } }] },
+    signs: JSON.stringify(SIGNS.map((id) => ({ id, text: `Entry for ${id} 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU by ${chartOf(body)[id]} ok` }))) } }] },
 ][i] });
 out = await (await get(run, '/api/issue-run', ENV, { store, now: at('2026-10-08T06:20:00Z') })).json();
 issue = JSON.parse(store.state.text).issues[0];
 assert.equal(out.state, 'written'); assert.equal(out.filled, 0); assert.equal(calls.model, 5);
 assert.ok(issue.headline.length <= 72); assert.equal(issue.sky[0], 'Buy EVIL at now'); assert.equal(issue.sky[1], 'Second b line /b');
-assert.equal(issue.signs[0].text, 'Entry for aries ok');
+assert.equal(issue.signs[0].text, `Entry for aries by ${issue.signs[0].planet} ok`);
 console.log('6 ok: order enforced, nested shape read, text cleaned');
+
+// 6b. The editor in code: a score, advice, the future or the wrong planet send the field back once; what fails twice is written from the numbers
+store = memoryStore();
+const bad = (body, twice) => { const b = chartOf(body); return fullIssue({
+  aries: `${b.aries} holds you steady. A score of 4 is not collapse.`, taurus: `${b.taurus} is retrograde. Reversals can be opportunities.`,
+  gemini: 'Somebody else entirely squares your sign. You did nothing.', closing: twice ? 'What falls today may rest tomorrow.' : 'It was never you.',
+  ...(twice ? {} : { aries: `${b.aries} did it. You only watched.`, gemini: `${b.gemini} did it. You only watched.` }) }, body); };
+calls = install({ modelScript: (i, body) => i < 2 ? goodScript(i) : { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'f' + i, name: 'file_issue', input: bad(body, i === 2) }] } });
+out = await (await get(run, '/api/issue-run', ENV, { store, now: at('2026-10-08T06:20:00Z') })).json();
+issue = JSON.parse(store.state.text).issues[0];
+assert.equal(calls.model, 4); assert.equal(calls.bodies[3].tool_choice.type, 'tool'); assert.equal(out.filled, 1);
+{ const asked = JSON.stringify(calls.bodies[3].messages.at(-1)); for (const w of ['aries (it states the score', 'taurus (it gives advice', 'gemini (it must name', 'closing (it gives advice']) assert.ok(asked.includes(w), w); assert.ok(!asked.includes('leo (')); }
+const sign = (id) => issue.signs.find((x) => x.id === id);
+assert.equal(sign('aries').text, `${sign('aries').planet} did it. You only watched.`); assert.equal(issue.closing, 'It was never you.');
+assert.ok(sign('taurus').text.startsWith(sign('taurus').why)); assert.ok(!/opportunit|score/i.test(JSON.stringify(issue.signs.map((x) => x.text))));
+assert.ok(issue.notes.some((n) => n.text.includes('came back from the editor (4 fields')));
+console.log('6b ok: the editor sends bad fields back, then replaces them ->', sign('taurus').text);
 
 // 7. Model down: no issue, short code. Model never files: no issue.
 store = memoryStore(JSON.stringify({ count: 4, issues: [{ date: '2026-10-07', no: 4, signs: [] }] }));

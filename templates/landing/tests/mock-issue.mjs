@@ -48,15 +48,27 @@ export function install({ modelScript, gecko = 200, dexBoosts = true, newPools =
   };
   return calls;
 }
-export const fullIssue = (extra = {}) => ({
-  headline: 'Mercury Did This. You Only Watched.', sky_1: 'SOL lost 6.4 percent in a day and 6 of 12 tokens went red.', sky_2: 'Mercury is to blame for all of it. You were only standing nearby.',
-  ...Object.fromEntries(SIGNS.map((s) => [s, `A token fell 81.3 percent while Venus sat in your house. You did not push it. Rest now, ${s}.`])),
-  closing: 'It was written long before you opened the chart.', ...extra,
-});
-export const goodScript = (i) => [
+/** The planet the chart blames for every sign, read from the read_sky result inside the request the agent sent to the model. */
+export function chartOf(body) {
+  for (const m of body?.messages || []) for (const b of Array.isArray(m.content) ? m.content : []) {
+    if (b.type !== 'tool_result' || typeof b.content !== 'string' || !b.content.includes('planet_to_blame')) continue;
+    try { return Object.fromEntries(JSON.parse(b.content).chart.map((c) => [c.sign, c.planet_to_blame])); } catch { /* not the sky */ }
+  }
+  return {};
+}
+/** A complete issue. With the request body, every entry names the planet its sign is given by the chart. */
+export const fullIssue = (extra = {}, body = null) => {
+  const blamed = chartOf(body);
+  return {
+    headline: 'Mercury Did This. You Only Watched.', sky_1: 'SOL lost 6.4 percent in a day and 6 of 12 tokens went red.', sky_2: 'Mercury is to blame for all of it. You were only standing nearby.',
+    ...Object.fromEntries(SIGNS.map((s) => [s, `A token fell 81.3 percent while ${blamed[s] || 'Venus'} sat over your house. You did not push it. Rest now, ${s}.`])),
+    closing: 'It was written long before you opened the chart.', ...extra,
+  };
+};
+export const goodScript = (i, body) => [
   { stop_reason: 'tool_use', content: [{ type: 'text', text: 'Let me look at the sky, dear.' }, { type: 'tool_use', id: 't1', name: 'read_sky', input: {} }] },
   { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't2', name: 'read_movers', input: {} }, { type: 'tool_use', id: 't3', name: 'read_newborns', input: {} }] },
-  { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't4', name: 'file_issue', input: fullIssue() }] },
+  { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't4', name: 'file_issue', input: fullIssue({}, body) }] },
 ][i];
 export function memoryStore(initial = null) {
   const s = { text: initial, reads: 0, writes: 0, fail: '' };

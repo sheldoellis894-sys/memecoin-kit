@@ -15,15 +15,16 @@ export const oracles = {
   horocope: {
     system: `You are Madame Cope: a crystal ball in a blue turban who writes a daily horoscope for crypto traders. Every morning you read the last 24 hours of the Solana market and the real sky of the day, and write one issue: a headline, the sky of the day and one entry for each of the twelve zodiac signs.
 
-Voice: a gentle fortune teller who comforts. Warm, calm, a little tired, never mocking. The trader is never to blame: a planet is. Short sentences. Dry humour comes from taking the stars completely seriously. No emoji, no hashtags, no exclamation marks.
+Voice: a gentle fortune teller who comforts by blaming the sky. Warm, calm, a little tired, never mocking. The trader is never to blame: a planet is. The comfort is always the same thought in fresh words: the planet did it, the reader did not. Dry humour comes from taking the stars completely seriously and reporting the market in the flat voice of a weather forecast. Short sentences. No emoji, no hashtags, no exclamation marks.
 
 Rules that always hold:
-1. Use only the numbers your tools return. Never invent a price, a percentage, a count or an event. If something is unknown, leave it out.
-2. This is about yesterday and about the stars. No advice: never say what to buy, sell or hold, never predict a price, never promise that anything will rise. Never call a token safe, good, bad or a scam.
+1. Use only the numbers your tools return. Never invent a price, a percentage, a count or an event. If something is unknown, leave it out. You know one day only: never say that a number climbed, grew or shrank compared with before, unless a tool gives that change.
+2. This is about yesterday and about the stars. No advice and no future: never say what to buy, sell, hold or wait for; never say what happens next, tomorrow or soon; never say that a fall will stop, level out or come back; never call anything an opportunity, a lesson or a reward. A token that rose is reported as something that happened, never as hope. Never call a token safe, good, bad or a scam.
 3. Tokens have no names here. Describe them by what they did ("a token two days old fell 81 percent"). Never write a ticker, a token name, a project name, a link or a wallet.
 4. Talk about trades, never about a person: no guesses about wealth, age, gender, country or intelligence. No insults.
 5. No profanity, no slurs, nothing sexual, nothing about self-harm, nothing about health.
 6. The sky is real: read_sky gives the true positions of the planets for today, computed by code. Never move a planet, never invent a retrograde, an eclipse or a transit. What the planets mean for a trade is the joke everyone is in on: blame them for what the market did.
+7. Never write a score, a rating or "out of 10". The page prints the score next to your words.
 
 How you work:
 - First call read_sky. It gives the colour of the market, the real sky (every planet with its sign, who is retrograde, the phase of the Moon) and the chart: for every sign a score out of 10, the planet to blame and the reason (where that planet really stands today). They are already drawn from the real sky. You do not change them.
@@ -32,7 +33,15 @@ How you work:
 - Before a reading you may write one short note of at most twelve words, in your voice.
 - Before file_issue write nothing at all: the whole issue goes into the fields of the tool.
 
-How an entry for a sign is written: two or three short sentences, at most 230 characters. It names the planet the chart blames for that sign and says where that planet really is, using the reason from the chart in your own words (its sign, retrograde or not, in the reader's sign, opposite it, square to it). It ties that to one real number from your market readings (a different one for neighbouring signs where you can). A low score gets more comfort, a high score gets gentle suspicion. It ends on the comfort, not on the number.
+How an entry for a sign is written: three short sentences, at most 230 characters.
+- First: the planet the chart blames for that sign and where it really is, the reason from the chart in your own words (its sign, retrograde or not, in the reader's sign, opposite it, square to it). Name that planet. Blame no other planet in that entry.
+- Second: one real number from your market readings, said plainly. Use each token and each number for one sign only where you can.
+- Third: the verdict. That planet did it, the reader did not. A low score gets more tenderness, a high score gets gentle suspicion of the planet's motives. The entry ends on the verdict, not on the number.
+Two entries that show the tone only. Their numbers are invented; never reuse these sentences or their jokes:
+"Saturn is retrograde in Aries and squares your sign. A token one day old fell 90 percent. Saturn has been doing this for centuries. You only arrived this week."
+"Mars sits in Leo, in your own sign. A token rose 700 percent in fifteen hours, somewhere else. Mars picked a favourite. You were not consulted."
+
+The closing line comforts everyone and has no future in it.
 
 Everything is in English and inside its length limit.`,
     /** Plain sentences used only when the model leaves a field empty: never says more than the numbers do. */
@@ -75,7 +84,7 @@ const TOOLS = [
         sky_1: text(170, 'First sentence about the sky of the day, with a real number.'),
         sky_2: text(170, 'Second sentence: which planet is to blame for the whole day (the planet_of_the_day from read_sky) and what it is really doing in the sky today (planet_of_the_day_why).'),
         ...Object.fromEntries(SIGNS.map((id) => [id, text(230, `The entry for ${id.charAt(0).toUpperCase() + id.slice(1)}.`)])),
-        closing: text(90, 'The last line of the issue: one sentence of comfort for everyone.'),
+        closing: text(90, 'The last line of the issue: one sentence of comfort for everyone, with no future in it.'),
       },
       required: ['headline', 'sky_1', 'sky_2', ...SIGNS, 'closing'],
     },
@@ -101,7 +110,26 @@ export function readFields(input) {
   r = Object.fromEntries(Object.entries(r).map(([k, v]) => [k.toLowerCase(), v]));
   return r;
 }
-export const missingFields = (input) => { const r = readFields(input); return ['headline', 'sky_1', 'sky_2', ...SIGNS, 'closing'].filter((k) => !has(r[k])); };
+const FIELDS = ['headline', 'sky_1', 'sky_2', ...SIGNS, 'closing'];
+export const missingFields = (input) => { const r = readFields(input); return FIELDS.filter((k) => !has(r[k])); };
+
+// What must never reach the page, whatever the model wrote. Checked by code: a field that fails goes back once,
+// and if it fails again the plain sentence written from the numbers takes its place.
+const SCORE = /\bscores?\b|\bout of (?:10|ten)\b|\b\d{1,2}\s?\/\s?10\b/i;
+const FUTURE = /\bopportunit|\btomorrow\b|\bpatience\b|\brecover|\brebound|\bbounc|\bupside\b|\blevels? out\b|\bnext (?:week|month|time)\b|\bwill (?:rise|return|come back|pass|turn|stop)\b|\bbuy the dip\b|\bshould (?:buy|sell|hold|wait)\b|\btime to (?:buy|sell)\b/i;
+const bare = (planet) => String(planet || '').replace(/^the /i, '').toLowerCase();
+/** Filled fields that break a rule: [{ field, reason }]. The chart tells which planet each sign has to name. */
+export function flawedFields(input, chart) {
+  const r = readFields(input); const out = [];
+  const blamed = Object.fromEntries((chart?.signs || []).map((c) => [c.id, c.planet]));
+  for (const k of FIELDS) {
+    if (!has(r[k])) continue;
+    if (SCORE.test(r[k])) out.push({ field: k, reason: 'it states the score; the page shows the score' });
+    else if (FUTURE.test(r[k])) out.push({ field: k, reason: 'it gives advice or speaks about the future' });
+    else if (blamed[k] && !r[k].toLowerCase().includes(bare(blamed[k]))) out.push({ field: k, reason: `it must name ${blamed[k]}, the planet the chart blames for this sign` });
+  }
+  return out;
+}
 
 /** Numbers shown on the page come from code. */
 export function publicFacts(state, chart, mood) {
@@ -120,6 +148,8 @@ export function publicFacts(state, chart, mood) {
 export function buildIssue({ input, oracle, chart, sky, facts, date, no, notes, build }) {
   const r = readFields(input);
   const gaps = missingFields(input);
+  const flawed = new Set(flawedFields(input, chart).map((f) => f.field));
+  for (const k of flawed) r[k] = '';          // a field that still breaks a rule is not printed
   const plainSky = oracle.plain.sky(facts);
   return {
     date, no, build,
@@ -134,7 +164,7 @@ export function buildIssue({ input, oracle, chart, sky, facts, date, no, notes, 
     sky_now: { lines: skyLines(sky), moon: sky.moon, retrograde: sky.retrograde },
     signs: chart.signs.map((s) => ({ id: s.id, score: s.score, planet: s.planet, why: s.why, text: clip(r[s.id], 270) || oracle.plain.sign(s, facts) })),
     notes: notes.slice(0, 14),
-    filled: gaps.length,
+    filled: gaps.length + flawed.size,
   };
 }
 
@@ -200,8 +230,8 @@ export async function writeIssue({ oracle, env, date, no, build = 0, now = Date.
 
   const finish = (input) => {
     const facts = publicFacts(state, chart, mood);
-    const gaps = missingFields(input);
-    step(gaps.length ? `Issue written. ${gaps.length} blank ${gaps.length === 1 ? 'field was' : 'fields were'} filled from the numbers.` : 'Issue written. Twelve signs, nobody to blame.');
+    const n = missingFields(input).length + flawedFields(input, chart).length;
+    step(n ? `Issue written. ${n} ${n === 1 ? 'field was' : 'fields were'} written from the numbers instead.` : 'Issue written. Twelve signs, nobody to blame.');
     return buildIssue({ input, oracle, chart, sky, facts, date, no, notes, build });
   };
 
@@ -218,12 +248,18 @@ export async function writeIssue({ oracle, env, date, no, build = 0, now = Date.
       // The issue cannot be filed before the sky is read: the chart does not exist yet.
       const early = !chart ? 'Not filed: call read_sky first.' : (!readings && rewrites < 1 && turn < MAX_TURNS - 2 ? 'Not filed: take one more reading first, read_movers or read_newborns.' : '');
       const gaps = early ? [] : missingFields(filed.input);
-      const redo = !early && gaps.length && rewrites < 1 && turn < MAX_TURNS - 1;
+      const flaws = early ? [] : flawedFields(filed.input, chart);
+      const redo = !early && (gaps.length || flaws.length) && rewrites < 1 && turn < MAX_TURNS - 1;
       if (early || redo) {
-        if (redo) { rewrites++; step(`The issue came back unfinished (${gaps.length} blank ${gaps.length === 1 ? 'field' : 'fields'}${out.stop_reason === 'max_tokens' ? ', out of ink' : ''}). Madame Cope writes it again.`); }
+        if (redo) {
+          rewrites++; const n = gaps.length + flaws.length;
+          step(`The issue came back from the editor (${n} ${n === 1 ? 'field' : 'fields'} to write again${out.stop_reason === 'max_tokens' ? ', out of ink' : ''}). Madame Cope writes it again.`);
+        }
+        const why = ['Not filed.', gaps.length ? `Missing or empty: ${gaps.join(', ')}.` : '', flaws.length ? `Rewrite these: ${flaws.map((f) => `${f.field} (${f.reason})`).join('; ')}.` : '',
+          'Call file_issue again with every field filled, the good fields unchanged. Write no text before the tool call.'].filter(Boolean).join(' ');
         const results = [];
         for (const c of calls) {
-          if (c === filed) results.push({ type: 'tool_result', tool_use_id: c.id, is_error: true, content: early || `Not filed: the issue is incomplete. Missing or empty: ${gaps.join(', ')}. Call file_issue again with every field filled. Write no text before the tool call.` });
+          if (c === filed) results.push({ type: 'tool_result', tool_use_id: c.id, is_error: true, content: early || why });
           else results.push({ type: 'tool_result', tool_use_id: c.id, content: JSON.stringify(await tool(c.name)) });
         }
         messages.push({ role: 'assistant', content: blocks });
