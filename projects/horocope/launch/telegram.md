@@ -1,7 +1,7 @@
 # Horocope — Telegram setup
 
-Status on 2026-10-07: NOT SET UP YET. This file is the plan; the "Confirmed" table is filled in after the owner sets it up.
-The username `thehorocope` looked free on the public page on 2026-10-07; it is confirmed when the channel is created. (`horocope` is taken on X, so one handle `thehorocope` is used everywhere.)
+Status on 2026-10-07: set up by the owner. The channel `thehorocope` exists and holds the portal.
+The portal was read on the public page https://t.me/s/thehorocope on 2026-10-07: the channel name letter by letter, the picture, the text word for word and four buttons (the verify button "Come in", Website, X (Twitter), Today's sky) with their links. Screenshot: case/06_tg_portal.png. (`horocope` is taken on X, so one handle `thehorocope` is used everywhere.)
 
 ## 1. Structure
 
@@ -112,11 +112,11 @@ Allowed links:
 
 | Check | Command | Result |
 |---|---|---|
-| Welcome | `/setwelcome` | not set yet |
-| Locks | `/locks` | not set yet |
-| Antiflood | `/flood` | not set yet |
-| Allowed links | `/allowlist` | not set yet |
-| Automatic antiraid | `/autoantiraid` | not set yet |
+| Welcome | `/setwelcome` | sent by the owner on 2026-10-07; not re-checked with `/welcome noformat` |
+| Locks | `/locks` | sent by the owner on 2026-10-07; not re-checked |
+| Antiflood | `/flood` | sent by the owner on 2026-10-07; not re-checked |
+| Allowed links | `/allowlist` | sent by the owner on 2026-10-07; not re-checked |
+| Automatic antiraid | `/autoantiraid` | sent by the owner on 2026-10-07; not re-checked |
 
 Note: `/antiraid` shows the manual mode only. If it offers to switch on for 6 hours, press Cancel.
 The automatic protection is checked with `/autoantiraid` without a number.
@@ -128,7 +128,7 @@ Captcha commands, in case bots get through on launch day (sent in the group):
 
 A new member passes one check: the Safeguard portal.
 
-Entry path with a second account (portal, Safeguard check, welcome): not checked yet.
+Entry path with a second account (portal, Safeguard check, welcome): passed, confirmed by the owner on 2026-10-07.
 
 ## 5. Buy bot (launch day)
 

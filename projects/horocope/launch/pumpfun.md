@@ -2,7 +2,7 @@
 
 ## Token (IMMUTABLE after creation — double-check)
 - Name: Horocope (8 characters)
-- Ticker: HOROCOPE (8 characters; a ticker of this length was accepted by the form on 2026-10-06 in the dry run of the previous project)
+- Ticker: HOROCOPE (8 characters; accepted by the live form in the dry run on 2026-10-07)
 - Image: brand/exports/horocope_avatar.png (1000x1000)
 - Video: none in this project
 
@@ -35,20 +35,24 @@ brand/exports/horocope_dex_header.png (1500x500)
 - [ ] Post CA in Telegram, pin it
 - [ ] Holder mode on the site: the "Holder preview" switch stays a preview until the wallet check is built (plan, half moon)
 
-## Dry run of the live form: NOT DONE YET
-To do by the owner (coin is not created, nothing is signed, the wallet address stays out of the frame):
-- Name "Horocope", ticker "HOROCOPE", the Description from this file, the three links
-- Image horocope_avatar.png and banner horocope_dex_header.png
-- Screenshots: launch/pumpfun_form.png and launch/pumpfun_preview.png
-- Compare the ticker in the form with the ticker on the banner, letter by letter
-After the screenshots this section is rewritten as "Verified in the live form".
+## Verified in the live form (2026-10-07)
+Dry run by the owner: the form was filled in, the coin was not created, nothing was signed, no wallet address is in the frame.
+- Name "Horocope" and ticker "HOROCOPE" (8 characters) were accepted.
+- Description: the text from this file, not the X bio.
+- Links: Website, X and Telegram as listed above.
+- Image horocope_avatar.png and banner horocope_dex_header.png are shown by the form without cropping.
+- The ticker in the form and the ticker on the banner match letter by letter.
+- Part of the form was shown in German (paired liquidity asset, creator rewards, Mayhem mode). The fields and their order are the same.
+- Paired asset SOL, creator rewards to the creator, Mayhem mode off: left as the form offers them.
+- Nothing new in the form compared with the rules below.
+Screenshots: launch/pumpfun_form.png (coin details and links), launch/pumpfun_preview.png (image and banner in the form).
 
 ## AI agent features of pump.fun: not used
 - "Tokenized Agents" (agent revenue buys back and burns the token) was launched on 2026-03-13 and removed on 2026-06-30 (news, not checked in the form). The project does not rely on it.
 - Mayhem Mode (an AI trading agent during the first 24 hours, only at creation, can increase supply) — team decision, off by default.
 - The agent of this project lives on the site. It writes a horoscope once a day. It does not trade, holds no wallet and has no key to any funds.
 
-## Known rules of the form (from the dry runs of the earlier projects, last checked 2026-10-06)
+## Known rules of the form (from the dry runs of the earlier projects, last checked 2026-10-07)
 - Image: max 15 MB, jpg/gif/png recommended, min 1000x1000, 1:1
 - Video instead of image: mp4, max 30 MB, 16:9 or 9:16, 1080p+
 - Banner: up to 4.5 MB (larger images are resized automatically, GIFs are not), jpg/png/webp/gif, 3:1, 1500x500 recommended

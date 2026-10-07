@@ -9,7 +9,8 @@ Images: paths are relative to projects/horocope/brand/
 Posting times (Moscow time): ~16:00 and ~21:00 — afternoon and evening for Europe, morning and midday for the US.
 
 Posts marked PUBLISH are the four chosen for scheduling. The rest stay in the plan.
-Status on 2026-10-07: the plan is written. The profile is not set up yet.
+Status on 2026-10-07: the profile is set up by the owner (screenshot case/05_x_profile.png): name, handle, bio, location and link match this file. The pinned post is published. All four posts marked PUBLISH are scheduled (confirmed by the owner on 2026-10-07). X shows the first of them as "Thu, Oct 8, 2026 at 3:00 PM".
+Post 4 names no score and quotes no entry: the card attached to it comes from a real issue, and the words on it are written by the agent that morning.
 
 ## Profile
 
@@ -26,7 +27,7 @@ Status on 2026-10-07: the plan is written. The profile is not set up yet.
 ## Day 1
 
 ### Post 1 — PINNED
-Image: banners/horocope_banner.jpg
+Image: banners/horocope_banner.jpg in the plan; published with the link card picture exports/horocope_og.png (owner's decision, 2026-10-07)
 ALT: Madame Cope, a crystal ball with tired eyes and a blue turban, points at three small planets that tiptoe away from her with guilty faces.
 
 Madame Cope has read yesterday's market.
@@ -67,12 +68,12 @@ You were only standing nearby.
 ## Day 3
 
 ### Post 4 — The tool — PUBLISH (9 October, 16:00)
-Image: the Libra card downloaded from the site by the owner ("Save the card"). Fallback: gallery/horocope_g02.jpg
-ALT: A card from Horocope for Libra, marked as a sample: 4 out of 10, the planet to blame is Saturn, retrograde in Aries, and three sentences of comfort.
+Image: the Libra card downloaded from the site by the owner ("Save the card") from a real issue. Fallback: gallery/horocope_g02.jpg
+ALT: A card from Horocope for Libra: the score of the day, the planet to blame is Saturn, retrograde in Aries, and three sentences of comfort from Madame Cope.
 
-Libra, today: 4 out of 10.
+Libra.
 
-“Saturn is retrograde in Aries, directly opposite your sign. Yesterday you bought the very top and he watched from across the sky.”
+Saturn is retrograde in Aries, directly opposite your sign. Whatever you bought, he watched it happen.
 
 A new horoscope every morning, drawn from the real sky:
 https://thehorocope.vercel.app/#today

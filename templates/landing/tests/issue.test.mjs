@@ -106,6 +106,13 @@ assert.equal(sign('aries').text, `${sign('aries').planet} did it. You only watch
 assert.ok(sign('taurus').text.startsWith(sign('taurus').why)); assert.ok(!/opportunit|score/i.test(JSON.stringify(issue.signs.map((x) => x.text))));
 assert.ok(issue.notes.some((n) => n.text.includes('came back from the editor (4 fields')));
 console.log('6b ok: the editor sends bad fields back, then replaces them ->', sign('taurus').text);
+{ const { flawedFields } = await import(new URL('../api/_agent/oracle.js', import.meta.url));
+  const ch = { signs: [{ id: 'aries', planet: 'Saturn', why: 'Saturn is retrograde in Aries, in your sign' }, { id: 'leo', planet: 'Mars', why: 'Mars is in Leo, in your sign' }, { id: 'pisces', planet: 'the Moon', why: 'The Moon is in Virgo, opposite your sign' }, { id: 'libra', planet: 'Saturn', why: 'Saturn is retrograde in Aries, opposite your sign' }] };
+  const got = flawedFields({ aries: 'Saturn is retrograde in Aries, in your sign. A token fell 90.3 percent. He did it.', leo: 'Mars sits in your sign. A token rose 12 percent. Mars picked a favourite.',
+    pisces: 'The Moon faces you from Virgo. Volume was one hundred seventy-three million dollars. She did it.', libra: 'Saturn backs through Aries, straight across from you. A token 22 hours old rose 2338 percent. He kept the receipt.' }, ch);
+  assert.deepEqual(got.map((f) => f.field), ['aries', 'leo', 'pisces']);
+  assert.ok(got[0].reason.includes('word for word') && got[1].reason.includes('examples') && got[2].reason.includes('digits')); }
+console.log('6c ok: copied reason, copied joke and numbers in words are sent back');
 
 // 7. Model down: no issue, short code. Model never files: no issue.
 store = memoryStore(JSON.stringify({ count: 4, issues: [{ date: '2026-10-07', no: 4, signs: [] }] }));

@@ -18,7 +18,7 @@ export const oracles = {
 Voice: a gentle fortune teller who comforts by blaming the sky. Warm, calm, a little tired, never mocking. The trader is never to blame: a planet is. The comfort is always the same thought in fresh words: the planet did it, the reader did not. Dry humour comes from taking the stars completely seriously and reporting the market in the flat voice of a weather forecast. Short sentences. No emoji, no hashtags, no exclamation marks.
 
 Rules that always hold:
-1. Use only the numbers your tools return. Never invent a price, a percentage, a count or an event. If something is unknown, leave it out. You know one day only: never say that a number climbed, grew or shrank compared with before, unless a tool gives that change.
+1. Use only the numbers your tools return. Never invent a price, a percentage, a count or an event. If something is unknown, leave it out. You know one day only: never say that a number climbed, grew or shrank compared with before, unless a tool gives that change. Write every number in digits, the way the tool gave it (90.3 percent, 16 hours), never in words.
 2. This is about yesterday and about the stars. No advice and no future: never say what to buy, sell, hold or wait for; never say what happens next, tomorrow or soon; never say that a fall will stop, level out or come back; never call anything an opportunity, a lesson or a reward. A token that rose is reported as something that happened, never as hope. Never call a token safe, good, bad or a scam.
 3. Tokens have no names here. Describe them by what they did ("a token two days old fell 81 percent"). Never write a ticker, a token name, a project name, a link or a wallet.
 4. Talk about trades, never about a person: no guesses about wealth, age, gender, country or intelligence. No insults.
@@ -34,12 +34,12 @@ How you work:
 - Before file_issue write nothing at all: the whole issue goes into the fields of the tool.
 
 How an entry for a sign is written: three short sentences, at most 230 characters.
-- First: the planet the chart blames for that sign and where it really is, the reason from the chart in your own words (its sign, retrograde or not, in the reader's sign, opposite it, square to it). Name that planet. Blame no other planet in that entry.
-- Second: one real number from your market readings, said plainly. Use each token and each number for one sign only where you can.
+- First: the planet the chart blames for that sign and where it really is (its sign, retrograde or not, in the reader's sign, opposite it, square to it). The page prints the chart's reason right above your entry, so never repeat that sentence word for word: say the same thing shorter, in your own words. Name that planet. Blame no other planet in that entry.
+- Second: one real number from your market readings, said plainly. Never use the same token or the same number for two signs.
 - Third: the verdict. That planet did it, the reader did not. A low score gets more tenderness, a high score gets gentle suspicion of the planet's motives. The entry ends on the verdict, not on the number.
-Two entries that show the tone only. Their numbers are invented; never reuse these sentences or their jokes:
-"Saturn is retrograde in Aries and squares your sign. A token one day old fell 90 percent. Saturn has been doing this for centuries. You only arrived this week."
-"Mars sits in Leo, in your own sign. A token rose 700 percent in fifteen hours, somewhere else. Mars picked a favourite. You were not consulted."
+Two entries that show the tone only. Their numbers are invented. Never reuse these sentences or their jokes: every sign gets a verdict of its own, new every day:
+"Saturn walks backward through Aries, square to you. A token 1 day old fell 90 percent. Saturn has been doing this for centuries. You only arrived this week."
+"Mars has moved into your own sign. A token rose 700 percent in 15 hours, somewhere else. Mars picked a favourite. You were not consulted."
 
 The closing line comforts everyone and has no future in it.
 
@@ -117,16 +117,23 @@ export const missingFields = (input) => { const r = readFields(input); return FI
 // and if it fails again the plain sentence written from the numbers takes its place.
 const SCORE = /\bscores?\b|\bout of (?:10|ten)\b|\b\d{1,2}\s?\/\s?10\b/i;
 const FUTURE = /\bopportunit|\btomorrow\b|\bpatience\b|\brecover|\brebound|\bbounc|\bupside\b|\blevels? out\b|\bnext (?:week|month|time)\b|\bwill (?:rise|return|come back|pass|turn|stop)\b|\bbuy the dip\b|\bshould (?:buy|sell|hold|wait)\b|\btime to (?:buy|sell)\b/i;
+const WORDS = /\b(?:hundred|thousand)\b|\b(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)[- ](?:one|two|three|four|five|six|seven|eight|nine)\b/i;
+const COPIED = /\bfor centuries\b|\bpicked a favou?rite\b|\bnot consulted\b|\bonly arrived\b|\barrived (?:yesterday|this week)\b/i;
+const flat = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const bare = (planet) => String(planet || '').replace(/^the /i, '').toLowerCase();
 /** Filled fields that break a rule: [{ field, reason }]. The chart tells which planet each sign has to name. */
 export function flawedFields(input, chart) {
   const r = readFields(input); const out = [];
   const blamed = Object.fromEntries((chart?.signs || []).map((c) => [c.id, c.planet]));
+  const reason = Object.fromEntries((chart?.signs || []).map((c) => [c.id, flat(c.why)]));
   for (const k of FIELDS) {
     if (!has(r[k])) continue;
     if (SCORE.test(r[k])) out.push({ field: k, reason: 'it states the score; the page shows the score' });
     else if (FUTURE.test(r[k])) out.push({ field: k, reason: 'it gives advice or speaks about the future' });
     else if (blamed[k] && !r[k].toLowerCase().includes(bare(blamed[k]))) out.push({ field: k, reason: `it must name ${blamed[k]}, the planet the chart blames for this sign` });
+    else if (WORDS.test(r[k])) out.push({ field: k, reason: 'numbers must be written in digits' });
+    else if (COPIED.test(r[k])) out.push({ field: k, reason: 'it reuses a joke from the examples; write a new verdict' });
+    else if (reason[k] && flat(r[k]).startsWith(reason[k])) out.push({ field: k, reason: "it repeats the chart's reason word for word; the page prints that sentence already, say it shorter in your own words" });
   }
   return out;
 }
