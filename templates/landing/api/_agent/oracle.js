@@ -152,7 +152,13 @@ async function callModel(env, system, messages, force) {
     }),
     signal: AbortSignal.timeout(50000),
   });
-  if (!res.ok) throw Object.assign(new Error(`model HTTP ${res.status}`), { code: res.status === 429 || res.status === 529 ? 'busy' : 'model' });
+  if (!res.ok) {
+    // The provider's own words about the refusal go to the function log only (seen by the owner in Vercel), never to the answer.
+    let kind = '', said = '';
+    try { const body = await res.json(); kind = String(body?.error?.type || ''); said = String(body?.error?.message || ''); } catch { /* no readable body */ }
+    console.error(`[issue] model HTTP ${res.status} ${kind}: ${said.replace(/sk-[\w-]+/g, 'sk-…').slice(0, 300)}`);
+    throw Object.assign(new Error(`model HTTP ${res.status}`), { code: res.status === 429 || res.status === 529 ? 'busy' : 'model', detail: `http_${res.status}${kind ? `_${kind}` : ''}` });
+  }
   return res.json();
 }
 
@@ -240,5 +246,6 @@ export async function writeIssue({ oracle, env, date, no, build = 0, now = Date.
     messages.push({ role: 'user', content: results });
   }
   // The model never filed: no issue today. Yesterday's stays on the page and the next run tries again.
-  throw Object.assign(new Error('no issue'), { code: 'model' });
+  console.error(`[issue] no issue after ${MAX_TURNS} turns; sky read: ${Boolean(chart)}, readings: ${readings}, rewrites: ${rewrites}`);
+  throw Object.assign(new Error('no issue'), { code: 'model', detail: chart ? 'never_filed' : 'never_read_sky' });
 }

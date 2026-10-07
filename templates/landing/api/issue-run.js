@@ -47,7 +47,11 @@ export async function handle(request, env = process.env, deps = {}) {
     tries.n++;
     // Nothing about the keys goes to the answer: only a short code.
     const code = ['busy', 'model', 'market', 'storage'].includes(e?.code) ? e.code : 'failed';
-    return json({ ok: false, error: code, build: BUILD }, code === 'busy' ? 503 : 502);
+    // A second short word tells failures of one kind apart: "http_401_authentication_error", "never_filed", "TimeoutError".
+    const raw = String(e?.detail || (code === 'failed' ? e?.name : '') || '');
+    const detail = /^[A-Za-z0-9_]{1,48}$/.test(raw) ? raw : '';
+    console.error(`[issue-run] ${code}${detail ? ` ${detail}` : ''}: ${String(e?.message || '').slice(0, 200)}`);
+    return json({ ok: false, error: code, ...(detail ? { detail } : {}), build: BUILD }, code === 'busy' ? 503 : 502);
   }
 }
 

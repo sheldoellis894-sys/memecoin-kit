@@ -42,7 +42,7 @@ export function install({ modelScript, gecko = 200, dexBoosts = true, newPools =
       calls.model++;
       const body = JSON.parse(init.body); calls.bodies.push(body);
       const out = modelScript(step++, body);
-      return out.status ? ok({ error: 'x' }, out.status) : ok(out);
+      return out.status ? ok(out.body || { error: 'x' }, out.status) : ok(out);
     }
     throw new Error('unexpected fetch ' + url);
   };

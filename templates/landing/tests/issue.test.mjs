@@ -94,10 +94,15 @@ console.log('6 ok: order enforced, nested shape read, text cleaned');
 store = memoryStore(JSON.stringify({ count: 4, issues: [{ date: '2026-10-07', no: 4, signs: [] }] }));
 install({ modelScript: () => ({ status: 529 }) });
 res = await get(run, '/api/issue-run', ENV, { store, now: at('2026-10-08T06:20:00Z') }); out = await res.json();
-assert.equal(res.status, 503); assert.deepEqual([out.ok, out.error], [false, 'busy']); assert.equal(store.state.writes, 0);
+assert.equal(res.status, 503); assert.deepEqual([out.ok, out.error, out.detail], [false, 'busy', 'http_529']); assert.equal(store.state.writes, 0);
+// A refused key: the answer names the kind of refusal, the provider's sentence stays in the log.
+install({ modelScript: () => ({ status: 401, body: { type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key sk-test-123' } } }) });
+res = await get(run, '/api/issue-run', ENV, { store, now: at('2026-10-08T06:25:00Z') }); out = await res.json();
+assert.equal(res.status, 502); assert.deepEqual([out.error, out.detail], ['model', 'http_401_authentication_error']);
+assert.ok(!JSON.stringify(out).includes('sk-test')); assert.equal(store.state.writes, 0);
 calls = install({ modelScript: (i, body) => ({ content: [{ type: 'text', text: 'I would rather chat.' }] }) });
 res = await get(run, '/api/issue-run', ENV, { store, now: at('2026-10-08T06:30:00Z') }); out = await res.json();
-assert.equal(out.error, 'model'); assert.equal(calls.model, 6); assert.equal(store.state.writes, 0);
+assert.equal(out.error, 'model'); assert.equal(out.detail, 'never_read_sky'); assert.equal(calls.model, 6); assert.equal(store.state.writes, 0);
 console.log('7 ok: failures write nothing');
 
 // 8. First source silent → second source; both silent → "market"
