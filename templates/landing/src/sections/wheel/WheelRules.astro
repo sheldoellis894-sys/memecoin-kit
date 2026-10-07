@@ -1,0 +1,15 @@
+---
+// The rules of the house and the disclaimer.
+import { config } from '../../lib/project';
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const r = wheel.rules || {};
+const items: string[] = r.items || [];
+---
+<section id="rules" class="wh-sec">
+  <div class="wh-in wh-narrow">
+    <WhHead kicker={r.kicker} title={r.title} />
+    <ol class="wh-rules">{items.map((t, i) => <li data-wh-in><span class="font-heading">{i + 1}</span><p>{t}</p></li>)}</ol>
+    <p class="wh-fine">{config.disclaimer}</p>
+  </div>
+</section>

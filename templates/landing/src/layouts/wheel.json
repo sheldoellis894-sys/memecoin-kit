@@ -1,0 +1,4 @@
+{
+  "name": "wheel",
+  "sections": ["wheelShell", "wheelHero", "wheelIssue", "wheelAbout", "wheelHow", "wheelHolders", "wheelMoons", "wheelStars", "wheelCalendar", "wheelBubbles", "wheelPlan", "wheelRules", "wheelBall", "wheelFooter"]
+}

@@ -1,0 +1,91 @@
+---
+// The buy button of the "wheel" layout is inside a crystal ball full of fog: the fog is wiped away with a finger or the mouse.
+// Works from the keyboard (the "clear the fog" button); without scripts the ball is clear and the plain link is always there.
+import { config } from '../../lib/project';
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const b = wheel.ball || {};
+const ca = config.ca.trim();
+const url = config.links.pumpfun;
+---
+<section id="ball" class="wh-sec wh-night wh-ballsec">
+  <div class="wh-in wh-narrow">
+    <WhHead kicker={b.kicker} title={b.title} light center />
+    <div class="wh-ball-wrap">
+      <div class="wh-ball" data-wh-ball>
+        <div class="wh-ball-in">
+          <p class="wh-ball-say font-heading">{b.inside}</p>
+          {url
+            ? <a class="wh-btn wh-btn-big" href={url} target="_blank" rel="noopener noreferrer">{b.buy} <span class="font-ticker">${config.ticker}</span></a>
+            : <p class="wh-ball-wait">{b.wait}</p>}
+          <p class="wh-tag">{b.caLabel || 'Contract address'}</p>
+          {ca ? <p class="wh-ball-ca"><code>{ca}</code></p> : <p class="wh-ball-ca is-empty">{b.caEmpty}</p>}
+        </div>
+        <canvas class="wh-ball-fog" data-wh-ball-fog aria-hidden="true"></canvas>
+        <span class="wh-ball-shine" aria-hidden="true"></span>
+      </div>
+      <div class="wh-ball-base" aria-hidden="true"></div>
+    </div>
+    <p class="wh-ball-hint" data-wh-ball-hint data-done={b.hintDone}>{b.hint}</p>
+    <div class="wh-actions wh-center">
+      <button type="button" class="wh-btn wh-btn-light" data-wh-ball-clear>{b.clear}</button>
+    </div>
+    <p class="wh-ball-plain">
+      {url ? <a href={url} target="_blank" rel="noopener noreferrer">{b.plain}</a> : <a href="#how-to-buy">{b.plainWait}</a>}
+    </p>
+  </div>
+</section>
+<script>
+  const ball = document.querySelector<HTMLElement>('[data-wh-ball]');
+  if (ball) {
+    const canvas = ball.querySelector<HTMLCanvasElement>('[data-wh-ball-fog]')!;
+    const hint = document.querySelector<HTMLElement>('[data-wh-ball-hint]')!;
+    const btn = document.querySelector<HTMLButtonElement>('[data-wh-ball-clear]')!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    let size = 0, done = false, moved = 0;
+    const fill = () => {
+      const r = ball.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1);
+      size = Math.max(1, Math.round(r.width * dpr)); canvas.width = canvas.height = size;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#E9E2FF'; ctx.fillRect(0, 0, size, size);
+      // soft clouds, the same every time
+      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const tints = ['255,255,255', '255,194,226', '181,227,255', '217,200,255'];
+      for (let i = 0; i < 46; i++) {
+        const x = rnd() * size, y = rnd() * size, rad = (0.14 + rnd() * 0.22) * size;
+        const g = ctx.createRadialGradient(x, y, 0, x, y, rad); g.addColorStop(0, `rgba(${tints[i % 4]},.85)`); g.addColorStop(1, `rgba(${tints[i % 4]},0)`);
+        ctx.fillStyle = g; ctx.fillRect(0, 0, size, size);
+      }
+    };
+    const finish = () => { if (done) return; done = true; ball.classList.add('is-clear'); hint.textContent = hint.dataset.done || hint.textContent; btn.hidden = true; };
+    hint.dataset.done = hint.dataset.done || '';
+    const cleared = () => {
+      const step = Math.max(4, Math.floor(size / 28)); let clear = 0, all = 0;
+      const data = ctx.getImageData(0, 0, size, size).data; const c = size / 2;
+      for (let y = step; y < size; y += step) for (let x = step; x < size; x += step) {
+        if (Math.hypot(x - c, y - c) > c * 0.92) continue;        // only the inside of the circle counts
+        all++; if (data[(y * size + x) * 4 + 3] < 60) clear++;
+      }
+      return all ? clear / all : 0;
+    };
+    const wipe = (e: PointerEvent) => {
+      if (done) return;
+      const r = canvas.getBoundingClientRect(); const k = size / r.width;
+      const x = (e.clientX - r.left) * k, y = (e.clientY - r.top) * k, rad = Math.max(26, r.width * 0.11) * k;
+      ctx.globalCompositeOperation = 'destination-out';
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rad); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.6, 'rgba(0,0,0,.9)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
+      if (++moved % 6 === 0 && cleared() > 0.5) finish();
+    };
+    let down = false;
+    canvas.addEventListener('pointerdown', (e) => { down = true; try { canvas.setPointerCapture(e.pointerId); } catch { /* ok */ } wipe(e); });
+    canvas.addEventListener('pointermove', (e) => { if (down || e.pointerType === 'mouse') wipe(e); });
+    canvas.addEventListener('pointerup', () => { down = false; if (cleared() > 0.5) finish(); });
+    canvas.addEventListener('pointercancel', () => { down = false; });
+    btn.addEventListener('click', finish);
+    fill(); ball.classList.add('is-foggy');
+    let w = ball.getBoundingClientRect().width;
+    addEventListener('resize', () => { const n = ball.getBoundingClientRect().width; if (!done && Math.abs(n - w) > 2) { w = n; fill(); } });
+    (ball as any).fog = { cleared, finish, wipeAt: (cx: number, cy: number) => wipe({ clientX: cx, clientY: cy } as PointerEvent), get done() { return done; } };   // test hook
+  }
+</script>

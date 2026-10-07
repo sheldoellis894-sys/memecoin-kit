@@ -1,0 +1,39 @@
+---
+// Gallery of the "wheel" layout: pictures float in glass bubbles; a click opens the picture whole with its caption.
+import { config, asset } from '../../lib/project';
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const g = wheel.bubbles || {};
+---
+<section id="gallery" class="wh-sec">
+  <div class="wh-in">
+    <WhHead kicker={g.kicker} title={g.title} />
+    <div class="wh-bubbles">
+      {config.gallery.map((p, i) => (
+        <button type="button" class="wh-bubble" style={`--i:${i}`} data-wh-bubble={asset(p.src)} data-alt={p.alt} data-note={p.note || ''} data-wh-in aria-label={p.alt}>
+          <img src={asset(p.src)} alt="" width="640" height="640" loading="lazy" />
+        </button>
+      ))}
+    </div>
+  </div>
+  <dialog class="wh-light" data-wh-light aria-label={g.title}>
+    <figure>
+      <img data-wh-light-img alt="" />
+      <figcaption><b data-wh-light-note></b><span data-wh-light-alt></span></figcaption>
+    </figure>
+    <form method="dialog"><button class="wh-btn wh-btn-small">{g.close || 'Close'}</button></form>
+  </dialog>
+</section>
+<script>
+  const dlg = document.querySelector<HTMLDialogElement>('[data-wh-light]');
+  if (dlg) {
+    const img = dlg.querySelector<HTMLImageElement>('[data-wh-light-img]')!;
+    document.querySelectorAll<HTMLButtonElement>('[data-wh-bubble]').forEach((b) => b.addEventListener('click', () => {
+      img.src = b.dataset.whBubble!; img.alt = b.dataset.alt || '';
+      dlg.querySelector<HTMLElement>('[data-wh-light-note]')!.textContent = b.dataset.note || '';
+      dlg.querySelector<HTMLElement>('[data-wh-light-alt]')!.textContent = b.dataset.alt || '';
+      if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    }));
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  }
+</script>

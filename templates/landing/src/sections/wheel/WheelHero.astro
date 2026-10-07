@@ -1,0 +1,138 @@
+---
+// First screen of the "wheel" layout: the name, the slogan and the zodiac wheel with the hero in the hub.
+// The wheel is how a sign is chosen: click a sign, use the arrows, drag the wheel, or enter a birthday.
+// The choice is remembered in the browser and the whole page follows it (window.wh.setSign).
+import { config, asset } from '../../lib/project';
+import { wheel, SIGNS, dates } from '../../lib/wheel';
+import WhGlyph from './WhGlyph.astro';
+const h = wheel.hero || {};
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+---
+<section id="home" class="wh-hero">
+  <div class="wh-in wh-hero-grid">
+    <div class="wh-hero-text">
+      <p class="wh-kicker"><span class="wh-spark" aria-hidden="true"></span><span>{config.hero.kicker}</span><span class="wh-kicker-issue" data-wh-hero-issue></span></p>
+      <h1 class="wh-hero-title font-heading">{config.name}</h1>
+      <p class="wh-hero-ticker font-ticker">${config.ticker}</p>
+      <p class="wh-hero-lead font-heading">{config.tagline}</p>
+      <p class="wh-hero-sub">{config.hero.text}</p>
+      <div class="wh-actions">
+        <a class="wh-btn wh-btn-big" href="#today">{h.primary}</a>
+        <a class="wh-btn wh-btn-big wh-btn-ghost" href="#ball">{h.secondary} <span class="font-ticker">${config.ticker}</span></a>
+      </div>
+      <form class="wh-birth" data-wh-birth onsubmit="return false">
+        <p class="wh-birth-label">{h.birthLabel}</p>
+        <div class="wh-birth-row">
+          <label><span class="wh-sr">{h.day || 'Day'}</span>
+            <select data-wh-day aria-label={h.day || 'Day'}>
+              <option value="">{h.day || 'Day'}</option>
+              {Array.from({ length: 31 }, (_, i) => <option value={i + 1}>{i + 1}</option>)}
+            </select>
+          </label>
+          <label><span class="wh-sr">{h.month || 'Month'}</span>
+            <select data-wh-month aria-label={h.month || 'Month'}>
+              <option value="">{h.month || 'Month'}</option>
+              {months.map((m, i) => <option value={i + 1}>{m}</option>)}
+            </select>
+          </label>
+          <span class="wh-birth-out" data-wh-birth-out aria-live="polite"></span>
+        </div>
+        <p class="wh-birth-note">{h.birthNote}</p>
+      </form>
+    </div>
+
+    <div class="wh-wheel-wrap">
+      <div class="wh-wheel" data-wh-wheel tabindex="0" role="listbox" aria-label={h.wheelLabel || 'Zodiac wheel'}>
+        <div class="wh-ring" data-wh-ring>
+          {SIGNS.map((s, i) => (
+            <button type="button" class="wh-seat" style={`--i:${i}`} data-wh-seat={s.id} role="option" aria-selected="false" aria-label={`${s.name}, ${dates(s)}`}>
+              <span class="wh-seat-in"><WhGlyph id={s.id} size={30} /><b>{s.name}</b></span>
+            </button>
+          ))}
+        </div>
+        <div class="wh-pointer" aria-hidden="true"></div>
+        <div class="wh-hub">
+          <img src={asset(h.hub || config.assets.logo)} alt={h.hubAlt || config.name} width="640" height="640" />
+        </div>
+      </div>
+      <div class="wh-wheel-foot">
+        <button type="button" class="wh-round" data-wh-turn="-1" aria-label={h.prev || 'Previous sign'}>‹</button>
+        <p class="wh-wheel-now" aria-live="polite">
+          <b class="font-heading" data-wh-now-name>{h.none}</b>
+          <span data-wh-now-dates>{h.noneHint}</span>
+        </p>
+        <button type="button" class="wh-round" data-wh-turn="1" aria-label={h.next || 'Next sign'}>›</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const el = document.querySelector<HTMLElement>('[data-wh-wheel]');
+  const wh = (window as any).wh;
+  if (el && wh) {
+    const ring = el.querySelector<HTMLElement>('[data-wh-ring]')!;
+    const seats = [...el.querySelectorAll<HTMLButtonElement>('[data-wh-seat]')];
+    const nowName = document.querySelector<HTMLElement>('[data-wh-now-name]')!;
+    const nowDates = document.querySelector<HTMLElement>('[data-wh-now-dates]')!;
+    const ids: string[] = wh.signs.map((s: any) => s.id);
+    let rot = 0, index = -1;
+
+    const apply = (animate = true) => { ring.classList.toggle('is-still', !animate); ring.style.setProperty('--rot', `${rot}deg`); };
+    const show = (id: string) => {
+      const i = ids.indexOf(id); if (i < 0) return;
+      // shortest way round from where the wheel stands now
+      const target = -i * 30; let d = ((target - rot) % 360 + 540) % 360 - 180;
+      rot += d; index = i; apply();
+      seats.forEach((b, k) => { b.classList.toggle('is-on', k === i); b.setAttribute('aria-selected', String(k === i)); });
+      const s = wh.signOf(id); nowName.textContent = s.name; nowDates.textContent = s.dates;
+    };
+    const step = (dir: number) => wh.setSign(ids[((index < 0 ? (dir > 0 ? -1 : 0) : index) + dir + 12) % 12], 'wheel');
+
+    seats.forEach((b) => b.addEventListener('click', () => { if (!dragged) wh.setSign(b.dataset.whSeat!, 'wheel'); }));
+    document.querySelectorAll<HTMLButtonElement>('[data-wh-turn]').forEach((b) => b.addEventListener('click', () => step(Number(b.dataset.whTurn))));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); step(1); }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); step(-1); }
+    });
+
+    // Drag to turn. Vertical swipes still scroll the page (touch-action: pan-y), so the wheel never traps a finger.
+    let start: { a: number; rot: number } | null = null, dragged = false;
+    const angle = (e: PointerEvent) => { const r = el.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI; };
+    el.addEventListener('pointerdown', (e) => { if (e.button) return; start = { a: angle(e), rot }; dragged = false; });
+    el.addEventListener('pointermove', (e) => {
+      if (!start) return;
+      let d = angle(e) - start.a; d = ((d % 360) + 540) % 360 - 180;
+      if (!dragged && Math.abs(d) < 4) return;
+      if (!dragged) { dragged = true; try { el.setPointerCapture(e.pointerId); } catch { /* ok */ } }
+      rot = start.rot + d; apply(false);
+    });
+    const drop = () => {
+      if (!start) return; start = null;
+      if (!dragged) return;
+      const i = ((Math.round(-rot / 30) % 12) + 12) % 12;
+      rot = Math.round(rot / 30) * 30; index = i; apply();
+      if (ids[i] === wh.sign) show(ids[i]); else wh.setSign(ids[i], 'wheel');
+      setTimeout(() => { dragged = false; }, 0);
+    };
+    el.addEventListener('pointerup', drop); el.addEventListener('pointercancel', drop);
+
+    wh.on('wh:sign', (d: any) => show(d.id));
+    if (wh.sign) show(wh.sign);
+
+    // Birthday → sign. Nothing leaves the browser.
+    const day = document.querySelector<HTMLSelectElement>('[data-wh-day]')!, month = document.querySelector<HTMLSelectElement>('[data-wh-month]')!;
+    const out = document.querySelector<HTMLElement>('[data-wh-birth-out]')!;
+    const pick = () => {
+      const d = Number(day.value), m = Number(month.value); if (!d || !m) return;
+      const id = wh.signFor(m, d); if (!id) return;
+      out.textContent = wh.signOf(id).name; wh.setSign(id, 'birth'); if (id === wh.sign) show(id);
+    };
+    day.addEventListener('change', pick); month.addEventListener('change', pick);
+
+    // Issue number and date next to the rubric
+    const tag = document.querySelector<HTMLElement>('[data-wh-hero-issue]');
+    wh.whenReady(() => { const i = wh.issues[0]; if (tag && i) tag.textContent = `#${i.no} · ${i.date}`; });
+    (el as any).wheel = { show, step, get rot() { return rot; }, get index() { return index; } };   // test hook
+  }
+</script>

@@ -1,0 +1,42 @@
+---
+// How an issue is written: the four steps of the agent, and next to them the log of the issue on screen
+// (the readings the agent took this morning, in the order it took them).
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const h = wheel.how || {};
+const steps: { title: string; text: string }[] = h.steps || [];
+---
+<section id="how" class="wh-sec">
+  <div class="wh-in">
+    <WhHead kicker={h.kicker} title={h.title} />
+    <div class="wh-how">
+      <ol class="wh-steps">
+        {steps.map((s, i) => (
+          <li class="wh-glass" data-wh-in>
+            <span class="wh-step-no font-heading">{i + 1}</span>
+            <div><h3 class="font-heading">{s.title}</h3><p>{s.text}</p></div>
+          </li>
+        ))}
+      </ol>
+      <aside class="wh-log" data-wh-in>
+        <p class="wh-tag">{h.logTag} <span data-wh-log-date></span></p>
+        <ol class="wh-log-list" data-wh-log><li>{h.logEmpty}</li></ol>
+        <p class="wh-log-note">{h.logNote}</p>
+      </aside>
+    </div>
+  </div>
+</section>
+<script>
+  const list = document.querySelector<HTMLElement>('[data-wh-log]');
+  const wh = (window as any).wh;
+  if (list && wh) {
+    const date = document.querySelector<HTMLElement>('[data-wh-log-date]')!;
+    const paint = (issue: any) => {
+      if (!issue?.notes?.length) return;
+      date.textContent = `· ${issue.date}`; list.textContent = '';
+      for (const n of issue.notes) { const li = document.createElement('li'); li.textContent = n.text; if (n.type === 'note') li.className = 'is-note'; list.append(li); }
+    };
+    wh.whenReady(() => paint(wh.issues[0]));
+    wh.on('wh:open', (d: any) => paint(wh.issues.find((x: any) => x.date === d.date)));
+  }
+</script>

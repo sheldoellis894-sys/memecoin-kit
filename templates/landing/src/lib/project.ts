@@ -136,6 +136,28 @@ export type Config = {
     sample: { wallet: string; steps: { type: string; text: string }[]; facts: Record<string, any>; review: Record<string, any> };
     shareText: string;
   };
+  /** Wording and data of the "wheel" layout (sections wheel*). See projects/horocope/project.config.json for a full example. */
+  wheel?: Record<string, any>;
+  /** Agent tool "Morning issue" (section wheelIssue): a horoscope written once a day by api/issue-run.js on a schedule and read from api/issue.js. */
+  issue?: {
+    enabled: boolean; kicker?: string; title: string; lead?: string;
+    /** Address of the reading function. Default "/api/issue". */
+    endpoint?: string;
+    /** Days of the archive open to everyone. Default 7. Older days need the holder preview. */
+    freeDays?: number;
+    /** Small tag printed in the corner of every card unless the holder preview is on. */
+    watermark?: string;
+    /** Picture of the hero next to the entry (transparent or square). Default: the logo. */
+    oracle?: string; oracleAlt?: string;
+    /** Pictures of the hero for a low day (score 1–3), a middling day (4–7) and a high day (8–10). Optional. */
+    poses?: { low?: string; mid?: string; high?: string };
+    labels: Record<string, string>;
+    /** Lines for the compatibility of two signs, picked by the sum of their scores: the first rule with sum <= max wins. */
+    compat: { max: number; text: string }[];
+    /** An invented issue shown as a sample when the function is not reachable or has no issues yet. Same shape as a stored issue. */
+    sample: Record<string, any>;
+    shareText: string;
+  };
   /** Mascot that grows while the page is scrolled (section bossGrow). */
   boss?: { sprite: string; label: string; unit: string; from: number; to: number; note?: string; dismiss?: string };
   /** Wording of the "contract" layout (sections paper*). See projects/fch/project.config.json for a full example. */

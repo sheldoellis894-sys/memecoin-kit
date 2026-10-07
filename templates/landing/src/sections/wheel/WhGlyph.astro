@@ -1,0 +1,7 @@
+---
+// Glyph of a zodiac sign, drawn with a round stroke so it matches the fat heading font.
+import { SIGNS } from '../../lib/wheel';
+const { id, size = 24 } = Astro.props;
+const sign = SIGNS.find((s) => s.id === id) || SIGNS[0];
+---
+<svg class="wh-glyph" viewBox="0 0 24 24" width={size} height={size} aria-hidden="true"><path d={sign.glyph} /></svg>

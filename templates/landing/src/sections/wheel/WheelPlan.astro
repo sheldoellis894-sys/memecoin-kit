@@ -1,0 +1,21 @@
+---
+// Roadmap of the "wheel" layout: phases as transits, one card each.
+import { config } from '../../lib/project';
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const p = wheel.plan || {};
+---
+<section id="plan" class="wh-sec">
+  <div class="wh-in">
+    <WhHead kicker={p.kicker} title={p.title} />
+    <ol class="wh-plan">
+      {config.roadmap.map((r) => (
+        <li class="wh-glass" data-wh-in>
+          <p class="wh-tag">{r.phase}</p>
+          <h3 class="font-heading">{r.title}</h3>
+          <ul class="wh-dots">{r.items.map((t) => <li>{t}</li>)}</ul>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

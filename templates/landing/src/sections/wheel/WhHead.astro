@@ -1,0 +1,9 @@
+---
+// Heading of a section in the "wheel" layout: a small rubric with a star, then the title.
+const { kicker, title, level = 2, light = false, center = false } = Astro.props;
+const H = `h${level}` as any;
+---
+<header class:list={['wh-head', light && 'is-light', center && 'is-center']} data-wh-in>
+  {kicker && <p class="wh-kicker"><span class="wh-spark" aria-hidden="true"></span>{kicker}</p>}
+  <H class="wh-title font-heading">{title}</H>
+</header>

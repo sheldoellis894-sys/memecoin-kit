@@ -1,0 +1,22 @@
+---
+// What the token gives: two columns (everyone / holders) and an honest note about what is not built yet.
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const h = wheel.holders || {};
+const cols: { title: string; tag: string; items: string[]; mark?: boolean }[] = h.columns || [];
+---
+<section id="token" class="wh-sec">
+  <div class="wh-in">
+    <WhHead kicker={h.kicker} title={h.title} />
+    <div class="wh-cols">
+      {cols.map((c) => (
+        <div class:list={['wh-glass wh-col', c.mark && 'is-mark']} data-wh-in>
+          <p class="wh-tag">{c.tag}</p>
+          <h3 class="font-heading">{c.title}</h3>
+          <ul class="wh-dots">{c.items.map((t) => <li>{t}</li>)}</ul>
+        </div>
+      ))}
+    </div>
+    <div class="wh-note" data-wh-in><p class="wh-tag">{h.noteTag}</p><p>{h.note}</p></div>
+  </div>
+</section>

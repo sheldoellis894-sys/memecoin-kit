@@ -83,6 +83,22 @@ import GuideRules from '../sections/guide/GuideRules.astro';
 import GuideReserve from '../sections/guide/GuideReserve.astro';
 import GuideFooter from '../sections/guide/GuideFooter.astro';
 
+// Layout "wheel": the site is a zodiac wheel; the tool is a daily horoscope written by an agent on a schedule
+import WheelShell from '../sections/wheel/WheelShell.astro';
+import WheelHero from '../sections/wheel/WheelHero.astro';
+import WheelIssue from '../sections/wheel/WheelIssue.astro';
+import WheelAbout from '../sections/wheel/WheelAbout.astro';
+import WheelHow from '../sections/wheel/WheelHow.astro';
+import WheelHolders from '../sections/wheel/WheelHolders.astro';
+import WheelMoons from '../sections/wheel/WheelMoons.astro';
+import WheelStars from '../sections/wheel/WheelStars.astro';
+import WheelCalendar from '../sections/wheel/WheelCalendar.astro';
+import WheelBubbles from '../sections/wheel/WheelBubbles.astro';
+import WheelPlan from '../sections/wheel/WheelPlan.astro';
+import WheelRules from '../sections/wheel/WheelRules.astro';
+import WheelBall from '../sections/wheel/WheelBall.astro';
+import WheelFooter from '../sections/wheel/WheelFooter.astro';
+
 const registry: Record<string, any> = {
   header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
   tokenomics: Tokenomics, gallery: Gallery, roadmap: Roadmap, footer: Footer, marquee: Marquee, digGame: DigGame,
@@ -100,6 +116,9 @@ const registry: Record<string, any> = {
   vaultDoor: VaultDoor, vaultFooter: VaultFooter,  guideShell: GuideShell, guideCover: GuideCover, guideAbout: GuideAbout, guideStars: GuideStars, guideInspect: GuideInspect,
   guideHolders: GuideHolders, guideBook: GuideBook, guideLabel: GuideLabel, guidePlates: GuidePlates, guideEditions: GuideEditions,
   guideRules: GuideRules, guideReserve: GuideReserve, guideFooter: GuideFooter,
+  wheelShell: WheelShell, wheelHero: WheelHero, wheelIssue: WheelIssue, wheelAbout: WheelAbout, wheelHow: WheelHow,
+  wheelHolders: WheelHolders, wheelMoons: WheelMoons, wheelStars: WheelStars, wheelCalendar: WheelCalendar, wheelBubbles: WheelBubbles,
+  wheelPlan: WheelPlan, wheelRules: WheelRules, wheelBall: WheelBall, wheelFooter: WheelFooter,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);

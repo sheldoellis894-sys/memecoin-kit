@@ -1,0 +1,27 @@
+---
+// Footer of the "wheel" layout: name, links and the short note.
+import { config, asset } from '../../lib/project';
+import { wheel } from '../../lib/wheel';
+const f = wheel.footer || {};
+const links = [
+  config.links.x && { label: 'X', url: config.links.x },
+  config.links.telegram && { label: 'Telegram', url: config.links.telegram },
+  config.links.pumpfun && { label: 'pump.fun', url: config.links.pumpfun },
+  config.links.dexscreener && { label: 'DexScreener', url: config.links.dexscreener },
+].filter(Boolean) as { label: string; url: string }[];
+---
+<footer class="wh-footer">
+  <div class="wh-in wh-footer-in">
+    <div class="wh-footer-brand">
+      <img src={asset(config.assets.logo)} alt="" width="56" height="56" loading="lazy" />
+      <div>
+        <p class="font-heading wh-footer-name">{config.name} <span class="font-ticker">${config.ticker}</span></p>
+        <p class="wh-footer-tag">{f.tag}</p>
+      </div>
+    </div>
+    <ul class="wh-footer-links">
+      {links.map((l) => <li><a class="wh-btn wh-btn-small wh-btn-ghost" href={l.url} target="_blank" rel="noopener noreferrer">{l.label}</a></li>)}
+    </ul>
+    <p class="wh-footer-note">{f.note}</p>
+  </div>
+</footer>

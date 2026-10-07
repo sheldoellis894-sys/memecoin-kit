@@ -1,0 +1,21 @@
+{
+  "name": "aura",
+  "flavor": "wheel",
+  "colors": {
+    "bg": "#E3D2FF",
+    "surface": "#FFFFFF",
+    "text": "#1F1B3A",
+    "muted": "#5B557C",
+    "primary": "#1F1B3A",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#FF5FB7",
+    "accent": "#3D7BFF"
+  },
+  "fonts": {
+    "heading": "Bagel Fat One",
+    "body": "Nunito",
+    "googleFonts": "family=Bagel+Fat+One&family=Nunito:wght@400..900",
+    "ticker": "heading"
+  },
+  "radius": { "button": "999px", "card": "28px" }
+}

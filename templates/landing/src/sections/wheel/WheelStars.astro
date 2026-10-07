@@ -1,0 +1,53 @@
+---
+// Tokenomics as a constellation: every item is a star, a line joins them when the section scrolls into view.
+// The line is measured from the real places of the stars, so it follows any layout (one column on a phone, several on a desktop).
+import { config } from '../../lib/project';
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const s = wheel.stars || {};
+const ca = config.ca.trim();
+---
+<section id="stars" class="wh-sec wh-night">
+  <div class="wh-in">
+    <WhHead kicker={s.kicker} title={s.title} light />
+    <p class="wh-supply"><span class="wh-tag">{s.supplyLabel}</span><b class="font-heading">{config.tokenomics.supply}</b></p>
+    <div class="wh-const" data-wh-const>
+      <svg class="wh-const-line" aria-hidden="true"><polyline data-wh-const-path points="" /></svg>
+      <ul>
+        {config.tokenomics.items.map((it, i) => (
+          <li style={`--i:${i}`}>
+            <span class="wh-star" data-wh-star aria-hidden="true"></span>
+            <b class="font-heading">{it.value}</b>
+            <span>{it.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="wh-ca">
+      <p class="wh-tag">{s.caLabel || 'Contract address'}</p>
+      {ca ? <p class="wh-ca-row"><code>{ca}</code><button type="button" class="wh-btn wh-btn-small wh-btn-light" data-wh-copy={ca}>{s.copy || 'Copy'}</button></p> : <p class="wh-ca-empty">{s.caEmpty}</p>}
+    </div>
+  </div>
+</section>
+<script>
+  const box = document.querySelector<HTMLElement>('[data-wh-const]');
+  if (box) {
+    const path = box.querySelector<SVGPolylineElement>('[data-wh-const-path]')!;
+    const stars = [...box.querySelectorAll<HTMLElement>('[data-wh-star]')];
+    const measure = () => {
+      const r = box.getBoundingClientRect();
+      const pts = stars.map((s) => { const q = s.getBoundingClientRect(); return [q.left + q.width / 2 - r.left, q.top + q.height / 2 - r.top]; });
+      path.setAttribute('points', pts.map((p) => p.map((n) => Math.round(n * 10) / 10).join(',')).join(' '));
+      let len = 0; for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+      box.style.setProperty('--len', String(Math.ceil(len) + 2));
+    };
+    measure(); addEventListener('resize', measure); (document as any).fonts?.ready?.then(measure);
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { io.disconnect(); measure(); box.classList.add('is-drawn'); } }), { threshold: 0.3 });
+      io.observe(box);
+    } else box.classList.add('is-drawn');
+  }
+  document.querySelectorAll<HTMLButtonElement>('[data-wh-copy]').forEach((b) => b.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(b.dataset.whCopy || ''); const t = b.textContent; b.textContent = '✓'; setTimeout(() => { b.textContent = t; }, 1400); } catch { /* clipboard is not available */ }
+  }));
+</script>

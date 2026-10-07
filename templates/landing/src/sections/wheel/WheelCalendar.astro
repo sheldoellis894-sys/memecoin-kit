@@ -1,0 +1,60 @@
+---
+// The archive as a moon calendar: the last four weeks, every day drawn with the real phase of the moon for that date.
+// Days that have an issue can be opened (the issue appears in the "today" section). Without the holder preview
+// only the last days are open (config.issue.freeDays), the older ones show a lock.
+import { wheel, issueCfg } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const c = wheel.calendar || {};
+const data = JSON.stringify({ days: c.days || 28, free: issueCfg.freeDays || 7, labels: c.labels || {} });
+---
+<section id="archive" class="wh-sec wh-night">
+  <div class="wh-in">
+    <WhHead kicker={c.kicker} title={c.title} light />
+    <p class="wh-lead">{c.lead}</p>
+    <div class="wh-cal" data-wh-cal={data}></div>
+    <p class="wh-cal-note" data-wh-cal-note aria-live="polite">{c.note}</p>
+  </div>
+</section>
+<script>
+  const box = document.querySelector<HTMLElement>('[data-wh-cal]');
+  const wh = (window as any).wh;
+  if (box && wh) {
+    const cfg = JSON.parse(box.dataset.whCal!); const L: Record<string, string> = cfg.labels;
+    const note = document.querySelector<HTMLElement>('[data-wh-cal-note]')!;
+    const baseNote = note.textContent || '';
+    const SYN = 29.530588853, NEW = Date.UTC(2000, 0, 6, 18, 14);
+    /** Phase of the moon for a date: 0 = new, 0.5 = full. */
+    const phase = (t: number) => { const p = ((t - NEW) / 86400000 / SYN) % 1; return p < 0 ? p + 1 : p; };
+    const moon = (p: number) => {
+      const r = 17, c = 20, k = Math.cos(2 * Math.PI * p), rx = Math.max(0.01, Math.abs(k) * r).toFixed(2);
+      const waxing = p < 0.5, outer = waxing ? 1 : 0, inner = waxing ? (k > 0 ? 0 : 1) : (k > 0 ? 1 : 0);
+      return `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" class="wh-cal-dark"/><path class="wh-cal-lit" d="M${c} ${c - r}A${r} ${r} 0 0 ${outer} ${c} ${c + r}A${rx} ${r} 0 0 ${inner} ${c} ${c - r}Z"/></svg>`;
+    };
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let opened = '';
+    const paint = () => {
+      const now = new Date(); const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+      const have = new Map<string, any>(wh.issues.map((i: any) => [i.date, i]));
+      box.textContent = '';
+      for (let k = cfg.days - 1; k >= 0; k--) {
+        const t = today - k * 86400000, d = new Date(t), iso = d.toISOString().slice(0, 10);
+        const issue = have.get(iso), locked = Boolean(issue) && k >= cfg.free && !wh.holder;
+        const b = document.createElement('button'); b.type = 'button';
+        b.className = `wh-day${issue ? ' has-issue' : ''}${locked ? ' is-locked' : ''}${k === 0 ? ' is-today' : ''}${iso === opened ? ' is-open' : ''}`;
+        b.innerHTML = `${moon(phase(t + 43200000))}<b>${d.getUTCDate()}</b><span>${months[d.getUTCMonth()]}</span>`;
+        b.setAttribute('aria-label', `${iso}${issue ? `: ${L.issue || 'issue'} #${issue.no}` : `: ${L.empty || 'no issue'}`}${locked ? `, ${L.locked || 'holders only'}` : ''}`);
+        if (!issue) b.disabled = true;
+        b.addEventListener('click', () => {
+          if (locked) { note.textContent = L.lockedNote || ''; return; }
+          opened = iso; note.textContent = (L.opened || '').replace('{date}', iso).replace('{no}', String(issue.no)) || baseNote;
+          document.dispatchEvent(new CustomEvent('wh:open', { detail: { date: iso } }));
+          paint();
+          document.getElementById('today')?.scrollIntoView({ behavior: wh.calm ? 'auto' : 'smooth' });
+        });
+        box.append(b);
+      }
+    };
+    wh.whenReady(paint); wh.on('wh:holder', paint);
+    (box as any).cal = { phase, paint };   // test hook
+  }
+</script>

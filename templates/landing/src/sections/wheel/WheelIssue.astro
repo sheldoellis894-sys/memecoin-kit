@@ -1,0 +1,317 @@
+---
+// The tool of the "wheel" layout: the morning issue of the horoscope.
+// The issue is written once a day by an agent on the server (api/issue-run.js on a schedule) and read from api/issue.js.
+// This section shows the sky of the day, the entry for the chosen sign (it comes out of the fog and is typed letter by letter),
+// the planet to blame with a button for blaming it, all twelve signs with their scores, a picture card for X,
+// and the holder preview (clean card, compatibility of two signs, the whole archive). Nothing is sent by the visitor.
+// The picture of the hero next to the entry changes with the score: config.issue.poses = { low, mid, high }.
+// Wording comes from config.issue, colors from the theme. Test hook: root.issue.
+import { config, asset } from '../../lib/project';
+import { issueCfg as c, SIGNS } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+import WhGlyph from './WhGlyph.astro';
+const L: Record<string, string> = c.labels || {};
+const data = JSON.stringify({
+  labels: L, watermark: c.watermark || '', shareText: c.shareText || '', compat: c.compat || [],
+  name: config.name, ticker: config.ticker, tagline: config.tagline, url: config.url || '',
+  planetWord: L.planet || 'Planet to blame',
+  poses: Object.fromEntries(Object.entries(c.poses || {}).map(([k, v]) => [k, asset(v as string)])),
+});
+---
+<section id="today" class="wh-sec wh-issue" data-wh-issue={data}>
+  <div class="wh-in">
+    <WhHead kicker={c.kicker} title={c.title} />
+    <p class="wh-lead">{c.lead}</p>
+
+    <div class="wh-sample-note" data-wh-sample hidden><b>{L.sampleTag}</b> {L.sample}</div>
+
+    <div class="wh-skycard wh-glass" data-wh-in>
+      <div class="wh-skycard-top">
+        <p class="wh-tag"><span data-wh-date>—</span> · <span data-wh-no></span></p>
+        <p class="wh-count" data-wh-next aria-live="off"></p>
+      </div>
+      <h3 class="wh-skycard-title font-heading" data-wh-headline>{L.loading}</h3>
+      <p class="wh-skycard-text" data-wh-sky></p>
+      <ul class="wh-facts" data-wh-facts></ul>
+      <div class="wh-blame">
+        <p class="wh-blame-who"><span class="wh-tag">{L.planetOfDay}</span><b class="font-heading" data-wh-planet>—</b></p>
+        <button type="button" class="wh-btn wh-btn-pink" data-wh-blame><span data-wh-blame-label>{L.blame}</span></button>
+        <p class="wh-blame-count" aria-live="polite"><span data-wh-blame-n>0</span> {L.blamed}</p>
+      </div>
+    </div>
+
+    <div class="wh-reading">
+      <figure class="wh-oracle" data-wh-in>
+        <img src={asset(c.oracle || config.assets.logo)} alt={c.oracleAlt || ''} width="640" height="640" loading="lazy" data-wh-oracle />
+        <figcaption>{L.oracleLine}</figcaption>
+      </figure>
+
+      <article class="wh-entry wh-glass" data-wh-entry aria-live="polite">
+        <div class="wh-entry-empty" data-wh-empty>
+          <p class="font-heading">{L.pickTitle}</p>
+          <p>{L.pickText}</p>
+        </div>
+        <div class="wh-entry-body" data-wh-body hidden>
+          <header class="wh-entry-head">
+            <span class="wh-entry-glyph"><svg class="wh-glyph" viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path data-wh-entry-glyph d="" /></svg></span>
+            <div>
+              <h3 class="font-heading" data-wh-entry-name></h3>
+              <p class="wh-tag" data-wh-entry-dates></p>
+            </div>
+            <p class="wh-score"><b class="font-heading" data-wh-score>0</b><span>/10</span></p>
+          </header>
+          <div class="wh-meter" data-wh-meter aria-hidden="true">{Array.from({ length: 10 }, () => <i></i>)}</div>
+          <p class="wh-culprit"><span class="wh-tag">{L.planet}</span> <b data-wh-culprit></b></p>
+          <p class="wh-entry-text" data-wh-text></p>
+          <p class="wh-entry-closing" data-wh-closing></p>
+          <div class="wh-actions wh-entry-actions">
+            <button type="button" class="wh-btn" data-wh-save>{L.save}</button>
+            <button type="button" class="wh-btn wh-btn-ghost" data-wh-share>{L.share}</button>
+          </div>
+          <p class="wh-entry-note" data-wh-entry-note></p>
+        </div>
+        <div class="wh-fog" data-wh-fog aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      </article>
+    </div>
+
+    <div class="wh-all" data-wh-in>
+      <p class="wh-tag">{L.all}</p>
+      <div class="wh-signs" role="list">
+        {SIGNS.map((s) => (
+          <button type="button" class="wh-sign" data-wh-pick={s.id} role="listitem">
+            <WhGlyph id={s.id} size={22} /><span>{s.name}</span><b data-wh-pick-score></b>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div class="wh-holder wh-glass" data-wh-in>
+      <div class="wh-holder-top">
+        <div>
+          <p class="wh-tag">{L.holderTag}</p>
+          <h3 class="font-heading">{L.holderTitle}</h3>
+        </div>
+        <label class="wh-switch">
+          <input type="checkbox" data-wh-holder />
+          <span class="wh-switch-track" aria-hidden="true"></span>
+          <span>{L.holderSwitch}</span>
+        </label>
+      </div>
+      <p class="wh-holder-note">{L.holderNote}</p>
+      <div class="wh-compat" data-wh-compat hidden>
+        <p class="wh-tag">{L.compatTitle}</p>
+        <div class="wh-compat-row">
+          <select data-wh-compat-a aria-label={L.compatA}>{SIGNS.map((s) => <option value={s.id}>{s.name}</option>)}</select>
+          <span aria-hidden="true">+</span>
+          <select data-wh-compat-b aria-label={L.compatB}>{SIGNS.map((s, i) => <option value={s.id} selected={i === 6}>{s.name}</option>)}</select>
+        </div>
+        <p class="wh-compat-out" data-wh-compat-out aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+  <canvas data-wh-canvas width="1080" height="1350" hidden></canvas>
+  <a data-wh-download hidden></a>
+</section>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-wh-issue]');
+  const wh = (window as any).wh;
+  if (root && wh) {
+    const cfg = JSON.parse(root.dataset.whIssue!);
+    const L: Record<string, string> = cfg.labels;
+    const $ = <T extends HTMLElement = HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const fmt = (n: number) => `${n > 0 ? '+' : ''}${n}%`;
+    let issue: any = null;            // the issue on screen (today's, or one opened from the calendar)
+    let typing = 0, lastTyped = '';
+
+    // ---------- the sky of the day ----------
+    const paintSky = () => {
+      if (!issue) { $('[data-wh-headline]').textContent = L.none; return; }
+      $('[data-wh-date]').textContent = issue.date;
+      $('[data-wh-no]').textContent = `${L.issue} #${issue.no}`;
+      $('[data-wh-headline]').textContent = issue.headline;
+      $('[data-wh-sky]').textContent = (issue.sky || []).join(' ');
+      $('[data-wh-planet]').textContent = issue.planet;
+      $('[data-wh-blame-label]').textContent = `${L.blame} ${issue.planet}`;
+      const f = issue.facts || {}; const rows: [string, string][] = [];
+      if (f.sol_change_24h_pct !== null && f.sol_change_24h_pct !== undefined) rows.push([L.fSol, fmt(f.sol_change_24h_pct)]);
+      if (f.tokens_read) rows.push([L.fRed, `${f.red_tokens}/${f.tokens_read}`]);
+      if (f.worst_change_pct !== null && f.worst_change_pct !== undefined) rows.push([L.fWorst, fmt(f.worst_change_pct)]);
+      if (f.best_change_pct !== null && f.best_change_pct !== undefined) rows.push([L.fBest, fmt(f.best_change_pct)]);
+      if (f.born_in_last_hour !== null && f.born_in_last_hour !== undefined) rows.push([L.fBorn, String(f.born_in_last_hour)]);
+      const ul = $('[data-wh-facts]'); ul.textContent = '';
+      for (const [k, v] of rows) { const li = document.createElement('li'); const b = document.createElement('b'); b.className = 'font-heading'; b.textContent = v; const s = document.createElement('span'); s.textContent = k; li.append(b, s); ul.append(li); }
+      root.querySelectorAll<HTMLElement>('[data-wh-pick]').forEach((b) => {
+        const e = issue.signs.find((x: any) => x.id === b.dataset.whPick);
+        b.querySelector<HTMLElement>('[data-wh-pick-score]')!.textContent = e ? String(e.score) : '';
+      });
+      $('[data-wh-sample]').hidden = !wh.sample;
+    };
+
+    // ---------- the entry for the chosen sign ----------
+    const entryOf = (i: any, id: string) => i?.signs?.find((x: any) => x.id === id);
+    const type = (el: HTMLElement, text: string) => {
+      cancelAnimationFrame(typing);
+      if (wh.calm) { el.textContent = text; el.classList.add('is-done'); return; }
+      el.textContent = ''; el.classList.remove('is-done');
+      const t0 = performance.now() + 620;          // the fog clears first
+      const tick = (t: number) => {
+        const n = Math.max(0, Math.floor((t - t0) / 16));
+        el.textContent = text.slice(0, n);
+        if (n < text.length) typing = requestAnimationFrame(tick); else el.classList.add('is-done');
+      };
+      typing = requestAnimationFrame(tick);
+    };
+    const paintEntry = (reveal = true) => {
+      const s = wh.signOf(wh.sign); const e = entryOf(issue, wh.sign);
+      const has = Boolean(s && e);
+      $('[data-wh-empty]').hidden = has; $('[data-wh-body]').hidden = !has;
+      root.querySelectorAll<HTMLElement>('[data-wh-pick]').forEach((b) => b.classList.toggle('is-on', b.dataset.whPick === wh.sign));
+      const entry = $('[data-wh-entry]');
+      if (!has) { entry.classList.remove('is-clear'); return; }
+      root.querySelector<SVGPathElement>('[data-wh-entry-glyph]')!.setAttribute('d', s.glyph);
+      $('[data-wh-entry-name]').textContent = s.name;
+      $('[data-wh-entry-dates]').textContent = s.dates;
+      $('[data-wh-score]').textContent = String(e.score);
+      [...$('[data-wh-meter]').children].forEach((d, k) => d.classList.toggle('is-on', k < e.score));
+      entry.dataset.mood = e.score <= 3 ? 'low' : e.score >= 8 ? 'high' : 'mid';
+      // the hero has a pose for a low, a middling and a high day (config.issue.poses)
+      const pose = cfg.poses[entry.dataset.mood]; const pic = root.querySelector<HTMLImageElement>('[data-wh-oracle]');
+      if (pose && pic && !pic.src.endsWith(pose)) pic.src = pose;
+      $('[data-wh-culprit]').textContent = e.planet;
+      $('[data-wh-closing]').textContent = issue.closing || '';
+      $('[data-wh-entry-note]').textContent = e.score <= 3 ? L.tissue : '';
+      const key = `${issue.date}|${s.id}`;
+      if (reveal && key !== lastTyped) {
+        lastTyped = key;
+        entry.classList.remove('is-clear'); void entry.offsetWidth; entry.classList.add('is-clear');   // fog rolls in, then away
+        type($('[data-wh-text]'), e.text);
+      } else if (key !== lastTyped) { $('[data-wh-text]').textContent = e.text; }
+    };
+
+    const openIssue = (i: any, reveal = true) => { issue = i; paintSky(); paintEntry(reveal); paintCompat(); };
+    wh.whenReady(() => openIssue(wh.issues[0] || null));
+    wh.on('wh:sign', () => paintEntry());
+    wh.on('wh:open', (d: any) => { const i = wh.issues.find((x: any) => x.date === d.date); if (i) openIssue(i); });
+    root.querySelectorAll<HTMLButtonElement>('[data-wh-pick]').forEach((b) => b.addEventListener('click', () => wh.setSign(b.dataset.whPick!, 'list')));
+
+    // ---------- countdown to the next issue ----------
+    const next = $('[data-wh-next]');
+    const tick = () => {
+      if (!wh.ready) return;
+      if (wh.sample) { next.textContent = L.nextSample || ''; return; }
+      const now = new Date(); const t = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), wh.hour));
+      const today = now.toISOString().slice(0, 10);
+      if (now >= t && wh.issues[0]?.date !== today) { next.textContent = L.late; return; }
+      if (now >= t) t.setUTCDate(t.getUTCDate() + 1);
+      const s = Math.max(0, Math.floor((+t - +now) / 1000));
+      const p = (n: number) => String(n).padStart(2, '0');
+      next.textContent = `${L.next} ${p(Math.floor(s / 3600))}:${p(Math.floor(s / 60) % 60)}:${p(s % 60)}`;
+    };
+    setInterval(tick, 1000); wh.whenReady(tick);
+
+    // ---------- blame the planet ----------
+    const blameN = $('[data-wh-blame-n]');
+    let blamed = Number(wh.store.get('wh-blame')) || 0; blameN.textContent = String(blamed);
+    $('[data-wh-blame]').addEventListener('click', (ev) => {
+      blamed++; wh.store.set('wh-blame', String(blamed)); blameN.textContent = String(blamed);
+      blameN.classList.remove('is-bump'); void blameN.offsetWidth; blameN.classList.add('is-bump');
+      if (wh.calm) return;
+      const r = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+      const star = document.createElement('i'); star.className = 'wh-shoot';
+      star.style.left = `${r.left + r.width / 2}px`; star.style.top = `${r.top}px`;
+      star.style.setProperty('--dx', `${(Math.random() * 0.5 + 0.35) * innerWidth * (Math.random() < 0.5 ? -1 : 1)}px`);
+      document.body.append(star); setTimeout(() => star.remove(), 1100);
+    });
+
+    // ---------- holder preview and compatibility ----------
+    const compat = $('[data-wh-compat]');
+    const paintCompat = () => {
+      compat.hidden = !wh.holder; if (!wh.holder || !issue) return;
+      const a = entryOf(issue, $<HTMLSelectElement>('[data-wh-compat-a]').value), b = entryOf(issue, $<HTMLSelectElement>('[data-wh-compat-b]').value);
+      if (!a || !b) return;
+      const sum = a.score + b.score;
+      const rule = (cfg.compat as { max: number; text: string }[]).find((r) => sum <= r.max) || cfg.compat[cfg.compat.length - 1];
+      const A = wh.signOf(a.id).name, B = wh.signOf(b.id).name;
+      $('[data-wh-compat-out]').textContent = `${A} ${a.score}/10 + ${B} ${b.score}/10. ${(rule?.text || '').replace('{a}', a.planet).replace('{b}', b.planet)}`;
+    };
+    $<HTMLInputElement>('[data-wh-holder]').addEventListener('change', (e) => wh.setHolder((e.target as HTMLInputElement).checked));
+    wh.on('wh:holder', paintCompat);
+    root.querySelectorAll('[data-wh-compat-a], [data-wh-compat-b]').forEach((s) => s.addEventListener('change', paintCompat));
+
+    // ---------- the card: a picture 1080×1350 ----------
+    const canvas = $<HTMLCanvasElement>('[data-wh-canvas]');
+    const css = getComputedStyle(document.documentElement);
+    const col = (n: string, d: string) => css.getPropertyValue(n).trim() || d;
+    const headFont = `${css.getPropertyValue('--t-font-heading').trim() || 'sans-serif'}, sans-serif`;
+    const bodyFont = `${css.getPropertyValue('--t-font-body').trim() || 'sans-serif'}, sans-serif`;
+    const wrap = (ctx: CanvasRenderingContext2D, text: string, max: number) => {
+      const lines: string[] = []; let line = '';
+      for (const w of text.split(/\s+/)) { const t = line ? `${line} ${w}` : w; if (ctx.measureText(t).width > max && line) { lines.push(line); line = w; } else line = t; }
+      if (line) lines.push(line); return lines;
+    };
+    const draw = async () => {
+      const s = wh.signOf(wh.sign), e = entryOf(issue, wh.sign); if (!s || !e) return false;
+      try { await Promise.all([(document as any).fonts.load(`400 80px ${headFont}`), (document as any).fonts.load(`700 40px ${bodyFont}`)]); } catch { /* fall back to system fonts */ }
+      const ctx = canvas.getContext('2d')!; const W = 1080, H = 1350;
+      const ink = col('--t-text', '#1F1B3A'), pink = col('--t-secondary', '#FF5FB7'), blue = col('--t-accent', '#3D7BFF');
+      // aura
+      const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#FFC2E2'); g.addColorStop(0.5, '#D9C8FF'); g.addColorStop(1, '#B5E3FF');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const glow = (x: number, y: number, r: number, c: string) => { const q = ctx.createRadialGradient(x, y, 0, x, y, r); q.addColorStop(0, c); q.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = q; ctx.fillRect(0, 0, W, H); };
+      glow(160, 180, 520, 'rgba(255,95,183,.42)'); glow(960, 1180, 620, 'rgba(61,123,255,.36)'); glow(900, 220, 380, 'rgba(255,255,255,.55)');
+      // sheet
+      const rr = (x: number, y: number, w: number, h: number, r: number) => { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); };
+      ctx.fillStyle = 'rgba(255,255,255,.74)'; rr(60, 60, W - 120, H - 120, 56); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 4; rr(60, 60, W - 120, H - 120, 56); ctx.stroke();
+      // head
+      ctx.fillStyle = ink; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      ctx.font = `400 54px ${headFont}`; ctx.fillText(cfg.name, 120, 172);
+      ctx.font = `700 28px ${bodyFont}`; ctx.textAlign = 'right'; ctx.globalAlpha = 0.7;
+      ctx.fillText(`${wh.sample ? L.sampleTag + ' · ' : ''}${issue.date} · #${issue.no}`, W - 120, 168); ctx.globalAlpha = 1; ctx.textAlign = 'left';
+      // glyph in a glass ball
+      const cx = 250, cy = 372, R = 128;
+      const ball = ctx.createRadialGradient(cx - 44, cy - 52, 10, cx, cy, R); ball.addColorStop(0, '#FFFFFF'); ball.addColorStop(0.45, '#CFE7FF'); ball.addColorStop(1, '#C9B4FF');
+      ctx.fillStyle = ball; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = ink; ctx.lineWidth = 6; ctx.stroke();
+      ctx.save(); ctx.translate(cx - 78, cy - 78); ctx.scale(6.5, 6.5); ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = ink; ctx.stroke(new Path2D(s.glyph)); ctx.restore();
+      // name and score
+      ctx.fillStyle = ink; ctx.font = `400 104px ${headFont}`; ctx.fillText(s.name, 420, 372);
+      ctx.font = `700 34px ${bodyFont}`; ctx.globalAlpha = 0.7; ctx.fillText(s.dates, 424, 424); ctx.globalAlpha = 1;
+      ctx.font = `400 150px ${headFont}`; ctx.fillStyle = e.score <= 3 ? pink : e.score >= 8 ? blue : ink;
+      const sc = String(e.score); ctx.fillText(sc, 120, 690); const sw = ctx.measureText(sc).width;
+      ctx.font = `400 64px ${headFont}`; ctx.fillStyle = ink; ctx.fillText('/10', 120 + sw + 10, 690);
+      for (let k = 0; k < 10; k++) { ctx.beginPath(); ctx.arc(520 + k * 46, 650, 16, 0, Math.PI * 2); ctx.fillStyle = k < e.score ? (e.score <= 3 ? pink : blue) : 'rgba(31,27,58,.14)'; ctx.fill(); }
+      ctx.font = `800 30px ${bodyFont}`; ctx.fillStyle = ink; ctx.globalAlpha = 0.7; ctx.fillText(`${cfg.planetWord.toUpperCase()}: ${String(e.planet).toUpperCase()}`, 506, 598); ctx.globalAlpha = 1;
+      // text
+      ctx.fillStyle = ink; let size = 50; let lines: string[] = [];
+      for (; size >= 34; size -= 2) { ctx.font = `700 ${size}px ${bodyFont}`; lines = wrap(ctx, e.text, W - 240); if (lines.length * size * 1.32 <= 400) break; }
+      lines.forEach((l, k) => ctx.fillText(l, 120, 800 + k * size * 1.32));
+      // foot
+      ctx.fillStyle = 'rgba(31,27,58,.14)'; ctx.fillRect(120, 1160, W - 240, 3);
+      ctx.fillStyle = ink; ctx.font = `400 34px ${headFont}`; ctx.fillText(cfg.tagline, 120, 1222, W - 240);
+      if (!wh.holder && cfg.watermark) { ctx.font = `800 28px ${bodyFont}`; ctx.globalAlpha = 0.6; ctx.fillText(cfg.watermark, 120, 1266); ctx.globalAlpha = 1; }
+      return true;
+    };
+    const blobOf = () => new Promise<Blob | null>((res) => canvas.toBlob((b) => res(b), 'image/png'));
+    const fileName = () => `${cfg.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${wh.sign}-${issue.date}.png`;
+    $('[data-wh-save]').addEventListener('click', async () => {
+      if (!(await draw())) return; const blob = await blobOf(); if (!blob) return;
+      const a = $<HTMLAnchorElement>('[data-wh-download]'); const url = URL.createObjectURL(blob);
+      a.href = url; a.download = fileName(); a.click(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+    });
+    $('[data-wh-share]').addEventListener('click', async () => {
+      const s = wh.signOf(wh.sign), e = entryOf(issue, wh.sign); if (!s || !e) return;
+      const text = cfg.shareText.replace('{sign}', s.name).replace('{score}', String(e.score)).replace('{planet}', e.planet);
+      try {
+        if (await draw()) {
+          const blob = await blobOf(); const file = blob && new File([blob], fileName(), { type: 'image/png' });
+          if (file && (navigator as any).canShare?.({ files: [file] })) { await (navigator as any).share({ files: [file], text }); return; }
+        }
+      } catch { /* the visitor closed the sheet, or sharing files is not supported: open X instead */ }
+      open(`https://x.com/intent/post?text=${encodeURIComponent(text)}${cfg.url ? `&url=${encodeURIComponent(cfg.url)}` : ''}`, '_blank', 'noopener');
+    });
+
+    (root as any).issue = { draw, canvas, openIssue, get current() { return issue; }, get blamed() { return blamed; } };   // test hook
+  }
+</script>

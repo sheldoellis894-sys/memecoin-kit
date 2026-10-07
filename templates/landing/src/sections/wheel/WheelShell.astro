@@ -1,0 +1,139 @@
+---
+// Layout "wheel": the site is a zodiac wheel and a daily horoscope written by an agent on a schedule.
+// This section draws what stays in place while the page scrolls: the aura background that drifts from night to dawn,
+// the top bar with the chosen sign, and the shared state of the page (window.wh): the chosen sign, the issues, the holder preview.
+// Wording comes from config.wheel and config.issue, colors from the theme.
+import { config, asset } from '../../lib/project';
+import { wheel, issueCfg, signData } from '../../lib/wheel';
+const bar = wheel.bar || {};
+const nav: { id: string; label: string }[] = wheel.nav || [];
+const images: Record<string, string> = wheel.signImages || {};
+const data = JSON.stringify({
+  signs: signData.map((s) => ({ ...s, image: images[s.id] ? asset(images[s.id]) : '' })),
+  endpoint: issueCfg.enabled === false ? '' : issueCfg.endpoint || '/api/issue',
+  sample: issueCfg.sample || null,
+  freeDays: issueCfg.freeDays || 7,
+  sky: wheel.sky || null,
+  pick: bar.pick || 'Pick a sign',
+});
+---
+<div class="wh-sky" aria-hidden="true"><i class="wh-sky-a"></i><i class="wh-sky-b"></i><i class="wh-sky-c"></i><i class="wh-sky-stars"></i></div>
+<header class="wh-bar" data-wh-shell={data}>
+  <a href="#home" class="wh-brand" aria-label={config.name}>
+    <img src={asset(config.assets.logo)} alt="" width="40" height="40" />
+    <span class="font-heading">{config.shortName || config.name}</span>
+  </a>
+  <nav class="wh-nav" aria-label="Sections">
+    {nav.map((n) => <a href={`#${n.id}`} data-wh-nav={n.id}>{n.label}</a>)}
+  </nav>
+  <a class="wh-chip" href="#home" data-wh-chip aria-label={bar.chipLabel || 'Your sign'}>
+    <svg class="wh-glyph" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path data-wh-chip-glyph d="" /></svg>
+    <span data-wh-chip-name>{bar.pick || 'Pick a sign'}</span>
+  </a>
+  <a class="wh-btn wh-btn-small" href="#ball">{bar.buy || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+</header>
+
+<script>
+  type SignInfo = { id: string; name: string; dates: string; glyph: string; from: [number, number]; to: [number, number]; image: string };
+  const bar = document.querySelector<HTMLElement>('[data-wh-shell]');
+  if (bar) {
+    const cfg = JSON.parse(bar.dataset.whShell!);
+    const root = document.documentElement;
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    root.classList.add('wh-js');
+    if (!calm) root.classList.add('wh-motion');
+    const store = {
+      get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
+      set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
+    };
+    const signs: SignInfo[] = cfg.signs;
+    const fire = (name: string, detail?: unknown) => document.dispatchEvent(new CustomEvent(name, { detail }));
+
+    // ---- shared state ----
+    const wh: any = (window as any).wh = {
+      signs, calm, store,
+      sign: signs.some((s) => s.id === store.get('wh-sign')) ? store.get('wh-sign') : '',
+      holder: false,
+      issues: [] as any[], sample: false, live: false, hour: 6, ready: false,
+      signOf: (id: string) => signs.find((s) => s.id === id),
+      /** Sign for a birthday (month 1–12, day). */
+      signFor: (month: number, day: number) => signs.find((s) => (month === s.from[0] && day >= s.from[1]) || (month === s.to[0] && day <= s.to[1]))?.id || '',
+      setSign(id: string, from = '') { if (!wh.signOf(id) || id === wh.sign) return; wh.sign = id; store.set('wh-sign', id); paintChip(); fire('wh:sign', { id, from }); },
+      setHolder(on: boolean) { wh.holder = on; root.classList.toggle('wh-holder', on); fire('wh:holder', { on }); },
+      on: (name: string, fn: (d: any) => void) => document.addEventListener(name, (e) => fn((e as CustomEvent).detail)),
+      /** Runs fn once the issues are loaded (at once when they already are). */
+      whenReady(fn: () => void) { if (wh.ready) fn(); else document.addEventListener('wh:issues', () => fn(), { once: true }); },
+    };
+
+    // ---- the chosen sign in the bar ----
+    const chipGlyph = bar.querySelector<SVGPathElement>('[data-wh-chip-glyph]')!;
+    const chipName = bar.querySelector<HTMLElement>('[data-wh-chip-name]')!;
+    const chip = bar.querySelector<HTMLElement>('[data-wh-chip]')!;
+    const paintChip = () => {
+      const s = wh.signOf(wh.sign);
+      chip.classList.toggle('is-set', Boolean(s));
+      chipGlyph.setAttribute('d', s ? s.glyph : 'M12 3l2.200 6.200L20.500 12l-6.300 2.800L12 21l-2.200-6.200L3.500 12l6.300-2.800Z');
+      chipName.textContent = s ? s.name : cfg.pick;
+    };
+    paintChip();
+
+    // ---- the issues: from the function, or the sample from the config when the function is not there ----
+    // The sample is dated today, so the calendar and the countdown have something to show.
+    const useSample = () => { wh.issues = cfg.sample ? [{ ...cfg.sample, date: new Date().toISOString().slice(0, 10) }] : []; wh.sample = true; };
+    const loaded = () => { wh.ready = true; root.classList.toggle('wh-sample', wh.sample); fire('wh:issues'); };
+    const load = async () => {
+      if (!cfg.endpoint || location.protocol === 'file:') { useSample(); return loaded(); }
+      try {
+        const res = await fetch(cfg.endpoint, { headers: { accept: 'application/json' } });
+        if (!res.ok || !(res.headers.get('content-type') || '').includes('json')) throw new Error('no function');
+        const out = await res.json();
+        wh.live = Boolean(out.live); wh.hour = Number.isInteger(out.hour) ? out.hour : 6;
+        if (Array.isArray(out.issues) && out.issues.length) { wh.issues = out.issues; wh.sample = false; } else useSample();
+      } catch { useSample(); }
+      loaded();
+    };
+    load();
+
+    // ---- the aura: colours drift from night to dawn as the page scrolls ----
+    const stops: { at: number; c: string[] }[] = (cfg.sky || [
+      { at: 0, c: ['#C7B6FF', '#A9C4FF', '#E8B9F3'] },
+      { at: 0.3, c: ['#FFC2E2', '#D9C8FF', '#B5E3FF'] },
+      { at: 0.7, c: ['#FFB4D6', '#FFD3EA', '#C6D4FF'] },
+      { at: 1, c: ['#FFD2B5', '#FFC2E2', '#FFE8B5'] },
+    ]);
+    const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const mix = (a: string, b: string, t: number) => { const x = rgb(a), y = rgb(b); return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(' ')})`; };
+    let queued = false, lastNav = '';
+    const marks = [...document.querySelectorAll<HTMLElement>('[data-wh-nav]')].map((a) => ({ a, el: document.getElementById(a.dataset.whNav!) }));
+    const paint = () => {
+      queued = false;
+      const max = Math.max(1, root.scrollHeight - innerHeight);
+      const p = Math.min(1, Math.max(0, scrollY / max));
+      let i = 0; while (i < stops.length - 2 && p > stops[i + 1].at) i++;
+      const a = stops[i], b = stops[i + 1], t = Math.min(1, Math.max(0, (p - a.at) / Math.max(0.0001, b.at - a.at)));
+      root.style.setProperty('--wh-c1', mix(a.c[0], b.c[0], t));
+      root.style.setProperty('--wh-c2', mix(a.c[1], b.c[1], t));
+      root.style.setProperty('--wh-c3', mix(a.c[2], b.c[2], t));
+      root.style.setProperty('--wh-night', String(Math.round((1 - p) * 100) / 100));
+      root.classList.toggle('wh-scrolled', scrollY > 12);
+      // menu follows the page
+      const mid = innerHeight * 0.45; let on = '';
+      for (const m of marks) if (m.el && m.el.getBoundingClientRect().top < mid) on = m.a.dataset.whNav!;
+      if (innerHeight + scrollY >= root.scrollHeight - 4 && marks.length) on = on || '';
+      if (on !== lastNav) { lastNav = on; marks.forEach((m) => m.a.classList.toggle('is-on', m.a.dataset.whNav === on)); }
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(paint); } }, { passive: true });
+    addEventListener('resize', paint);
+    paint();
+
+    // ---- blocks appear when they scroll into view ----
+    const targets = document.querySelectorAll('[data-wh-in]');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target); e.target.classList.add('is-in');
+      }), { rootMargin: '0px 0px -8% 0px', threshold: 0.1 });
+      targets.forEach((el) => io.observe(el));
+    } else targets.forEach((el) => el.classList.add('is-in'));
+  }
+</script>

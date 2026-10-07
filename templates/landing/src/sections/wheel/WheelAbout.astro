@@ -1,0 +1,22 @@
+---
+// Who writes the horoscope: the hero, the main picture shown whole (16:9) and a few short facts about her.
+import { config, asset } from '../../lib/project';
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const a = wheel.about || {};
+const facts: { value: string; label: string }[] = a.facts || [];
+---
+<section id="madame" class="wh-sec">
+  <div class="wh-in wh-about">
+    <figure class="wh-about-fig" data-wh-in>
+      <img src={asset(config.about.image || config.assets.hero)} alt={a.imageAlt || config.name} width="1600" height="900" loading="lazy" />
+    </figure>
+    <div>
+      <WhHead kicker={config.about.kicker} title={config.about.title} />
+      {config.about.text.map((p) => <p class="wh-text">{p}</p>)}
+      <ul class="wh-about-facts">
+        {facts.map((f) => <li class="wh-glass" data-wh-in><b class="font-heading">{f.value}</b><span>{f.label}</span></li>)}
+      </ul>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,24 @@
+---
+// How to buy, as four phases of the moon: new moon, crescent, half, full. Steps come from config.howToBuy.
+import { config } from '../../lib/project';
+import { wheel } from '../../lib/wheel';
+import WhHead from './WhHead.astro';
+const m = wheel.moons || {};
+const names: string[] = m.phases || ['New moon', 'Crescent', 'Half moon', 'Full moon'];
+---
+<section id="how-to-buy" class="wh-sec">
+  <div class="wh-in">
+    <WhHead kicker={m.kicker} title={m.title} />
+    <ol class="wh-moons">
+      {config.howToBuy.slice(0, 4).map((s, i) => (
+        <li class="wh-glass" data-wh-in style={`--d:${i * 90}ms`}>
+          <span class="wh-moon" data-phase={i} aria-hidden="true"><i></i></span>
+          <p class="wh-tag">{names[i]}</p>
+          <h3 class="font-heading">{s.title}</h3>
+          <p>{s.text}</p>
+        </li>
+      ))}
+    </ol>
+    {m.note && <p class="wh-fine">{m.note}</p>}
+  </div>
+</section>
