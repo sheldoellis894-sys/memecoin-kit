@@ -24,7 +24,7 @@ brand/exports/horocope_dex_header.png (1500x500)
 - [ ] All three links open
 - [ ] Site shows the correct ticker everywhere
 - [ ] CA field on the site is ready to be filled (under the constellation and inside the ball)
-- [ ] The morning issue on the live site is a real one, not the sample (the key and the Blob store are set in Vercel, the spend limit is set at the model provider)
+- [ ] The morning issue on the live site is a real one, not the sample (the key and the Blob store are set in Vercel; the balance at the model provider is enough, a spend limit is set if the balance is large)
 - [ ] Launch wallet is a separate work wallet, no personal funds
 - [ ] Description field holds the text from this file, not the X bio (the X bio ends with "Not launched yet.")
 

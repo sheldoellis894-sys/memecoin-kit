@@ -128,7 +128,7 @@ What happens on the page:
 
 ![House rules](case/13_site_rules.png)
 
-Static pages plus two serverless functions, checked at five widths from 360 to 1440 px, auto-deploy on every push.
+Static pages plus two serverless functions, checked at five widths from 360 to 1440 px and on a real phone, auto-deploy on every push.
 The effects respect the system "reduce motion" setting.
 
 ### The morning issue: the agent
@@ -251,7 +251,7 @@ templates/landing/
 - An AI agent writes the words and it can be wrong. The numbers and the sky come from code; the editor in code catches the rules that can be checked, not the quality of a joke.
 - The positions of the planets are computed with a compact model: accurate to the sign and to the day of a retrograde, not to the arc minute.
 - The market reading covers trending and newest pools from public services, not the whole chain.
-- The Rose settings were sent by the owner and not re-checked with the checking commands. The site was not checked on a real phone.
+- The Rose settings were set by the owner and were not re-read with the bots' checking commands.
 - The agent does not trade, holds no wallet and has no key to any funds.
 - No animation in this project: the motion is on the site itself.
 - No volume bots, no paid trending, no paid boosts.

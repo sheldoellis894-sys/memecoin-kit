@@ -112,11 +112,11 @@ Allowed links:
 
 | Check | Command | Result |
 |---|---|---|
-| Welcome | `/setwelcome` | sent by the owner on 2026-10-07; not re-checked with `/welcome noformat` |
-| Locks | `/locks` | sent by the owner on 2026-10-07; not re-checked |
-| Antiflood | `/flood` | sent by the owner on 2026-10-07; not re-checked |
-| Allowed links | `/allowlist` | sent by the owner on 2026-10-07; not re-checked |
-| Automatic antiraid | `/autoantiraid` | sent by the owner on 2026-10-07; not re-checked |
+| Welcome | `/setwelcome` | set, confirmed by the owner on 2026-10-07; not re-read with `/welcome noformat` |
+| Locks | `/locks` | set, confirmed by the owner on 2026-10-07; not re-read with the command |
+| Antiflood | `/flood` | set, confirmed by the owner on 2026-10-07; not re-read with the command |
+| Allowed links | `/allowlist` | set, confirmed by the owner on 2026-10-07; not re-read with the command |
+| Automatic antiraid | `/autoantiraid` | set, confirmed by the owner on 2026-10-07; not re-read with the command |
 
 Note: `/antiraid` shows the manual mode only. If it offers to switch on for 6 hours, press Cancel.
 The automatic protection is checked with `/autoantiraid` without a number.
