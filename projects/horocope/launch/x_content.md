@@ -2,6 +2,7 @@
 
 Account: https://x.com/thehorocope (`horocope` is taken on X; `thehorocope` is free, checked by the owner on 2026-10-07)
 Voice: "gentle fortune teller". Warm, calm, a little tired. The trader is never to blame: a planet is. Short sentences. No excitement, no exclamation marks. The joke is in taking the stars completely seriously.
+Facts about the sky in posts are real: a planet is called retrograde or placed in a sign only when the site says so for that date.
 Rules: no price talk, no promises, no "x100", no forecasts, no claims that any token is safe. The horoscope is about yesterday and about the stars. "Score", "sky" and "planet" are always about the joke horoscope. They are never a rating of a token, a team or a person, and never a hint about what to buy or sell. No token is named in a post about the horoscope.
 Images: paths are relative to projects/horocope/brand/
 
@@ -67,13 +68,13 @@ You were only standing nearby.
 
 ### Post 4 — The tool — PUBLISH (9 October, 16:00)
 Image: the Libra card downloaded from the site by the owner ("Save the card"). Fallback: gallery/horocope_g02.jpg
-ALT: A card from Horocope for Libra, marked as a sample: 2 out of 10, the planet to blame is Venus, and three sentences of comfort.
+ALT: A card from Horocope for Libra, marked as a sample: 4 out of 10, the planet to blame is Saturn, retrograde in Aries, and three sentences of comfort.
 
-Libra, today: 2 out of 10.
+Libra, today: 4 out of 10.
 
-“Yesterday you bought the very top. Venus was in your house.”
+“Saturn is retrograde in Aries, directly opposite your sign. Yesterday you bought the very top and he watched from across the sky.”
 
-A new horoscope every morning. Find your sign:
+A new horoscope every morning, drawn from the real sky:
 https://thehorocope.vercel.app/#today
 
 ### Post 5 — Six o'clock — PUBLISH (9 October, 21:00)

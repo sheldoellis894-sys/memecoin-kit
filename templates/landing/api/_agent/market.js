@@ -153,7 +153,7 @@ export async function readNewborns(state, now = Date.now()) {
   return state.newborns;
 }
 
-// ---------- numbers decided by code ----------
+// ---------- the colour of the day ----------
 /** Mood of the day from -1 (deep red) to 1 (deep green). */
 export function moodOf(sky) {
   const sol = sky.sol_change_24h_pct ?? 0;
@@ -162,28 +162,3 @@ export function moodOf(sky) {
   return Math.max(-1, Math.min(1, m));
 }
 export const moodWord = (m) => (m <= -0.25 ? 'red' : m >= 0.25 ? 'green' : 'mixed');
-
-// Small seeded generator: the same date always gives the same chart.
-function seeded(text) {
-  let h = 1779033703 ^ text.length;
-  for (let i = 0; i < text.length; i++) { h = Math.imul(h ^ text.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
-  return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
-}
-export const SIGNS = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
-export const PLANETS = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'the Moon'];
-/**
- * The chart of the day: a score out of 10 and a planet to blame for every sign, and one planet for the whole day.
- * Drawn by code from the date and the mood of the market, so the model never invents a number.
- */
-export function drawChart(date, mood) {
-  const rnd = seeded(`chart ${date}`);
-  const base = 5.5 + mood * 2.5;
-  const signs = SIGNS.map((id) => ({
-    id,
-    score: Math.max(1, Math.min(10, Math.round(base + (rnd() * 2 - 1) * 3.2))),
-    planet: PLANETS[Math.floor(rnd() * PLANETS.length)],
-  }));
-  // Mercury takes the blame twice as often as anyone else: tradition.
-  const pool = ['Mercury', ...PLANETS];
-  return { planet: pool[Math.floor(rnd() * pool.length)], signs };
-}

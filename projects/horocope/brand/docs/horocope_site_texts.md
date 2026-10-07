@@ -20,7 +20,7 @@ English:
 Русский:
 - Строка: Ежедневный гороскоп для трейдеров · номер и дата выпуска
 - Слоган: Звёзды всё знали. Тебе просто не сказали.
-- Текст: Читает рынок. Винит звёзды. Каждое утро ИИ-агент читает последние 24 часа Solana и пишет гороскоп для двенадцати знаков. Виноваты были не вы.
+- Текст: Читает рынок. Винит звёзды. Каждое утро ИИ-агент читает последние 24 часа Solana и настоящее небо этого дня и пишет гороскоп для двенадцати знаков. Виноваты были не вы.
 - Кнопки: Прочитать сегодняшнее небо · Взять $HOROCOPE
 - Дата рождения: Не уверены в знаке? Введите день рождения. · День · Месяц · Дата остаётся в вашем браузере.
 - Под колесом, пока знак не выбран: Знака пока нет · Поверните колесо или нажмите на знак
@@ -28,7 +28,7 @@ English:
 English:
 - Daily horoscope for traders · #N · date
 - The stars knew everything. They just didn't tell you.
-- Reads the market. Blames the stars. Every morning an AI agent reads the last 24 hours of Solana and writes a horoscope for twelve signs. It was never your fault.
+- Reads the market. Blames the stars. Every morning an AI agent reads the last 24 hours of Solana and the real sky of the day, and writes a horoscope for twelve signs. It was never your fault.
 - Read today's sky · Get $HOROCOPE
 - Not sure of your sign? Enter your birthday. · Day · Month · The date stays in your browser.
 - No sign yet · Turn the wheel or tap a sign
@@ -37,8 +37,9 @@ English:
 
 Русский:
 - Рубрика и заголовок: Утренний выпуск · Сегодняшнее небо
-- Текст: Написано этим утром Мадам Коуп по последним 24 часам рынка Solana. Выберите знак и узнайте, какая планета это сделала.
-- Пометка образца: Образец. Это образец выпуска с выдуманным рынком. Настоящий появится здесь после первого утра агента.
+- Текст: Написано этим утром Мадам Коуп по последним 24 часам рынка Solana и по настоящему небу этого дня. Выберите знак и узнайте, какая планета это сделала.
+- Пометка образца: Образец. Это образец выпуска с выдуманным рынком. Небо в нём настоящее, от 7 октября 2026 года. Настоящий выпуск появится здесь после первого утра агента.
+- Над списком планет: Настоящее небо этим утром (десять строк: светило или планета, знак; ретроградные помечены знаком ℞)
 - Подписи фактов: SOL за 24 часа · красных графиков · худшее падение · лучший рост · родилось за час
 - Планета дня · кнопка «Свалить на (планета)» · «раз свалили на этом устройстве»
 - Пока знак не выбран: Выберите знак. Поверните колесо или нажмите на знак ниже. Запись выйдет из тумана.
@@ -53,8 +54,9 @@ English:
 
 English:
 - The morning issue · Today's sky
-- Written this morning by Madame Cope from the last 24 hours of the Solana market. Pick your sign and find out which planet did it.
-- Sample. This is a sample issue with an invented market. The real one appears here after the agent's first morning.
+- Written this morning by Madame Cope from the last 24 hours of the Solana market and the real sky of the day. Pick your sign and find out which planet did it.
+- Sample. This is a sample issue with an invented market. The sky in it is the real one of 7 October 2026. The real issue appears here after the agent's first morning.
+- The real sky this morning
 - SOL, 24h · red charts · worst fall · best rise · born last hour
 - Planet of the day · Blame (planet) · times blamed on this device
 - Pick your sign. Turn the wheel or tap a sign below. Your entry comes out of the fog.
@@ -67,57 +69,61 @@ English:
 - Compatibility for today: (≤6) Two low days in one room. {a} and {b} share the blame. Share the tissues too. · (≤11) One of you had the worse planet. Do not compare charts at dinner. · (≤15) A decent pairing. {a} looks the other way while {b} behaves. · (≤20) Suspiciously good. Tell no one.
 - {sign} today: {score}/10. {planet} did it, not me. My horoscope from Madame Cope:
 
-## 2а. Образец выпуска (выдуманный рынок)
+## 2а. Образец выпуска (выдуманный рынок, настоящее небо 7 октября 2026 года)
 
 Русский:
-- Заголовок: Красное небо. Вы тут ни при чём.
-- Небо дня: SOL потерял 6,4 процента за день, и 27 из 38 токенов, которые прочитала Мадам Коуп, покраснели. За всё это отвечает Меркурий. Вы просто стояли рядом.
+- Заголовок: Венера идёт назад. Вы тут ни при чём.
+- Небо дня: SOL потерял 6,4 процента за день, и 27 из 38 токенов, которые прочитала Мадам Коуп, покраснели. Венера ретроградна в Скорпионе. Она развернулась, и рынок вышел следом за ней.
+- Планета дня: Венера. Венера ретроградна в Скорпионе.
+- Настоящее небо: Солнце в Весах · Луна в Деве, убывающий серп, освещена на 13% · Меркурий в Скорпионе · Венера в Скорпионе, ретроградна · Марс во Льве · Юпитер во Льве · Сатурн в Овне, ретрограден · Уран в Близнецах, ретрограден · Нептун в Овне, ретрограден · Плутон в Водолее, ретрограден
 - Последняя строка: Это было написано задолго до того, как вы открыли график.
-- Овен, 3: Марс прошёл маршем через ваш дом, пока SOL падал на 6,4 процента. Дно продали не вы, дорогой. Это Марс, вашими руками. Дайте им отдохнуть.
-- Телец, 5: Венера держала ваш график ровным в день, когда 27 токенов из 38 покраснели. Ровно — это благословение. Скажите спасибо и закройте вкладку.
-- Близнецы, 2: Меркурий шептал про токен, который упал на 81 процент за день. Вы только слушали. Слушать не преступление, а звёзды не хранят скриншотов.
-- Рак, 6: Луна вытянула 11 токенов в зелёное, и вы были рядом с одним из них. Рядом считается. Сегодня она ничего от вас не просит.
-- Лев, 8: Юпитер был щедр: один токен вырос на 182 процента у вас на глазах. Хороший день, и это подозрительно. Радуйтесь тихо, чтобы никто не заметил.
-- Дева, 4: Сатурн сверил ваш план с днём из 27 красных графиков и нашёл, что план в порядке. Неправ был день. Сатурн подал жалобу.
-- Весы, 2: Вчера вы купили на самом верху. Венера была в вашем доме. Она ушла и забрала верх с собой. Вы были прекрасным хозяином.
-- Скорпион, 7: Плутон держался далеко, поэтому ваш день был спокойным, пока SOL терял 6,4 процента. Расстояние недооценивают. Вас тоже.
-- Стрелец, 3: Нептун напустил туману в детской: 14 из 20 самых новых токенов родились за один час. Там никто ничего не видел. Даже вы, хотя вы смотрели.
-- Козерог, 5: Сатурн держал вас за столом, пока 38 токенов двигались и ни один не спросил разрешения. Вы держали строй. Спасибо вам никто не сказал, так что скажет она.
-- Водолей, 1: Уран перевернул всё вверх дном, включая токен двух дней от роду, который упал на 81 процент. Вы стояли под ним. Вот салфетка.
-- Рыбы, 4: Луна стояла низко, и 27 графиков из 38 тоже. Рыбы чувствуют отлив раньше всех. Это был отлив, милый. Это всегда отлив.
-- Журнал агента: «Дай-ка я посмотрю на небо, дорогой.» · Посмотрела на небо: SOL −6,4% за 24 часа, 27 красных и 11 зелёных из 38 токенов. · Составила карту. Планета дня: Меркурий. · «Что-то упало очень далеко. Надо посмотреть, что.» · Прочитала лидеров: лучший +182,4%, худший −81,3%. · Заглянула в детскую: 14 из 20 самых новых токенов родились за последний час. · Выпуск написан. Двенадцать знаков, винить некого.
+- Овен, 3 из 10. Причина: Сатурн ретрограден в Овне, в вашем знаке. Запись: Сатурн ретрограден в вашем знаке и пятится через вашу гостиную. SOL упал на 6,4 процента, и вы были дома. Он уйдёт. Вы можете остаться.
+- Телец, 1 из 10. Причина: Венера, управитель Тельца, ретроградна в Скорпионе. Запись: Вами управляет Венера, а она развернулась и идёт назад по Скорпиону. Один токен упал на 81 процент, пока она стояла к вам спиной. За рулём никого не было, дорогой. Вот салфетка.
+- Близнецы, 5 из 10. Причина: Луна в Деве, в квадрате к вашему знаку. Запись: Луна в Деве, в квадрате к вашему знаку, поэтому 27 токенов из 38 показались вам красными. Они были красными для всех. Вы просто заметили первым.
+- Рак, 3 из 10. Причина: Сатурн ретрограден в Овне, в квадрате к вашему знаку. Запись: Сатурн ретрограден в Овне, в квадрате к Раку. Он сверил ваш план с днём, когда SOL потерял 6,4 процента. План был в порядке. Неправ был день.
+- Лев, 4 из 10. Причина: Марс во Льве, в вашем знаке. Запись: Марс во Льве, в вашем собственном знаке, и жмёт на кнопки. Один токен вырос на 182 процента, и это не тот, что выбрал он. Простите его. Он хочет как лучше и ничего не читает.
+- Дева, 5 из 10. Причина: Уран ретрограден в Близнецах, в квадрате к вашему знаку. Запись: Уран ретрограден в Близнецах, в квадрате к Деве. 14 из 20 самых новых токенов родились за один час, и ни у одного не было плана. У вас был. Это заметно.
+- Весы, 4 из 10. Причина: Сатурн ретрограден в Овне, напротив вашего знака. Запись: Сатурн ретрограден в Овне, прямо напротив вашего знака. Вчера вы купили на самом верху, а он смотрел с другой стороны неба. Мог бы и сказать.
+- Скорпион, 4 из 10. Причина: Марс во Льве, в квадрате к вашему знаку. Запись: Марс во Льве, в квадрате к Скорпиону, а Венера пятится по вашему знаку. 27 красных графиков из 38. С такими гостями хозяина никто не винит.
+- Стрелец, 6 из 10. Причина: Луна в Деве, в квадрате к вашему знаку. Запись: Луна в Деве, в квадрате к вашему знаку, и всё же 11 токенов рядом с вами позеленели. Приличный день, и это подозрительно. Радуйтесь тихо.
+- Козерог, 2 из 10. Причина: Сатурн ретрограден в Овне, в квадрате к вашему знаку. Запись: Сатурн, ваш собственный управитель, ретрограден в Овне и стоит в квадрате к вашему знаку. Токен двух дней от роду упал на 81 процент в его смену. С ним поговорили.
+- Водолей, 3 из 10. Причина: Марс во Льве, напротив вашего знака. Запись: Марс во Льве, напротив Водолея, и он кричал. SOL потерял 6,4 процента, пока вы пытались думать. Там было шумно. Вы сделали, что могли.
+- Рыбы, 4 из 10. Причина: Луна в Деве, напротив вашего знака. Запись: Луна в Деве, напротив Рыб, и уводит воду: 27 графиков из 38 ушли вниз. Рыбы чувствуют это первыми. Это был отлив, милый. Это всегда отлив.
+- Журнал агента: «Дай-ка я посмотрю на небо, дорогой.» · Посмотрела на рынок: SOL −6,4% за 24 часа, 27 красных и 11 зелёных из 38 токенов. · Подняла глаза на настоящее небо: Луна в Деве, убывающий серп. Ретроградны: Венера, Сатурн, Уран, Нептун, Плутон. · Составила карту. Планета дня: Венера. Венера ретроградна в Скорпионе. · «Что-то упало очень далеко. Надо посмотреть, что.» · Прочитала лидеров: лучший +182,4%, худший −81,3%. · Заглянула в детскую: 14 из 20 самых новых токенов родились за последний час. · Выпуск написан. Двенадцать знаков, винить некого.
 
 English:
-- A red sky. None of it was you.
-- SOL lost 6.4 percent in a day, and 27 of the 38 tokens Madame Cope read went red. Mercury is responsible for all of it. You were only standing nearby.
+- Venus walks backwards. None of it was you.
+- SOL lost 6.4 percent in a day, and 27 of the 38 tokens Madame Cope read went red. Venus is retrograde in Scorpio. She turned around and the market followed her out.
+- Planet of the day: Venus. Venus is retrograde in Scorpio.
+- The real sky: The Sun in Libra · The Moon in Virgo, waning crescent, 13% lit · Mercury in Scorpio · Venus in Scorpio, retrograde · Mars in Leo · Jupiter in Leo · Saturn in Aries, retrograde · Uranus in Gemini, retrograde · Neptune in Aries, retrograde · Pluto in Aquarius, retrograde
 - It was written long before you opened the chart.
-- Aries, 3 (Mars): Mars marched through your house while SOL fell 6.4 percent. You did not sell the bottom, dear. Mars did, using your hands. Rest them.
-- Taurus, 5 (Venus): Venus kept your chart flat on a day when 27 of 38 tokens went red. Flat is a blessing. Say thank you and close the tab.
-- Gemini, 2 (Mercury): Mercury whispered about a token that fell 81 percent in a day. You only listened. Listening is not a crime, and the stars keep no screenshots.
-- Cancer, 6 (the Moon): The Moon pulled 11 tokens into the green and you were near one of them. Near counts. Tonight she asks nothing of you.
-- Leo, 8 (Jupiter): Jupiter was generous: one token rose 182 percent while you watched. A good day, which is suspicious. Enjoy it quietly so nobody notices.
-- Virgo, 4 (Saturn): Saturn checked your plan against a day of 27 red charts and found the plan was fine. The day was wrong. Saturn has filed a complaint.
-- Libra, 2 (Venus): Yesterday you bought the very top. Venus was in your house. She has left, and she took the top with her. You were a wonderful host.
-- Scorpio, 7 (Pluto): Pluto stayed far away, which is why your day was calm while SOL lost 6.4 percent. Distance is underrated. So are you.
-- Sagittarius, 3 (Neptune): Neptune fogged the nursery: 14 of the 20 newest tokens were born in one hour. Nobody could see in there. Not even you, and you looked.
-- Capricorn, 5 (Saturn): Saturn kept you at your desk while 38 tokens moved and none of them asked permission. You held the line. Nobody thanked you, so she will.
-- Aquarius, 1 (Uranus): Uranus turned everything upside down, including a token two days old that fell 81 percent. You were standing under it. Here is a tissue.
-- Pisces, 4 (the Moon): The Moon was low and so were 27 charts out of 38. Fish feel the tide before anyone else. It was the tide, darling. It always is.
-- Agent log: Let me look at the sky, dear. · Looked at the sky: SOL -6.4% in 24 hours, 27 red and 11 green of 38 tokens. · Drew the chart. Planet of the day: Mercury. · Something fell a long way. I should see what. · Read the movers: best +182.4%, worst -81.3%. · Visited the nursery: 14 of the 20 newest tokens were born in the last hour. · Issue written. Twelve signs, nobody to blame.
+- Aries, 3/10. Why: Saturn is retrograde in Aries, in your sign. Entry: Saturn is retrograde in your sign, walking backwards through your living room. SOL fell 6.4 percent and you were home for it. He will leave. You may stay.
+- Taurus, 1/10. Why: Venus, the ruler of Taurus, is retrograde in Scorpio. Entry: Venus rules you, and she has turned retrograde in Scorpio. One token fell 81 percent while she had her back to you. Nobody was at the wheel, dear. Here is a tissue.
+- Gemini, 5/10. Why: The Moon is in Virgo, square to your sign. Entry: The Moon is in Virgo, square to your sign, which is why 27 of 38 tokens looked red to you. They were red for everyone. You only noticed first.
+- Cancer, 3/10. Why: Saturn is retrograde in Aries, square to your sign. Entry: Saturn is retrograde in Aries, square to Cancer. He checked your plan against a day when SOL lost 6.4 percent. The plan was fine. The day was wrong.
+- Leo, 4/10. Why: Mars is in Leo, in your sign. Entry: Mars is in Leo, in your own sign, pressing buttons. One token rose 182 percent and it was not the one he chose. Forgive him. He means well and reads nothing.
+- Virgo, 5/10. Why: Uranus is retrograde in Gemini, square to your sign. Entry: Uranus is retrograde in Gemini, square to Virgo. 14 of the 20 newest tokens were born in one hour and none of them had a plan. You did. It shows.
+- Libra, 4/10. Why: Saturn is retrograde in Aries, opposite your sign. Entry: Saturn is retrograde in Aries, directly opposite your sign. Yesterday you bought the very top and he watched from across the sky. He could have said something.
+- Scorpio, 4/10. Why: Mars is in Leo, square to your sign. Entry: Mars is in Leo, square to Scorpio, and Venus is walking backwards through your sign. 27 red charts out of 38. With guests like these, nobody blames the host.
+- Sagittarius, 6/10. Why: The Moon is in Virgo, square to your sign. Entry: The Moon is in Virgo, square to your sign, and still 11 tokens went green near you. A decent day, which is suspicious. Enjoy it quietly.
+- Capricorn, 2/10. Why: Saturn is retrograde in Aries, square to your sign. Entry: Saturn, your own ruler, is retrograde in Aries and square to your sign. A token two days old fell 81 percent on his watch. He has been spoken to.
+- Aquarius, 3/10. Why: Mars is in Leo, opposite your sign. Entry: Mars is in Leo, opposite Aquarius, and he was shouting. SOL lost 6.4 percent while you tried to think. It was loud in there. You did what you could.
+- Pisces, 4/10. Why: The Moon is in Virgo, opposite your sign. Entry: The Moon is in Virgo, opposite Pisces, pulling the tide out: 27 charts of 38 went low. Fish feel it first. It was the tide, darling. It always is.
+- Agent log: Let me look at the sky, dear. · Looked at the market: SOL -6.4% in 24 hours, 27 red and 11 green of 38 tokens. · Looked up at the real sky: the Moon in Virgo, waning crescent. Retrograde: Venus, Saturn, Uranus, Neptune, Pluto. · Drew the chart. Planet of the day: Venus. Venus is retrograde in Scorpio. · Something fell a long way. I should see what. · Read the movers: best +182.4%, worst -81.3%. · Visited the nursery: 14 of the 20 newest tokens were born in the last hour. · Issue written. Twelve signs, nobody to blame.
 
 ## 3. Кто это пишет
 
 Русский:
 - Рубрика и заголовок: Кто это пишет · Мадам Коуп видит всё. Ей очень жаль.
 - Мадам Коуп — хрустальный шар в синем тюрбане. Она видела каждый график, начиная с первого, и ни разу не обвинила трейдера.
-- Каждое утро она читает, что рынок делал, пока вы спали, находит виноватую планету и пишет двенадцать коротких записей. Потом протягивает салфетку.
+- Каждое утро она читает, что рынок делал, пока вы спали, поднимает глаза на настоящее небо, находит виноватую планету и пишет двенадцать коротких записей. Потом протягивает салфетку.
 - Она ИИ-агент. Она работает одна, по расписанию. Кнопку никто не нажимает.
 - Три факта: 06:00 UTC — новый выпуск каждый день · 12 — знаков, по записи на каждый · 0 — трейдеров обвинено
 
 English:
 - Who writes this · Madame Cope sees everything. She is very sorry.
 - Madame Cope is a crystal ball in a blue turban. She has watched every chart since the first one and has never once blamed a trader.
-- Each morning she reads what the market did while you slept, finds the planet responsible and writes twelve short entries. Then she hands you a tissue.
+- Each morning she reads what the market did while you slept, looks up at the real sky, finds the planet responsible and writes twelve short entries. Then she hands you a tissue.
 - She is an AI agent. She works alone, on a schedule. Nobody presses a button.
 - 06:00 UTC — a new issue, every day · 12 — signs, one entry each · 0 — traders blamed so far
 
@@ -126,16 +132,16 @@ English:
 Русский:
 - Рубрика и заголовок: Как это работает · Кнопку никто не нажимает
 - Она просыпается сама. Каждый день в 06:00 UTC задание по расписанию запускает агента. Посетитель его не вызывает, кошелёк не участвует.
-- Она читает последние 24 часа. Агент сам выбирает, что прочитать: движение SOL, главных победителей и проигравших, самые новые токены. Каждое число считает код по открытым данным рынка.
-- Она пишет выпуск. Заголовок, небо дня и двенадцать записей. Оценки и планеты рисует код по дате и настроению рынка. Слова — её.
+- Она читает рынок и небо. Агент сам выбирает, что прочитать: движение SOL, главных победителей и проигравших, самые новые токены. Небо настоящее: где сегодня стоит каждая планета, кто ретрограден, какая фаза у Луны. Каждое число считает код.
+- Она пишет выпуск. Заголовок, небо дня и двенадцать записей. Для каждого знака код находит планету, которая сегодня действительно стоит против него, и даёт дню оценку, а рынок сдвигает оценку вверх или вниз. Слова — её.
 - Выпуск попадает в журнал. Он сохраняется, показывается здесь и остаётся в архиве. Вы выбираете знак, читаете запись и забираете карточку.
 - Журнал агента · Журнал появится с первым выпуском. · Это шаги самого агента для выпуска на экране, в том порядке, в котором он их делал.
 
 English:
 - How it works · Nobody presses a button
 - She wakes up by herself. Every day at 06:00 UTC a scheduled job starts the agent. No visitor triggers it and no wallet is involved.
-- She reads the last 24 hours. The agent picks its own readings: the move of SOL, the biggest winners and losers, the newest tokens. Every number is computed by code from public market data.
-- She writes the issue. A headline, the sky of the day and twelve entries. Scores and planets are drawn by code from the date and the mood of the market. The words are hers.
+- She reads the market and the sky. The agent picks its own readings: the move of SOL, the biggest winners and losers, the newest tokens. The sky is the real one: where every planet stands today, who is retrograde, the phase of the Moon. Every number is computed by code.
+- She writes the issue. A headline, the sky of the day and twelve entries. For each sign the code finds the planet that really stands against it today and gives the day a score, then the market moves the score up or down. The words are hers.
 - The issue goes into the journal. It is stored, shown here and kept in the archive. You pick a sign, read the entry and take the card.
 - Agent log · The log appears with the first issue. · These are the agent's own steps for the issue on screen, in the order it took them.
 
@@ -176,13 +182,13 @@ English:
 Русский:
 - Рубрика и заголовок: Токеномика · Маленькое созвездие
 - Всего токенов: 1 000 000 000
-- Звёзды: 100% — честный запуск на pump.fun · 0% — налог на покупку и продажу · 0% — кошелёк команды · 0% — предпродажа · 0 — планет опрошено
+- Звёзды: 100% — честный запуск на pump.fun · 0% — налог на покупку и продажу · 0% — кошелёк команды · 0% — предпродажа · 10 — планет опрошено, каждый день
 - Адрес контракта: Адреса контракта пока нет. Нет адреса — нет токена.
 
 English:
 - Tokenomics · A small constellation
 - Total supply: 1,000,000,000
-- 100% — Fair launch on pump.fun · 0% — Buy and sell tax · 0% — Team wallet · 0% — Presale · 0 — Planets consulted
+- 100% — Fair launch on pump.fun · 0% — Buy and sell tax · 0% — Team wallet · 0% — Presale · 10 — Planets consulted, daily
 - Contract address: No contract address yet. No address means no token.
 
 ## 8. Архив: лунный календарь
@@ -246,7 +252,7 @@ English:
 - Это шутка про вчерашний день. Это не прогноз и не финансовый совет.
 - Гороскоп никогда не говорит, что покупать, продавать или держать. Если кажется, что говорит, вас путает планета.
 - Слова раз в день пишет ИИ-агент. Он может ошибаться. Числа берутся из открытых данных рынка и считаются кодом.
-- Оценки и планеты рисует код по дате и настроению рынка. С настоящим небом никто не сверялся.
+- Небо настоящее: положения планет, ретроградность и фаза Луны посчитаны на эту дату. Что они значат для ваших сделок — шутка.
 - Токены в выпуске не называются. Агент видит числа, а не названия.
 - Сайт не просит кошелёк и ничего о вас не отправляет на сервер. Знак и день рождения остаются в вашем браузере.
 - Астрология здесь — развлечение. Мадам Коуп — хрустальный шар. По всем важным вопросам обращайтесь к человеку.
@@ -257,7 +263,7 @@ English:
 - This is a joke about yesterday. It is not a forecast and it is not financial advice.
 - The horoscope never tells you what to buy, sell or hold. If it seems to, a planet is confusing you.
 - An AI agent writes the words once a day. It can be wrong. The numbers come from public market data and are computed by code.
-- Scores and planets are drawn by code from the date and the mood of the market. Nobody consulted an actual sky.
+- The sky is real: the positions of the planets, the retrogrades and the phase of the Moon are computed for the date. What they mean for your trades is a joke.
 - Tokens are never named in an issue. The agent sees numbers, not names.
 - The site asks for no wallet and sends nothing about you to the server. Your sign and your birthday stay in your browser.
 - Astrology is entertainment here. Madame Cope is a crystal ball. For anything important, consult a human.
@@ -290,7 +296,7 @@ English:
 ## Описание для поисковиков и превью ссылок
 
 Русский:
-- Horocope — ежедневный гороскоп для криптотрейдеров. Каждое утро ИИ-агент читает последние 24 часа рынка Solana и пишет двенадцать записей. Виноваты были не вы. Кошелёк не подключается.
+- Horocope — ежедневный гороскоп для криптотрейдеров. Каждое утро ИИ-агент читает последние 24 часа рынка Solana и настоящие положения планет и пишет двенадцать записей. Виноваты были не вы. Кошелёк не подключается.
 
 English:
-- Horocope is a daily horoscope for crypto traders. Every morning an AI agent reads the last 24 hours of the Solana market and writes twelve entries. It was never your fault. No wallet is connected.
+- Horocope is a daily horoscope for crypto traders. Every morning an AI agent reads the last 24 hours of the Solana market and the real positions of the planets, and writes twelve entries. It was never your fault. No wallet is connected.

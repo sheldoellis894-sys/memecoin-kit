@@ -2,7 +2,7 @@
   "name": "Horocope",
   "ticker": "HOROCOPE",
   "tagline": "The stars knew everything. They just didn't tell you.",
-  "description": "Horocope is a daily horoscope for crypto traders. Every morning an AI agent reads the last 24 hours of the Solana market and writes twelve entries. It was never your fault. No wallet is connected.",
+  "description": "Horocope is a daily horoscope for crypto traders. Every morning an AI agent reads the last 24 hours of the Solana market and the real positions of the planets, and writes twelve entries. It was never your fault. No wallet is connected.",
   "url": "https://thehorocope.vercel.app",
   "chain": "Solana",
   "ca": "",
@@ -22,7 +22,7 @@
   },
   "hero": {
     "kicker": "Daily horoscope for traders",
-    "text": "Reads the market. Blames the stars. Every morning an AI agent reads the last 24 hours of Solana and writes a horoscope for twelve signs. It was never your fault."
+    "text": "Reads the market. Blames the stars. Every morning an AI agent reads the last 24 hours of Solana and the real sky of the day, and writes a horoscope for twelve signs. It was never your fault."
   },
   "about": {
     "kicker": "Who writes this",
@@ -30,7 +30,7 @@
     "image": "banners/horocope_banner.jpg",
     "text": [
       "Madame Cope is a crystal ball in a blue turban. She has watched every chart since the first one and has never once blamed a trader.",
-      "Each morning she reads what the market did while you slept, finds the planet responsible and writes twelve short entries. Then she hands you a tissue.",
+      "Each morning she reads what the market did while you slept, looks up at the real sky, finds the planet responsible and writes twelve short entries. Then she hands you a tissue.",
       "She is an AI agent. She works alone, on a schedule. Nobody presses a button."
     ]
   },
@@ -72,8 +72,8 @@
         "value": "0%"
       },
       {
-        "label": "Planets consulted",
-        "value": "0"
+        "label": "Planets consulted, daily",
+        "value": "10"
       }
     ]
   },
@@ -234,12 +234,12 @@
           "text": "Every day at 06:00 UTC a scheduled job starts the agent. No visitor triggers it and no wallet is involved."
         },
         {
-          "title": "She reads the last 24 hours",
-          "text": "The agent picks its own readings: the move of SOL, the biggest winners and losers, the newest tokens. Every number is computed by code from public market data."
+          "title": "She reads the market and the sky",
+          "text": "The agent picks its own readings: the move of SOL, the biggest winners and losers, the newest tokens. The sky is the real one: where every planet stands today, who is retrograde, the phase of the Moon. Every number is computed by code."
         },
         {
           "title": "She writes the issue",
-          "text": "A headline, the sky of the day and twelve entries. Scores and planets are drawn by code from the date and the mood of the market. The words are hers."
+          "text": "A headline, the sky of the day and twelve entries. For each sign the code finds the planet that really stands against it today and gives the day a score, then the market moves the score up or down. The words are hers."
         },
         {
           "title": "The issue goes into the journal",
@@ -324,7 +324,7 @@
         "This is a joke about yesterday. It is not a forecast and it is not financial advice.",
         "The horoscope never tells you what to buy, sell or hold. If it seems to, a planet is confusing you.",
         "An AI agent writes the words once a day. It can be wrong. The numbers come from public market data and are computed by code.",
-        "Scores and planets are drawn by code from the date and the mood of the market. Nobody consulted an actual sky.",
+        "The sky is real: the positions of the planets, the retrogrades and the phase of the Moon are computed for the date. What they mean for your trades is a joke.",
         "Tokens are never named in an issue. The agent sees numbers, not names.",
         "The site asks for no wallet and sends nothing about you to the server. Your sign and your birthday stay in your browser.",
         "Astrology is entertainment here. Madame Cope is a crystal ball. For anything important, consult a human."
@@ -353,7 +353,7 @@
     "enabled": true,
     "kicker": "The morning issue",
     "title": "Today's sky",
-    "lead": "Written this morning by Madame Cope from the last 24 hours of the Solana market. Pick your sign and find out which planet did it.",
+    "lead": "Written this morning by Madame Cope from the last 24 hours of the Solana market and the real sky of the day. Pick your sign and find out which planet did it.",
     "endpoint": "/api/issue",
     "freeDays": 7,
     "watermark": "thehorocope.vercel.app",
@@ -396,7 +396,9 @@
       "nextSample": "Sample issue",
       "late": "The stars are late today. Madame Cope is still reading.",
       "sampleTag": "Sample",
-      "sample": "This is a sample issue with an invented market. The real one appears here after the agent's first morning."
+      "sample": "This is a sample issue with an invented market. The sky in it is the real one of 7 October 2026. The real issue appears here after the agent's first morning.",
+      "realSky": "The real sky this morning",
+      "why": "Why"
     },
     "compat": [
       {
@@ -419,18 +421,18 @@
     "sample": {
       "date": "2026-10-07",
       "no": 1,
-      "build": 0,
-      "headline": "A red sky. None of it was you.",
+      "build": 2,
+      "headline": "Venus walks backwards. None of it was you.",
       "sky": [
         "SOL lost 6.4 percent in a day, and 27 of the 38 tokens Madame Cope read went red.",
-        "Mercury is responsible for all of it. You were only standing nearby."
+        "Venus is retrograde in Scorpio. She turned around and the market followed her out."
       ],
       "closing": "It was written long before you opened the chart.",
-      "planet": "Mercury",
+      "planet": "Venus",
       "mood": "red",
       "facts": {
         "mood": "red",
-        "planet": "Mercury",
+        "planet": "Venus",
         "sol_price_usd": 141.24,
         "sol_change_24h_pct": -6.4,
         "tokens_read": 38,
@@ -439,80 +441,93 @@
         "best_change_pct": 182.4,
         "worst_change_pct": -81.3,
         "born_in_last_hour": 14,
-        "newest_tokens_read": 20
+        "newest_tokens_read": 20,
+        "planet_why": "Venus is retrograde in Scorpio"
       },
       "signs": [
         {
           "id": "aries",
           "score": 3,
-          "planet": "Mars",
-          "text": "Mars marched through your house while SOL fell 6.4 percent. You did not sell the bottom, dear. Mars did, using your hands. Rest them."
+          "planet": "Saturn",
+          "why": "Saturn is retrograde in Aries, in your sign",
+          "text": "Saturn is retrograde in your sign, walking backwards through your living room. SOL fell 6.4 percent and you were home for it. He will leave. You may stay."
         },
         {
           "id": "taurus",
-          "score": 5,
+          "score": 1,
           "planet": "Venus",
-          "text": "Venus kept your chart flat on a day when 27 of 38 tokens went red. Flat is a blessing. Say thank you and close the tab."
+          "why": "Venus, the ruler of Taurus, is retrograde in Scorpio",
+          "text": "Venus rules you, and she has turned retrograde in Scorpio. One token fell 81 percent while she had her back to you. Nobody was at the wheel, dear. Here is a tissue."
         },
         {
           "id": "gemini",
-          "score": 2,
-          "planet": "Mercury",
-          "text": "Mercury whispered about a token that fell 81 percent in a day. You only listened. Listening is not a crime, and the stars keep no screenshots."
+          "score": 5,
+          "planet": "the Moon",
+          "why": "The Moon is in Virgo, square to your sign",
+          "text": "The Moon is in Virgo, square to your sign, which is why 27 of 38 tokens looked red to you. They were red for everyone. You only noticed first."
         },
         {
           "id": "cancer",
-          "score": 6,
-          "planet": "the Moon",
-          "text": "The Moon pulled 11 tokens into the green and you were near one of them. Near counts. Tonight she asks nothing of you."
+          "score": 3,
+          "planet": "Saturn",
+          "why": "Saturn is retrograde in Aries, square to your sign",
+          "text": "Saturn is retrograde in Aries, square to Cancer. He checked your plan against a day when SOL lost 6.4 percent. The plan was fine. The day was wrong."
         },
         {
           "id": "leo",
-          "score": 8,
-          "planet": "Jupiter",
-          "text": "Jupiter was generous: one token rose 182 percent while you watched. A good day, which is suspicious. Enjoy it quietly so nobody notices."
+          "score": 4,
+          "planet": "Mars",
+          "why": "Mars is in Leo, in your sign",
+          "text": "Mars is in Leo, in your own sign, pressing buttons. One token rose 182 percent and it was not the one he chose. Forgive him. He means well and reads nothing."
         },
         {
           "id": "virgo",
-          "score": 4,
-          "planet": "Saturn",
-          "text": "Saturn checked your plan against a day of 27 red charts and found the plan was fine. The day was wrong. Saturn has filed a complaint."
+          "score": 5,
+          "planet": "Uranus",
+          "why": "Uranus is retrograde in Gemini, square to your sign",
+          "text": "Uranus is retrograde in Gemini, square to Virgo. 14 of the 20 newest tokens were born in one hour and none of them had a plan. You did. It shows."
         },
         {
           "id": "libra",
-          "score": 2,
-          "planet": "Venus",
-          "text": "Yesterday you bought the very top. Venus was in your house. She has left, and she took the top with her. You were a wonderful host."
+          "score": 4,
+          "planet": "Saturn",
+          "why": "Saturn is retrograde in Aries, opposite your sign",
+          "text": "Saturn is retrograde in Aries, directly opposite your sign. Yesterday you bought the very top and he watched from across the sky. He could have said something."
         },
         {
           "id": "scorpio",
-          "score": 7,
-          "planet": "Pluto",
-          "text": "Pluto stayed far away, which is why your day was calm while SOL lost 6.4 percent. Distance is underrated. So are you."
+          "score": 4,
+          "planet": "Mars",
+          "why": "Mars is in Leo, square to your sign",
+          "text": "Mars is in Leo, square to Scorpio, and Venus is walking backwards through your sign. 27 red charts out of 38. With guests like these, nobody blames the host."
         },
         {
           "id": "sagittarius",
-          "score": 3,
-          "planet": "Neptune",
-          "text": "Neptune fogged the nursery: 14 of the 20 newest tokens were born in one hour. Nobody could see in there. Not even you, and you looked."
+          "score": 6,
+          "planet": "the Moon",
+          "why": "The Moon is in Virgo, square to your sign",
+          "text": "The Moon is in Virgo, square to your sign, and still 11 tokens went green near you. A decent day, which is suspicious. Enjoy it quietly."
         },
         {
           "id": "capricorn",
-          "score": 5,
+          "score": 2,
           "planet": "Saturn",
-          "text": "Saturn kept you at your desk while 38 tokens moved and none of them asked permission. You held the line. Nobody thanked you, so she will."
+          "why": "Saturn is retrograde in Aries, square to your sign",
+          "text": "Saturn, your own ruler, is retrograde in Aries and square to your sign. A token two days old fell 81 percent on his watch. He has been spoken to."
         },
         {
           "id": "aquarius",
-          "score": 1,
-          "planet": "Uranus",
-          "text": "Uranus turned everything upside down, including a token two days old that fell 81 percent. You were standing under it. Here is a tissue."
+          "score": 3,
+          "planet": "Mars",
+          "why": "Mars is in Leo, opposite your sign",
+          "text": "Mars is in Leo, opposite Aquarius, and he was shouting. SOL lost 6.4 percent while you tried to think. It was loud in there. You did what you could."
         },
         {
           "id": "pisces",
           "score": 4,
           "planet": "the Moon",
-          "text": "The Moon was low and so were 27 charts out of 38. Fish feel the tide before anyone else. It was the tide, darling. It always is."
+          "why": "The Moon is in Virgo, opposite your sign",
+          "text": "The Moon is in Virgo, opposite Pisces, pulling the tide out: 27 charts of 38 went low. Fish feel it first. It was the tide, darling. It always is."
         }
       ],
       "notes": [
@@ -522,11 +537,15 @@
         },
         {
           "type": "step",
-          "text": "Looked at the sky: SOL -6.4% in 24 hours, 27 red and 11 green of 38 tokens."
+          "text": "Looked at the market: SOL -6.4% in 24 hours, 27 red and 11 green of 38 tokens."
         },
         {
           "type": "step",
-          "text": "Drew the chart. Planet of the day: Mercury."
+          "text": "Looked up at the real sky: the Moon in Virgo, waning crescent. Retrograde: Venus, Saturn, Uranus, Neptune, Pluto."
+        },
+        {
+          "type": "step",
+          "text": "Drew the chart. Planet of the day: Venus. Venus is retrograde in Scorpio."
         },
         {
           "type": "note",
@@ -545,7 +564,34 @@
           "text": "Issue written. Twelve signs, nobody to blame."
         }
       ],
-      "filled": 0
+      "filled": 0,
+      "planet_why": "Venus is retrograde in Scorpio",
+      "sky_now": {
+        "lines": [
+          "The Sun in Libra",
+          "The Moon in Virgo, waning crescent, 13% lit",
+          "Mercury in Scorpio",
+          "Venus in Scorpio, retrograde",
+          "Mars in Leo",
+          "Jupiter in Leo",
+          "Saturn in Aries, retrograde",
+          "Uranus in Gemini, retrograde",
+          "Neptune in Aries, retrograde",
+          "Pluto in Aquarius, retrograde"
+        ],
+        "moon": {
+          "sign": "virgo",
+          "phase": "waning crescent",
+          "lit_pct": 13
+        },
+        "retrograde": [
+          "Venus",
+          "Saturn",
+          "Uranus",
+          "Neptune",
+          "Pluto"
+        ]
+      }
     }
   }
 }

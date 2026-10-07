@@ -1962,10 +1962,17 @@ html.wh-motion [data-wh-in].is-in { opacity: 1; transform: none; }
 .wh-facts li { display: grid; gap: 2px; padding: 10px 16px; border-radius: 18px; background: rgb(255 255 255 / .7); border: 2px solid #fff; }
 .wh-facts b { font-size: 1.45rem; }
 .wh-facts span { font-size: .72rem; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; color: var(--t-muted); }
+.wh-realsky { margin-top: 20px; padding-top: 16px; border-top: 2px solid rgb(255 255 255 / .8); }
+.wh-realsky ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.wh-realsky li { padding: 6px 12px; border-radius: 999px; background: rgb(255 255 255 / .6); border: 2px solid #fff; font-size: .88rem; font-weight: 700; max-width: 100%; }
+.wh-realsky li b { font-weight: 900; }
+.wh-realsky li.is-back { background: var(--t-text); border-color: var(--t-text); color: #fff; }
+.wh-realsky li i { font-style: normal; color: var(--t-secondary); font-weight: 900; }
 .wh-blame { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 22px; padding-top: 18px; border-top: 2px solid rgb(255 255 255 / .8); }
 .wh-blame-who { display: grid; margin: 0 6px 0 0; }
 .wh-blame-who .wh-tag { margin: 0; }
 .wh-blame-who b { font-size: 1.7rem; text-transform: capitalize; }
+.wh-blame-why { font-size: .9rem; font-weight: 700; color: var(--t-muted); max-width: 34ch; }
 .wh-blame-count { margin: 0; font-size: .92rem; font-weight: 800; color: var(--t-muted); }
 .wh-blame-count span { display: inline-block; font-family: var(--font-heading); font-size: 1.3rem; color: var(--t-secondary); }
 .wh-blame-count span.is-bump { animation: wh-bump .35s var(--wh-ease); }
@@ -2001,6 +2008,8 @@ html.wh-motion .wh-oracle img { animation: wh-float 6s ease-in-out infinite alte
 .wh-culprit { margin: 0 0 12px; }
 .wh-culprit .wh-tag { display: inline; margin: 0; }
 .wh-culprit b { text-transform: capitalize; }
+.wh-why { display: block; margin-top: 4px; font-size: .95rem; font-weight: 800; color: var(--t-accent); }
+.wh-entry[data-mood="low"] .wh-why { color: var(--t-secondary); }
 .wh-entry-text { margin: 0; min-height: 6.4em; font-size: clamp(1.14rem, 2vw, 1.34rem); line-height: 1.45; font-weight: 700; }
 .wh-entry-text:not(.is-done)::after { content: ""; display: inline-block; width: .5em; height: 1em; margin-left: 2px; vertical-align: -.14em; border-radius: 3px; background: var(--t-secondary); animation: wh-caret .7s steps(2) infinite; }
 @keyframes wh-caret { 50% { opacity: 0; } }

@@ -52,7 +52,7 @@ Environment variables of the Vercel project: `LLM_API_KEY` (language model API k
 
 ## The scheduled agent
 
-`api/issue-run.js` is called once a day by the Vercel Cron Job from `vercel.json` (06:00 UTC). It runs the agent from `api/_agent/oracle.js`, which reads the last 24 hours of the Solana market from public services (no keys) and writes one issue. The issue is stored in Vercel Blob (`api/_agent/journal.js`); `api/issue.js` serves the latest issues to the page. Both functions answer only for projects that have an oracle in `api/_agent/oracle.js`.
+`api/issue-run.js` is called once a day by the Vercel Cron Job from `vercel.json` (06:00 UTC). It runs the agent from `api/_agent/oracle.js`, which reads the last 24 hours of the Solana market from public services (no keys) and the real sky of the day from `api/_agent/sky.js` (where the planets stand, who is retrograde, the phase of the Moon, computed by code), and writes one issue. Scores and planets to blame come from that sky; the model writes the words only. The issue is stored in Vercel Blob (`api/_agent/journal.js`); `api/issue.js` serves the latest issues to the page. Both functions answer only for projects that have an oracle in `api/_agent/oracle.js`.
 
 One issue per UTC day: when today's issue exists the model is not called, so opening `/api/issue-run` by hand costs nothing. Before the scheduled hour it answers `early`.
 

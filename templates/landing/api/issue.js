@@ -8,7 +8,7 @@
 import { oracles } from './_agent/oracle.js';
 import { readJournal } from './_agent/journal.js';
 
-export const BUILD = 1;            // raised with every change of the agent, so a deployment can be told apart from outside
+export const BUILD = 2;            // raised with every change of the agent, so a deployment can be told apart from outside
 export const HOUR = (env) => { const h = Number(env.ISSUE_HOUR_UTC); return Number.isInteger(h) && h >= 0 && h < 24 ? h : 6; };
 const SHOW = 35;                   // issues sent to the page
 

@@ -33,8 +33,12 @@ const data = JSON.stringify({
       <h3 class="wh-skycard-title font-heading" data-wh-headline>{L.loading}</h3>
       <p class="wh-skycard-text" data-wh-sky></p>
       <ul class="wh-facts" data-wh-facts></ul>
+      <div class="wh-realsky" data-wh-realsky-box hidden>
+        <p class="wh-tag">{L.realSky}</p>
+        <ul data-wh-realsky></ul>
+      </div>
       <div class="wh-blame">
-        <p class="wh-blame-who"><span class="wh-tag">{L.planetOfDay}</span><b class="font-heading" data-wh-planet>—</b></p>
+        <p class="wh-blame-who"><span class="wh-tag">{L.planetOfDay}</span><b class="font-heading" data-wh-planet>—</b><span class="wh-blame-why" data-wh-planet-why></span></p>
         <button type="button" class="wh-btn wh-btn-pink" data-wh-blame><span data-wh-blame-label>{L.blame}</span></button>
         <p class="wh-blame-count" aria-live="polite"><span data-wh-blame-n>0</span> {L.blamed}</p>
       </div>
@@ -61,7 +65,7 @@ const data = JSON.stringify({
             <p class="wh-score"><b class="font-heading" data-wh-score>0</b><span>/10</span></p>
           </header>
           <div class="wh-meter" data-wh-meter aria-hidden="true">{Array.from({ length: 10 }, () => <i></i>)}</div>
-          <p class="wh-culprit"><span class="wh-tag">{L.planet}</span> <b data-wh-culprit></b></p>
+          <p class="wh-culprit"><span class="wh-tag">{L.planet}</span> <b data-wh-culprit></b><span class="wh-why" data-wh-why></span></p>
           <p class="wh-entry-text" data-wh-text></p>
           <p class="wh-entry-closing" data-wh-closing></p>
           <div class="wh-actions wh-entry-actions">
@@ -132,6 +136,17 @@ const data = JSON.stringify({
       $('[data-wh-headline]').textContent = issue.headline;
       $('[data-wh-sky]').textContent = (issue.sky || []).join(' ');
       $('[data-wh-planet]').textContent = issue.planet;
+      $('[data-wh-planet-why]').textContent = issue.planet_why ? `${issue.planet_why}.` : '';
+      // the real sky of the morning, one chip per body; retrograde ones are marked
+      const lines: string[] = issue.sky_now?.lines || []; const skyUl = $('[data-wh-realsky]'); skyUl.textContent = '';
+      $('[data-wh-realsky-box]').hidden = !lines.length;
+      for (const line of lines) {
+        const li = document.createElement('li'); const back = /retrograde/.test(line); if (back) li.className = 'is-back';
+        const [who, ...rest] = line.replace(', retrograde', '').replace(/^The /, '').split(' in ');
+        const b = document.createElement('b'); b.textContent = who; li.append(b, document.createTextNode(` ${rest.join(' in ')}`));
+        if (back) { const r = document.createElement('i'); r.textContent = '℞'; r.title = 'retrograde'; li.append(' ', r); }
+        skyUl.append(li);
+      }
       $('[data-wh-blame-label]').textContent = `${L.blame} ${issue.planet}`;
       const f = issue.facts || {}; const rows: [string, string][] = [];
       if (f.sol_change_24h_pct !== null && f.sol_change_24h_pct !== undefined) rows.push([L.fSol, fmt(f.sol_change_24h_pct)]);
@@ -179,6 +194,7 @@ const data = JSON.stringify({
       const pose = cfg.poses[entry.dataset.mood]; const pic = root.querySelector<HTMLImageElement>('[data-wh-oracle]');
       if (pose && pic && !pic.src.endsWith(pose)) pic.src = pose;
       $('[data-wh-culprit]').textContent = e.planet;
+      $('[data-wh-why]').textContent = e.why ? `${e.why}.` : '';
       $('[data-wh-closing]').textContent = issue.closing || '';
       $('[data-wh-entry-note]').textContent = e.score <= 3 ? L.tissue : '';
       const key = `${issue.date}|${s.id}`;
@@ -283,10 +299,12 @@ const data = JSON.stringify({
       ctx.font = `400 64px ${headFont}`; ctx.fillStyle = ink; ctx.fillText('/10', 120 + sw + 10, 690);
       for (let k = 0; k < 10; k++) { ctx.beginPath(); ctx.arc(520 + k * 46, 650, 16, 0, Math.PI * 2); ctx.fillStyle = k < e.score ? (e.score <= 3 ? pink : blue) : 'rgba(31,27,58,.14)'; ctx.fill(); }
       ctx.font = `800 30px ${bodyFont}`; ctx.fillStyle = ink; ctx.globalAlpha = 0.7; ctx.fillText(`${cfg.planetWord.toUpperCase()}: ${String(e.planet).toUpperCase()}`, 506, 598); ctx.globalAlpha = 1;
+      // the real reason from the chart, on one line under the score
+      if (e.why) { ctx.font = `800 30px ${bodyFont}`; ctx.fillStyle = e.score <= 3 ? pink : blue; ctx.fillText(`${e.why}.`, 120, 752, W - 240); ctx.fillStyle = ink; }
       // text
       ctx.fillStyle = ink; let size = 50; let lines: string[] = [];
-      for (; size >= 34; size -= 2) { ctx.font = `700 ${size}px ${bodyFont}`; lines = wrap(ctx, e.text, W - 240); if (lines.length * size * 1.32 <= 400) break; }
-      lines.forEach((l, k) => ctx.fillText(l, 120, 800 + k * size * 1.32));
+      for (; size >= 34; size -= 2) { ctx.font = `700 ${size}px ${bodyFont}`; lines = wrap(ctx, e.text, W - 240); if (lines.length * size * 1.32 <= (e.why ? 330 : 400)) break; }
+      lines.forEach((l, k) => ctx.fillText(l, 120, (e.why ? 836 : 800) + k * size * 1.32));
       // foot
       ctx.fillStyle = 'rgba(31,27,58,.14)'; ctx.fillRect(120, 1160, W - 240, 3);
       ctx.fillStyle = ink; ctx.font = `400 34px ${headFont}`; ctx.fillText(cfg.tagline, 120, 1222, W - 240);

@@ -17,7 +17,8 @@ The stars knew everything. They just didn't tell you 🔮
 
 Horocope is a daily horoscope for crypto traders:
 every morning an AI agent reads the last 24 hours
-of the Solana market and writes twelve entries.
+of the Solana market and the real sky of the day,
+and writes twelve entries.
 
 It was never your fault. For entertainment only.
 

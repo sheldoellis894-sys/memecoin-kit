@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { install as rawInstall, setNow, goodScript, fullIssue, memoryStore, SIGNS } from './mock-issue.mjs';
 const run = (await import(new URL('../api/issue-run.js', import.meta.url))).handle;
 const read = (await import(new URL('../api/issue.js', import.meta.url))).handle;
-const { drawChart } = await import(new URL('../api/_agent/market.js', import.meta.url));
+const { skyAt, drawChart, longitudes } = await import(new URL('../api/_agent/sky.js', import.meta.url));
 const ENV = { PROJECT: 'horocope', LLM_API_KEY: 'k', BLOB_READ_WRITE_TOKEN: 'b' };
 let clock = '2026-10-08T06:20:00Z';
 const install = (o) => { setNow(clock); return rawInstall(o); };
@@ -22,11 +22,16 @@ assert.ok(issue.signs.every((s) => s.score >= 1 && s.score <= 10 && s.planet && 
 assert.equal(issue.facts.sol_change_24h_pct, -6.4); assert.equal(issue.facts.tokens_read, 12); assert.equal(issue.facts.green_tokens, 6); assert.equal(issue.facts.red_tokens, 6);
 assert.equal(issue.facts.best_change_pct, 182.4); assert.equal(issue.facts.worst_change_pct, -81.3); assert.equal(issue.facts.born_in_last_hour, 4);
 assert.equal(calls.model, 3); assert.ok(issue.notes.some((n) => n.type === 'note')); assert.ok(issue.notes.length >= 5);
-// the chart is drawn by code and is the same for the same date
-assert.deepEqual(issue.signs.map((s) => [s.score, s.planet]), drawChart('2026-10-08', -0.401).signs.map((s) => [s.score, s.planet]).map((x, i) => [issue.signs[i].score, x[1]]));
+// the chart is drawn by code from the real sky of the moment and the mood of the market (-0.4 here), and is the same every time
+const sky1 = skyAt(Date.parse('2026-10-08T06:20:00Z'));
+assert.deepEqual(issue.signs.map((s) => [s.score, s.planet, s.why]), drawChart(sky1, -0.401).signs.map((s) => [s.score, s.planet, s.why]));
+assert.equal(issue.planet, 'Venus'); assert.equal(issue.planet_why, 'Venus is retrograde in Scorpio');
+assert.equal(issue.sky_now.lines.length, 10); assert.ok(issue.sky_now.retrograde.includes('Venus')); assert.equal(issue.sky_now.moon.sign, 'virgo');
+assert.ok(issue.signs.every((s) => s.why.length > 15));
 // nothing written by strangers reaches the model: no pool names, no mints
 const sent = JSON.stringify(calls.bodies);
 assert.ok(!sent.includes('IGNORE')); assert.ok(!sent.includes('Mint0')); assert.ok(sent.includes('planet_to_blame')); assert.ok(sent.includes('"id\\":\\"T1\\"'));
+assert.ok(sent.includes('real_sky_today')); assert.ok(sent.includes('Venus in Scorpio, retrograde')); assert.ok(sent.includes('planet_of_the_day_why'));
 console.log(issue.notes.map((n) => `${n.type}: ${n.text}`).join('\n'));
 console.log('1 ok: happy path', JSON.stringify(issue.facts));
 
@@ -64,7 +69,7 @@ calls = install({ modelScript: (i, body) => i === 0 ? goodScript(0) : i === 1 ? 
 out = await (await get(run, '/api/issue-run', ENV, { store, now: at('2026-10-08T06:20:00Z') })).json();
 issue = JSON.parse(store.state.text).issues[0];
 assert.equal(calls.model, 4); assert.equal(out.filled, 2); assert.equal(calls.bodies[3].tool_choice.type, 'tool');
-assert.ok(issue.signs.find((s) => s.id === 'pisces').text.includes('sat in your house')); assert.equal(issue.signs.find((s) => s.id === 'leo').text, 'Jupiter did it, Leo.');
+assert.ok(issue.signs.find((s) => s.id === 'pisces').text.startsWith(issue.signs.find((s) => s.id === 'pisces').why)); assert.equal(issue.signs.find((s) => s.id === 'leo').text, 'Jupiter did it, Leo.');
 assert.ok(issue.closing.length > 10);
 console.log('5 ok: rewrite once, then fill ->', issue.signs.find((s) => s.id === 'pisces').text);
 
@@ -133,4 +138,21 @@ assert.equal((await read(new Request('https://horocope.vercel.app/api/issue', { 
 const inspect = (await import(new URL('../api/inspect.js', import.meta.url))).handle;
 assert.equal((await inspect(new Request('https://horocope.vercel.app/api/inspect'), ENV)).status, 404);
 console.log('10 ok: reading side and guards');
+
+// 11. The real sky: known moments of the calendar
+const lon = (iso) => longitudes(Date.parse(iso)); const body = (iso, name) => skyAt(Date.parse(iso)).bodies.find((b) => b.name === name);
+assert.ok(Math.abs(lon('2000-01-01T12:00:00Z')['the Sun'] - 280.4) < 0.2);                          // the Sun at the J2000 epoch
+assert.ok(Math.abs(lon('2026-03-20T14:46:00Z')['the Sun'] - 360) < 0.3 || lon('2026-03-20T14:46:00Z')['the Sun'] < 0.3);   // the March equinox of 2026
+{ const l = lon('2024-04-08T18:20:00Z'); assert.ok(Math.abs(l['the Moon'] - l['the Sun']) < 1); assert.equal(body('2024-04-08T18:20:00Z', 'the Sun').sign, 'aries'); }   // the solar eclipse of 8 April 2024
+assert.equal(skyAt(Date.parse('2026-10-10T15:50:00Z')).moon.phase, 'New Moon'); assert.equal(skyAt(Date.parse('2026-09-26T16:49:00Z')).moon.phase, 'Full Moon');
+assert.equal(skyAt(Date.parse('2025-03-14T06:55:00Z')).moon.phase, 'Full Moon'); assert.equal(body('2025-03-14T06:55:00Z', 'the Moon').sign, 'virgo');             // the lunar eclipse of 14 March 2025
+// retrogrades of 2026: Mercury 26 Feb–20 Mar, 29 Jun–23 Jul, 24 Oct–13 Nov; Venus 3 Oct–14 Nov
+for (const [d, name, want] of [['2026-03-05', 'Mercury', true], ['2026-04-10', 'Mercury', false], ['2026-07-10', 'Mercury', true], ['2026-11-01', 'Mercury', true], ['2026-10-07', 'Mercury', false],
+  ['2026-10-07', 'Venus', true], ['2026-09-20', 'Venus', false], ['2026-11-20', 'Venus', false], ['2026-10-07', 'Saturn', true]]) assert.equal(body(`${d}T06:00:00Z`, name).retrograde, want, `${name} ${d}`);
+for (const [name, sign] of [['Jupiter', 'leo'], ['Saturn', 'aries'], ['Uranus', 'gemini'], ['Neptune', 'aries'], ['Pluto', 'aquarius'], ['Mars', 'leo'], ['the Sun', 'libra']]) assert.equal(body('2026-10-07T06:00:00Z', name).sign, sign, name);
+// the chart: same sky and mood, same chart; a better market lifts every sign; scores stay inside 1…10
+{ const sk = skyAt(Date.parse('2026-10-07T06:00:00Z')); const a = drawChart(sk, -0.8), b = drawChart(sk, 0.8);
+  assert.deepEqual(drawChart(sk, 0.1), drawChart(sk, 0.1)); assert.ok(a.signs.every((x, i) => x.score <= b.signs[i].score && x.score >= 1 && b.signs[i].score <= 10));
+  assert.equal(a.signs.find((x) => x.id === 'taurus').planet, 'Venus'); assert.ok(a.signs.find((x) => x.id === 'taurus').why.includes('ruler of Taurus, is retrograde in Scorpio')); }
+console.log('11 ok: the real sky and the chart');
 console.log('\nALL ISSUE TESTS PASSED');

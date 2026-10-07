@@ -7,7 +7,7 @@
 - Video: none in this project
 
 ## Description
-Horocope is a daily horoscope for crypto traders. Every morning an AI agent reads the last 24 hours of the Solana market and writes twelve entries. It was never your fault. The stars knew everything. They just didn't tell you.
+Horocope is a daily horoscope for crypto traders. Every morning an AI agent reads the last 24 hours of the Solana market and the real sky of the day, and writes twelve entries. It was never your fault. The stars knew everything. They just didn't tell you.
 
 ## Banner
 brand/exports/horocope_dex_header.png (1500x500)

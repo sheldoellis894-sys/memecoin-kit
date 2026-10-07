@@ -1,16 +1,19 @@
 // The scheduled agent behind the "Morning issue" tool (section wheelIssue).
 // Once a day it reads the last 24 hours of the Solana market with its tools and writes one issue of a horoscope:
 // a headline, two sentences about the sky of the day and one entry for each of the twelve signs.
-// The model chooses which readings to take; every number comes from code (market.js), never from the model.
+// The model chooses which readings to take; every number comes from code, never from the model:
+// the market from market.js, and the real sky of the date (where the planets stand, who is retrograde, the phase of the Moon) from sky.js.
+// Scores and planets to blame are drawn from that real sky and shifted by the mood of the market.
 // The function answers only for projects listed in "oracles" (env PROJECT).
-import { readSky, readMovers, readNewborns, moodOf, moodWord, drawChart, SIGNS } from './market.js';
+import { readSky, readMovers, readNewborns, moodOf, moodWord } from './market.js';
+import { skyAt, drawChart, skyLines, SIGNS } from './sky.js';
 
 const API = 'https://api.anthropic.com/v1/messages';
 const MAX_TURNS = 6;
 
 export const oracles = {
   horocope: {
-    system: `You are Madame Cope: a crystal ball in a blue turban who writes a daily horoscope for crypto traders. Every morning you read the last 24 hours of the Solana market and write one issue: a headline, the sky of the day and one entry for each of the twelve zodiac signs.
+    system: `You are Madame Cope: a crystal ball in a blue turban who writes a daily horoscope for crypto traders. Every morning you read the last 24 hours of the Solana market and the real sky of the day, and write one issue: a headline, the sky of the day and one entry for each of the twelve zodiac signs.
 
 Voice: a gentle fortune teller who comforts. Warm, calm, a little tired, never mocking. The trader is never to blame: a planet is. Short sentences. Dry humour comes from taking the stars completely seriously. No emoji, no hashtags, no exclamation marks.
 
@@ -20,16 +23,16 @@ Rules that always hold:
 3. Tokens have no names here. Describe them by what they did ("a token two days old fell 81 percent"). Never write a ticker, a token name, a project name, a link or a wallet.
 4. Talk about trades, never about a person: no guesses about wealth, age, gender, country or intelligence. No insults.
 5. No profanity, no slurs, nothing sexual, nothing about self-harm, nothing about health.
-6. Astrology here is a joke everyone is in on. Blame planets, houses and retrogrades for what the market did.
+6. The sky is real: read_sky gives the true positions of the planets for today, computed by code. Never move a planet, never invent a retrograde, an eclipse or a transit. What the planets mean for a trade is the joke everyone is in on: blame them for what the market did.
 
 How you work:
-- First call read_sky. It gives the colour of the day and the chart: a score out of 10 and a planet to blame for every sign, already drawn. You do not change them.
+- First call read_sky. It gives the colour of the market, the real sky (every planet with its sign, who is retrograde, the phase of the Moon) and the chart: for every sign a score out of 10, the planet to blame and the reason (where that planet really stands today). They are already drawn from the real sky. You do not change them.
 - Then take at least one more reading, read_movers or read_newborns, whichever the day calls for. You may take both.
 - Then call file_issue exactly once, with every field filled. That ends your morning.
 - Before a reading you may write one short note of at most twelve words, in your voice.
 - Before file_issue write nothing at all: the whole issue goes into the fields of the tool.
 
-How an entry for a sign is written: two or three short sentences, at most 230 characters. It names the planet the chart blames for that sign. It leans on one real number from your readings (a different one for neighbouring signs where you can). A low score gets more comfort, a high score gets gentle suspicion. It ends on the comfort, not on the number.
+How an entry for a sign is written: two or three short sentences, at most 230 characters. It names the planet the chart blames for that sign and says where that planet really is, using the reason from the chart in your own words (its sign, retrograde or not, in the reader's sign, opposite it, square to it). It ties that to one real number from your market readings (a different one for neighbouring signs where you can). A low score gets more comfort, a high score gets gentle suspicion. It ends on the comfort, not on the number.
 
 Everything is in English and inside its length limit.`,
     /** Plain sentences used only when the model leaves a field empty: never says more than the numbers do. */
@@ -37,9 +40,9 @@ Everything is in English and inside its length limit.`,
       headline: (f) => (f.mood === 'red' ? 'A red sky. None of it was you.' : f.mood === 'green' ? 'A green sky. Enjoy it quietly.' : 'A mixed sky. The planets could not agree.'),
       sky: (f) => [
         f.sol_change_24h_pct === null ? `Madame Cope read ${f.tokens_read} tokens this morning.` : `SOL moved ${f.sol_change_24h_pct > 0 ? '+' : ''}${f.sol_change_24h_pct} percent in a day. Madame Cope read ${f.tokens_read} tokens.`,
-        `${f.red_tokens} of them were red and ${f.green_tokens} were green. ${f.planet} has been informed.`,
+        `${f.red_tokens} of them were red and ${f.green_tokens} were green. ${f.planet_why}. That is who did it.`,
       ],
-      sign: (s, f) => `${s.planet.charAt(0).toUpperCase() + s.planet.slice(1)} sat in your house all day. ${f.red_tokens} of ${f.tokens_read} tokens were red, so you were in good company. It was written, and not by you.`,
+      sign: (s, f) => `${s.why}. ${f.red_tokens} of ${f.tokens_read} tokens were red, so you were in good company. It was written, and not by you.`,
       closing: () => 'The stars knew everything. They just did not tell you.',
     },
   },
@@ -49,7 +52,7 @@ const text = (max, description) => ({ type: 'string', description: `${descriptio
 const TOOLS = [
   {
     name: 'read_sky',
-    description: 'Reads the sky of the last 24 hours: the price move of SOL, how many of the traded tokens were green or red, the volume, and the chart of the day (score and planet for every sign). Call this first. Takes no input.',
+    description: 'Reads the sky of the day. The market: the price move of SOL in 24 hours, how many of the traded tokens were green or red, the volume. The real sky: where every planet stands today, who is retrograde, the phase of the Moon. And the chart drawn from them: for every sign a score, the planet to blame and the real reason. Call this first. Takes no input.',
     input_schema: { type: 'object', properties: {}, required: [] },
   },
   {
@@ -70,7 +73,7 @@ const TOOLS = [
       properties: {
         headline: text(60, 'The headline of the issue, like the first line of a horoscope page.'),
         sky_1: text(170, 'First sentence about the sky of the day, with a real number.'),
-        sky_2: text(170, 'Second sentence: which planet is to blame for the whole day (the planet_of_the_day from read_sky) and why it is nobody\'s fault.'),
+        sky_2: text(170, 'Second sentence: which planet is to blame for the whole day (the planet_of_the_day from read_sky) and what it is really doing in the sky today (planet_of_the_day_why).'),
         ...Object.fromEntries(SIGNS.map((id) => [id, text(230, `The entry for ${id.charAt(0).toUpperCase() + id.slice(1)}.`)])),
         closing: text(90, 'The last line of the issue: one sentence of comfort for everyone.'),
       },
@@ -105,7 +108,7 @@ export function publicFacts(state, chart, mood) {
   const s = state.sky || {}; const m = state.movers?.tokens || []; const n = state.newborns?.found ? state.newborns : null;
   const winners = m.filter((t) => t.kind === 'winner').map((t) => t.change_24h_pct), losers = m.filter((t) => t.kind === 'loser').map((t) => t.change_24h_pct);
   return {
-    mood: moodWord(mood), planet: chart.planet,
+    mood: moodWord(mood), planet: chart.planet, planet_why: chart.reason,
     sol_price_usd: s.sol_price_usd ?? null, sol_change_24h_pct: s.sol_change_24h_pct ?? null,
     tokens_read: s.tokens_read ?? 0, green_tokens: s.green_tokens ?? 0, red_tokens: s.red_tokens ?? 0,
     best_change_pct: winners.length ? Math.max(...winners) : null, worst_change_pct: losers.length ? Math.min(...losers) : null,
@@ -114,7 +117,7 @@ export function publicFacts(state, chart, mood) {
 }
 
 /** Builds the stored issue from the model's fields; anything still empty is written from the facts in plain sentences. */
-export function buildIssue({ input, oracle, chart, facts, date, no, notes, build }) {
+export function buildIssue({ input, oracle, chart, sky, facts, date, no, notes, build }) {
   const r = readFields(input);
   const gaps = missingFields(input);
   const plainSky = oracle.plain.sky(facts);
@@ -124,9 +127,12 @@ export function buildIssue({ input, oracle, chart, facts, date, no, notes, build
     sky: [clip(r.sky_1, 200) || plainSky[0], clip(r.sky_2, 200) || plainSky[1]],
     closing: clip(r.closing, 110) || oracle.plain.closing(facts),
     planet: chart.planet,
+    planet_why: chart.reason,
     mood: facts.mood,
     facts,
-    signs: chart.signs.map((s) => ({ id: s.id, score: s.score, planet: s.planet, text: clip(r[s.id], 270) || oracle.plain.sign(s, facts) })),
+    // the real sky of the morning: one line per body, as computed by sky.js
+    sky_now: { lines: skyLines(sky), moon: sky.moon, retrograde: sky.retrograde },
+    signs: chart.signs.map((s) => ({ id: s.id, score: s.score, planet: s.planet, why: s.why, text: clip(r[s.id], 270) || oracle.plain.sign(s, facts) })),
     notes: notes.slice(0, 14),
     filled: gaps.length,
   };
@@ -157,18 +163,20 @@ async function callModel(env, system, messages, force) {
 export async function writeIssue({ oracle, env, date, no, build = 0, now = Date.now() }) {
   const state = {}; const notes = [];
   const step = (t) => notes.push({ type: 'step', text: t });
-  let chart = null, mood = 0, readings = 0, rewrites = 0;
+  let chart = null, sky = null, mood = 0, readings = 0, rewrites = 0;
 
   const tool = async (name) => {
     if (name === 'read_sky') {
       const first = !state.sky;
-      const sky = await readSky(state, now);
+      const market = await readSky(state, now);
       if (first) {
-        mood = moodOf(sky); chart = drawChart(date, mood);
-        step(`Looked at the sky: SOL ${sky.sol_change_24h_pct === null ? 'unreadable' : `${sky.sol_change_24h_pct > 0 ? '+' : ''}${sky.sol_change_24h_pct}%`} in 24 hours, ${sky.red_tokens} red and ${sky.green_tokens} green of ${sky.tokens_read} tokens.`);
-        step(`Drew the chart. Planet of the day: ${chart.planet}.`);
+        mood = moodOf(market); sky = skyAt(now); chart = drawChart(sky, mood);
+        step(`Looked at the market: SOL ${market.sol_change_24h_pct === null ? 'unreadable' : `${market.sol_change_24h_pct > 0 ? '+' : ''}${market.sol_change_24h_pct}%`} in 24 hours, ${market.red_tokens} red and ${market.green_tokens} green of ${market.tokens_read} tokens.`);
+        step(`Looked up at the real sky: the Moon in ${sky.moon.sign.charAt(0).toUpperCase() + sky.moon.sign.slice(1)}, ${sky.moon.phase}. Retrograde: ${sky.retrograde.length ? sky.retrograde.join(', ') : 'nobody'}.`);
+        step(`Drew the chart. Planet of the day: ${chart.planet}. ${chart.reason}.`);
       }
-      return { ...sky, mood: moodWord(mood), planet_of_the_day: chart.planet, chart: chart.signs.map((s) => ({ sign: s.id, score_out_of_10: s.score, planet_to_blame: s.planet })) };
+      return { ...market, mood: moodWord(mood), real_sky_today: skyLines(sky), planet_of_the_day: chart.planet, planet_of_the_day_why: chart.reason,
+        chart: chart.signs.map((c) => ({ sign: c.id, score_out_of_10: c.score, planet_to_blame: c.planet, why: c.why })) };
     }
     if (!state.sky) return { error: 'Call read_sky first.' };
     if (name === 'read_movers') {
@@ -188,7 +196,7 @@ export async function writeIssue({ oracle, env, date, no, build = 0, now = Date.
     const facts = publicFacts(state, chart, mood);
     const gaps = missingFields(input);
     step(gaps.length ? `Issue written. ${gaps.length} blank ${gaps.length === 1 ? 'field was' : 'fields were'} filled from the numbers.` : 'Issue written. Twelve signs, nobody to blame.');
-    return buildIssue({ input, oracle, chart, facts, date, no, notes, build });
+    return buildIssue({ input, oracle, chart, sky, facts, date, no, notes, build });
   };
 
   const messages = [{ role: 'user', content: `Write the issue for ${date}. Read the last 24 hours and file it.` }];
