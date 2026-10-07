@@ -229,4 +229,4 @@ The split sheet is not a contract, and the site does not hold, move or distribut
 
 ## Contact
 
-**cosa_nostra** — Telegram: [@insider_gang](https://t.me/insider_gang)
+**cosa_nostra** — Telegram: [@insider_dev](https://t.me/insider_dev)

@@ -164,4 +164,4 @@ $MOLTY is a meme project made for fun. It is not an investment and not financial
 
 ## Contact
 
-**cosa_nostra** — Telegram: [@insider_gang](https://t.me/insider_gang)
+**cosa_nostra** — Telegram: [@insider_dev](https://t.me/insider_dev)

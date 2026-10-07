@@ -240,4 +240,4 @@ The coach is a joke: no coaching, training or printing service is sold. The meme
 
 ## Contact
 
-**cosa_nostra** — Telegram: [@insider_gang](https://t.me/insider_gang)
+**cosa_nostra** — Telegram: [@insider_dev](https://t.me/insider_dev)

@@ -196,4 +196,4 @@ $TSC3000 is a meme project made for fun. It is not an investment and not financi
 
 ## Contact
 
-**cosa_nostra** — Telegram: [@insider_gang](https://t.me/insider_gang)
+**cosa_nostra** — Telegram: [@insider_dev](https://t.me/insider_dev)

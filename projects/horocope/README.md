@@ -264,4 +264,4 @@ Astrology is a joke here. Madame Cope is a crystal ball. For anything important,
 
 ## Contact
 
-**cosa_nostra** — Telegram: [@insider_gang](https://t.me/insider_gang)
+**cosa_nostra** — Telegram: [@insider_dev](https://t.me/insider_dev)

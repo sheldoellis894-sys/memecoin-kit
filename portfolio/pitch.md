@@ -229,7 +229,7 @@ Telegram https://t.me/moltymole
 
 Весь проект — герой, сайт, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 5,5 часа.
 
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_dev
 
 **EN**
 
@@ -239,7 +239,7 @@ This is a memecoin website, and you can play it: https://turboshibacop.vercel.ap
 
 The whole project — character, website, X, Telegram with bot protection and a pump.fun package — took 5.5 hours.
 
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_dev
 
 #### Вариант «Договор» (добавлен после Fat Cat Holdings)
 
@@ -251,7 +251,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Весь проект — герой, сайт с игрой, анимация, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 5 часов. В портфолио восемь проектов, все сайты разные.
 
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_dev
 
 **EN**
 
@@ -261,7 +261,7 @@ This is a memecoin website, and you have to sign it: https://fatcatholdings.verc
 
 The whole project — character, website with a game, animation, X, Telegram with bot protection and a pump.fun package — took 5 hours. Eight projects in the portfolio, no two websites alike.
 
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_dev
 
 #### Вариант «Доставка» (добавлен после Scootini Goosini, утверждён 05.10.2026)
 
@@ -273,7 +273,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Весь проект — герой, сайт с игрой, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3 часа. В портфолио восемь проектов, все сайты разные.
 
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_dev
 
 **EN**
 
@@ -283,7 +283,7 @@ This is a memecoin website built as a delivery app, and you can try to stop the 
 
 The whole project — character, website with a game, X, Telegram with bot protection and a pump.fun package — took 3 hours. Eight projects in the portfolio, no two websites alike.
 
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_dev
 
 #### Вариант «Станок» (добавлен после Inkmaxx, утверждён 06.10.2026)
 
@@ -295,7 +295,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Весь проект — герой, сайт с генератором мемов, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 3,5 часа. В портфолио восемь проектов, все сайты разные.
 
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_dev
 
 **EN**
 
@@ -305,7 +305,7 @@ This is a token website with a working meme press: https://inkmaxxing.vercel.app
 
 The whole project — character, website with a meme maker, X, Telegram with bot protection and a pump.fun package — took 3.5 hours. Eight projects in the portfolio, no two websites alike.
 
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_dev
 
 #### Вариант «Счётная комната» (добавлен после Ten Keys, утверждён 06.10.2026)
 
@@ -317,7 +317,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Весь проект — бренд, сайт с инструментом, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 4 часа. В портфолио восемь проектов, все сайты разные.
 
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_dev
 
 **EN**
 
@@ -327,7 +327,7 @@ This is a token website with a working fee split calculator: https://thetenkeys.
 
 The whole project — brand, website with a tool, X, Telegram with bot protection and a pump.fun package — took 4 hours. Eight projects in the portfolio, no two websites alike.
 
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_dev
 
 #### Вариант «Инспекция» (добавлен после Chef Rekt, утверждён 06.10.2026)
 
@@ -339,7 +339,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Весь проект — герой, сайт с агентом, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 4 часа. В портфолио восемь проектов, все сайты разные.
 
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_dev
 
 **EN**
 
@@ -349,7 +349,7 @@ This is a token website with a working AI agent: https://thechefrekt.vercel.app
 
 The whole project — character, website with an agent, X, Telegram with bot protection and a pump.fun package — took 4 hours. Eight projects in the portfolio, no two websites alike.
 
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_dev
 
 #### Вариант «Знак» (добавлен после Horocope, утверждён 07.10.2026)
 
@@ -363,7 +363,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Весь проект — героиня, сайт с агентом по расписанию, X, Telegram с защитой от ботов и пакет под pump.fun — собран за 5 часов. В портфолио восемь проектов, все сайты разные.
 
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_dev
 
 **EN**
 
@@ -373,7 +373,7 @@ This is a token website with an AI agent that writes a horoscope by itself every
 
 The whole project — character, website with a scheduled agent, X, Telegram with bot protection and a pump.fun package — took 5 hours. Eight projects in the portfolio, no two websites alike.
 
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_dev
 
 #### Запасной вариант — «Цифра»
 
@@ -385,7 +385,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Проверьте руками, попробуйте догнать кота: https://turboshibacop.vercel.app
 
-Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_gang
+Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран. @insider_dev
 
 **EN**
 
@@ -395,7 +395,7 @@ That is how long Turbo Shiba Cop 3000 took from an idea to "just press Create co
 
 See for yourself, try to catch the cat: https://turboshibacop.vercel.app
 
-Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_gang
+Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen. @insider_dev
 
 ### Full version
 
@@ -427,7 +427,7 @@ Got a launch coming? Send me the narrative. In 24 hours you get your character a
 
 Готовите запуск? Пришлите нарратив. Через сутки покажу вашего героя и первый экран сайта, дальше решите сами.
 
-Telegram: @insider_gang
+Telegram: @insider_dev
 
 **EN**
 
@@ -457,4 +457,4 @@ a website that is a contract you have to sign — https://fatcatholdings.vercel.
 
 Got a launch coming? Send me the narrative. In 24 hours you get your character and the first screen of the website, and you decide from there.
 
-Telegram: @insider_gang
+Telegram: @insider_dev

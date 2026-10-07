@@ -227,4 +227,4 @@ The delivery app is a joke: no food is sold, delivered or eaten.
 
 ## Contact
 
-**cosa_nostra** — Telegram: [@insider_gang](https://t.me/insider_gang)
+**cosa_nostra** — Telegram: [@insider_dev](https://t.me/insider_dev)
