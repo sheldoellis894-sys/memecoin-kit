@@ -977,16 +977,10 @@ html.lead-headings :is(h1, h2, h3, .font-heading) { line-height: var(--t-heading
 .rp-count { text-align: center; }
 .rp-count b { color: var(--t-text); }
 @media (min-width: 900px) { .rp-studio { grid-template-columns: minmax(0, 1.050fr) minmax(0, .95fr); align-items: start; } .rp-machine-col { position: sticky; top: calc(var(--rp-top) + 14px); } }
-/* Narrow screens: the machine stays pinned under the top bar while the controls scroll below it; the printed sheet comes out after the controls */
+/* Narrow screens: the machine stays in its place on the page (it does not follow the scroll), the controls come under it, the printed sheet comes out after the controls */
 @media (max-width: 899px) {
   .rp-machine-col { display: contents; }
-  /* The machine is pinned together with a strip of paper under it (the dock), so the controls that scroll behind do not show at its sides.
-     Machine and strip take about 60% of the screen height at most, the rest is left for the controls. */
-  .rp-dock { position: sticky; z-index: 2; top: calc(var(--rp-top) - 12px); padding: 6px 0 12px; margin-bottom: -12px; }
-  .rp-dock::before { content: ""; position: absolute; z-index: -1; inset: 0 -100vmax; background: var(--rp-noise), var(--t-bg); border-bottom: 3px solid transparent; }
-  .rp-studio.is-stuck .rp-dock::before { border-bottom-color: var(--t-text); }
-  .rp-studio.has-print .rp-dock, .rp-studio.is-typing .rp-dock { position: relative; top: 0; }
-  .rp-machine { display: flex; flex-direction: column; width: 100%; max-width: max(236px, calc(58svh - 132px)); margin-inline: auto; box-shadow: 5px 5px 0 var(--t-secondary); }
+  .rp-machine { display: flex; flex-direction: column; width: 100%; max-width: max(236px, calc(100svh - var(--rp-top) - 96px)); margin-inline: auto; box-shadow: 5px 5px 0 var(--t-secondary); }
   /* The sticker buttons take the place of the name plate, so the machine keeps its height and the page under it does not jump */
   .rp-machine-top, .rp-sticker-tools { box-sizing: border-box; flex: none; height: 40px; padding: 0 0 8px; }
   .rp-machine-name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .7rem; }
@@ -1000,8 +994,6 @@ html.lead-headings :is(h1, h2, h3, .font-heading) { line-height: var(--t-heading
   .rp-tray { order: 3; width: 100%; max-width: 420px; margin-top: 0; }
   .rp-tray-window img { border-top: var(--rp-line); }
 }
-/* A low screen (a phone on its side): the machine is not pinned, it would cover the whole screen */
-@media (max-width: 899px) and (max-height: 520px) { .rp-dock { position: relative; top: 0; } }
 
 /* ---------- How to buy: workout plan ---------- */
 .rp-workout-bar { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; font-weight: 800; }

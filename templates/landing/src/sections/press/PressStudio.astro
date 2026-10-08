@@ -24,7 +24,6 @@ const data = s && JSON.stringify({
   {s.lead && <p class="rp-lead rp-studio-lead">{s.lead}</p>}
   <div class="rp-studio" data-rp-studio={data}>
     <div class="rp-machine-col">
-      <div class="rp-dock">
       <div class="rp-machine">
         <div class="rp-machine-top" aria-hidden="true">
           <span class="rp-machine-name font-heading">{l.machine}</span>
@@ -43,7 +42,6 @@ const data = s && JSON.stringify({
           <button type="button" data-rp-tool="done" class="is-main">{l.done}</button>
         </div>
         <div class="rp-slot" aria-hidden="true"><i></i></div>
-      </div>
       </div>
       <div class="rp-tray" data-rp-tray hidden>
         <div class="rp-tray-window"><img data-rp-out alt={l.result} width="1080" height="1080" /></div>
@@ -314,11 +312,21 @@ const data = s && JSON.stringify({
       if (state.risoAuto) state.riso = own;
       syncInk(); rebuild();
     };
-    templateBtns.forEach((b, i) => b.addEventListener('click', () => { working(true); setTemplate(i).finally(() => working(false)); }));
+    // On a narrow screen the machine stays in its place on the page and does not follow the scroll.
+    // When a picture or a sticker is chosen further down and the picture is mostly out of sight, the page is brought back to it once.
+    const narrow = matchMedia('(max-width: 899px)');
+    const machine = root.querySelector<HTMLElement>('.rp-machine')!;
+    const reveal = () => {
+      if (!narrow.matches) return;
+      const r = cv.getBoundingClientRect(), top = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      const seen = Math.min(r.bottom, innerHeight) - Math.max(r.top, top);
+      if (seen < r.height * 0.75) machine.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    };
+    templateBtns.forEach((b, i) => b.addEventListener('click', () => { working(true); reveal(); setTemplate(i).finally(() => working(false)); }));
     root.querySelector<HTMLInputElement>('[data-rp-upload]')!.addEventListener('change', (e) => {
       const file = (e.target as HTMLInputElement).files?.[0]; if (!file) return;
       const url = URL.createObjectURL(file);
-      working(true); setImage(url, true).catch(() => {}).finally(() => { working(false); URL.revokeObjectURL(url); });
+      working(true); reveal(); setImage(url, true).catch(() => {}).finally(() => { working(false); URL.revokeObjectURL(url); });
     });
 
     const risoBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-rp-riso]')];
@@ -358,7 +366,7 @@ const data = s && JSON.stringify({
       select(state.stickers.length - 1);
       return true;
     };
-    stickerBtns.forEach((b, i) => b.addEventListener('click', () => { addSticker(i); }));
+    stickerBtns.forEach((b, i) => b.addEventListener('click', () => { addSticker(i).then((ok) => { if (ok) reveal(); }); }));
 
     const scaleSel = (f: number) => { const st = state.stickers[state.sel]; if (!st) return; st.s = Math.min(3, Math.max(0.25, st.s * f)); render(); };
     tools.addEventListener('click', (e) => {
@@ -459,7 +467,7 @@ const data = s && JSON.stringify({
         const name = `${cfg.file}-print-${count}.png`;
         try { lastFile = new File([blob], name, { type: 'image/png' }); } catch { lastFile = null; }
         outImg.src = lastUrl; dl.href = lastUrl; dl.download = name;
-        shareNote.hidden = true; tray.hidden = false; root.classList.add('has-print'); stuckSoon();
+        shareNote.hidden = true; tray.hidden = false; root.classList.add('has-print');
         tray.classList.remove('is-out'); root.classList.add('is-printing');
         requestAnimationFrame(() => requestAnimationFrame(() => tray.classList.add('is-out')));
         setTimeout(() => root.classList.remove('is-printing'), 1500);
@@ -485,29 +493,13 @@ const data = s && JSON.stringify({
     });
 
     // The coach stays quiet while someone is working in the studio
-    // On narrow screens the machine is pinned over the page, so a printed sheet is put away as soon as editing starts again.
+    // On narrow screens the printed sheet sits under the controls, so it is put away as soon as editing starts again.
     let quiet = 0;
     const touch = (e: Event) => {
       const t = e.target as HTMLElement;
       if (!tray.hidden && !tray.contains(t) && !goBtn.contains(t) && matchMedia('(max-width: 899px)').matches) { tray.hidden = true; root.classList.remove('has-print'); }
-      stuckSoon();
       dispatchEvent(new CustomEvent('rp:busy', { detail: true })); clearTimeout(quiet); quiet = window.setTimeout(() => dispatchEvent(new CustomEvent('rp:busy', { detail: false })), 30000); };
     ['pointerdown', 'keydown', 'input', 'change'].forEach((ev) => root.addEventListener(ev, touch));
-    // The pinned machine stands on a strip of paper; the line under the strip is drawn only while the machine is pinned
-    const dock = root.querySelector<HTMLElement>('.rp-dock')!;
-    let stuckTick = 0;
-    const stuck = () => { stuckTick = 0; root.classList.toggle('is-stuck', getComputedStyle(dock).position === 'sticky' && dock.getBoundingClientRect().top - root.getBoundingClientRect().top > 1); };
-    const stuckSoon = () => { if (!stuckTick) stuckTick = requestAnimationFrame(stuck); };
-    addEventListener('scroll', stuckSoon, { passive: true }); addEventListener('resize', stuckSoon);
-    // While a caption is being typed on a narrow screen the machine is not pinned: the keyboard leaves no room for both
-    // It is pinned back a moment after the field is left, so that the tap which took the focus away still lands where it was aimed
-    let typingOff = 0;
-    const typing = (on: boolean) => (e: Event) => {
-      if (!(e.target as HTMLElement).matches?.('.rp-input input')) return;
-      clearTimeout(typingOff);
-      if (on) root.classList.add('is-typing'); else typingOff = window.setTimeout(() => { root.classList.remove('is-typing'); stuckSoon(); }, 400);
-    };
-    root.addEventListener('focusin', typing(true)); root.addEventListener('focusout', typing(false));
 
     // Gallery sheets can be sent straight into the press
     addEventListener('rp:use', (e) => { const src = (e as CustomEvent).detail as string; if (src) { working(true); setImage(src).catch(() => {}).finally(() => working(false)); } });
