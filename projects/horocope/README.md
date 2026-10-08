@@ -246,11 +246,12 @@ templates/landing/
 ## Not done on purpose, and not confirmed
 
 - The token is not created. This project is a complete launch package.
-- The schedule is set and the function is live, but the first scheduled run falls on the morning after this page was written. The issue on the site was started by hand through the same function.
+- The schedule is set, but a scheduled run is not confirmed yet. Issue No. 1 on 7 October was started by hand through the same function. Issue No. 2 on 8 October was written by the final version of the agent, with the editor in code sending three fields back once and replacing none; the owner also opened the function by hand that morning, so it is not yet known which of the two runs wrote it.
 - The wallet check for holders is not built. The site shows the holder mode with a preview switch and says so.
 - An AI agent writes the words and it can be wrong. The numbers and the sky come from code; the editor in code catches the rules that can be checked, not the quality of a joke.
 - The positions of the planets are computed with a compact model: accurate to the sign and to the day of a retrograde, not to the arc minute.
 - The market reading covers trending and newest pools from public services, not the whole chain.
+- The cost of one issue is not measured yet.
 - The Rose settings were set by the owner and were not re-read with the bots' checking commands.
 - The agent does not trade, holds no wallet and has no key to any funds.
 - No animation in this project: the motion is on the site itself.
