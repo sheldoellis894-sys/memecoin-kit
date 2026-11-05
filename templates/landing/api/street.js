@@ -5,6 +5,7 @@
 //
 // What is kept: one JSON file `${PROJECT}/street.json`. Works on Vercel and on any server with Node (see api/_agent/store.js):
 //   BLOB_READ_WRITE_TOKEN — on Vercel: added when a Blob store is connected to the project
+//                           (new stores add BLOB_STORE_ID instead; the Blob package then signs in with Vercel OIDC)
 //   STORE=file, DATA_DIR  — on an own server: the folder for the file (the client's hosting)
 //   STREET_SALT           — optional: any long random string; visitor ids are stored only as hashes with it
 //   STREET_BLOCK          — optional: words that may not be in a name, comma separated

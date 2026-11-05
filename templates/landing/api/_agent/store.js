@@ -1,6 +1,7 @@
 // Where small JSON files live, on any hosting. One interface: read(env, path) → text or null; write(env, path, text).
 //
-//   Vercel:          a Blob store is connected → BLOB_READ_WRITE_TOKEN is set → Vercel Blob (see journal.js).
+//   Vercel:          a Blob store is connected → BLOB_READ_WRITE_TOKEN is set (older stores), or BLOB_STORE_ID is set and
+//                    the function signs in with Vercel's own OIDC token (new stores) → Vercel Blob (see journal.js).
 //   Own server/VPS:  STORE=file and DATA_DIR=/path/to/folder → plain files on the disk of the server.
 //
 // STORE=blob or STORE=file picks the store by hand; without it the store is chosen from what is set.
@@ -42,8 +43,9 @@ export const fileStore = {
 
 /** Which kind of store this deployment has: 'blob', 'file' or '' (none, the feature is off). */
 export function storeKind(env) {
-  if (env.STORE === 'file' || env.STORE === 'blob') return env.STORE === 'blob' && !env.BLOB_READ_WRITE_TOKEN ? '' : env.STORE;
-  if (env.BLOB_READ_WRITE_TOKEN) return 'blob';
+  const blob = Boolean(env.BLOB_READ_WRITE_TOKEN || env.BLOB_STORE_ID);
+  if (env.STORE === 'file' || env.STORE === 'blob') return env.STORE === 'blob' && !blob ? '' : env.STORE;
+  if (blob) return 'blob';
   if (env.DATA_DIR) return 'file';
   return '';
 }
