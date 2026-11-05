@@ -29,7 +29,7 @@ for (let i = 0; i < 20000; i++) {
   const got = tryIt('decodeHouse', () => K.decodeHouse(code, { holderOk: R() < 0.5 }));
   if (got) {
     ok(K.FAMILY_IDS.includes(got.family), 'family'); ok(got.seed >= 1 && got.seed <= 0xffffffff, 'seed');
-    for (const f of got.free) ok(K.ITEMS[f.i] && f.x >= 0 && f.x <= 600 && f.y >= 0 && f.y <= 600 && f.s >= 0.4 && f.s <= 2.5 && Math.abs(f.r) <= 180, 'free range');
+    for (const f of got.free) ok(K.ITEMS[f.i] && f.x >= 0 && f.x <= 600 && f.y >= 0 && f.y <= 600 && f.s >= 0.4 && f.s <= 4 && Math.abs(f.r) <= 180, 'free range');
     const h = tryIt('houseOfP', () => K.houseOfP(got));
     const svg = tryIt('houseSvg', () => K.houseSvg(h, got.placed, { free: got.free, level: 1 + Math.floor(R() * 7), ctx: { ticker: 'ULLU' } }));
     ok(typeof svg === 'string' && !svg.includes('NaN') && !svg.includes('undefined'), `svg NaN/undefined for ${code.slice(0, 40)}`);

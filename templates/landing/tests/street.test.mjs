@@ -150,7 +150,7 @@ pf = K.placeFree(pf, 'neon-heart', 120, 300); assert.equal(pf.free.length, 1);
 assert.equal(K.placeFree(pf, 'neon-heart', 10, 10), null, 'only one heart owned');
 assert.equal(K.placeFree(pf, 'curtains-pink', 10, 10), null, 'window items go into windows only');
 pf = K.placeFree(pf, 'sign-custom', 300, 200, false, { t: 'gm frens! www.x.com' }); assert.equal(pf.free[1].t, 'HOOT', 'links are not allowed on signs');
-pf = K.updateFree(pf, pf.free[1].n, { t: 'gm frens <3', s: 9, x: -50 }); assert.equal(pf.free[1].t, 'GM FRENS 3'); assert.equal(pf.free[1].s, 2.5); assert.equal(pf.free[1].x, 0);
+pf = K.updateFree(pf, pf.free[1].n, { t: 'gm frens <3', s: 9, x: -50 }); assert.equal(pf.free[1].t, 'GM FRENS 3'); assert.equal(pf.free[1].s, 4); assert.equal(pf.free[1].x, 0);
 pf = K.applyPaint(pf, 'paint-gold'); assert.equal(pf.paint, 'paint-gold'); assert.equal(K.houseOfP(pf).wall, K.ITEMS['paint-gold'].color);
 assert.equal(K.freeItems(pf)['paint-gold'], 0); assert.equal(K.applyPaint(pf, 'paint-neon'), null, 'no neon paint owned');
 const fcode = K.encodeHouse(pf.seed, {}, pf.family, '', { free: pf.free, paint: pf.paint });

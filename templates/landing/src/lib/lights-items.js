@@ -356,7 +356,8 @@ export function drawFree(f, g = 1, ctx = {}) {
   else if (['neon', 'net', 'curtainlights', 'sign', 'poster', 'sticker', 'graffiti'].includes(it.type)) body = drawItem(f.i, { x: 0, y: 0 }, g, { ...ctx, text: f.t });
   else if (it.type === 'rangoli') body = drawItem(f.i, { x: 0, y: 0 }, g, ctx);
   else body = drawItem(f.i, { x: 0, y: 22 }, g, ctx);
-  return `<g transform="translate(${f1(f.x)} ${f1(f.y)}) rotate(${Math.round(f.r || 0)}) scale(${(f.s || 1).toFixed(2)})">${body}</g>`;
+  // data-fn: the page finds this decoration by its number to move it while it is dragged (no full redraw)
+  return `<g${Number.isInteger(f.n) ? ` data-fn="${f.n}"` : ''} transform="translate(${f1(f.x)} ${f1(f.y)}) rotate(${Math.round(f.r || 0)}) scale(${(f.s || 1).toFixed(2)})">${body}</g>`;
 }
 
 export const GLOW_DEF = (id = 'ul') => `<radialGradient id="${id}-glow"><stop offset="0" stop-color="#FFD36B" stop-opacity=".9"/><stop offset=".45" stop-color="#FF9F1C" stop-opacity=".35"/><stop offset="1" stop-color="#FF9F1C" stop-opacity="0"/></radialGradient>`;

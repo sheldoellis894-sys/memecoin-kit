@@ -13,12 +13,17 @@ const l: Record<string, string> = c.labels || {};
 const bases: { src: string; label: string }[] = (c.bases || []).map((b: any) => ({ src: asset(b.src), label: b.label || '' }));
 const extra: { id: string; src: string; label: string }[] = (c.stickers || []).map((s: any, i: number) => ({ id: s.id || `x${i}`, src: asset(s.src), label: s.label || '' }));
 const captions: string[] = c.captions || [];
+// the words on the picture: six fonts (loaded only for this tool), eight colours, an outline and a shadow
+const FONTS = [{ name: 'Yatra One', label: 'Yatra' }, { name: 'Baloo 2', label: 'Baloo' }, { name: 'Rozha One', label: 'Rozha' }, { name: 'Kalam', label: 'Kalam' }, { name: 'Bungee', label: 'Bungee' }, { name: 'Pacifico', label: 'Pacifico' }];
+const COLORS = ['#FFF3C4', '#FFFFFF', '#FFD21F', '#FF8A1F', '#E8343B', '#FF4FA3', '#B8E62E', '#5EC8F2'];
+const OUTLINES = [{ c: '#141026', label: 'Dark outline' }, { c: '#FFFFFF', label: 'White outline' }, { c: '#E8343B', label: 'Red outline' }, { c: '', label: 'No outline' }];
 const data = JSON.stringify({
   owl: owlImages, items: itemNames, categories: (houseCfg as any).categories || {}, holderItems: ITEM_IDS.filter((i) => (ITEMS as any)[i].holder), extra, bases, night: nightCtx,
   captions, labels: l, watermark: c.watermark || '', shareText: c.shareText || '', url: config.url || '',
   ticker: config.ticker, file: config.ticker.toLowerCase(), houseKey: `ul-house-${config.ticker.toLowerCase()}`, full: c.fullAt || 100,
 });
 ---
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Kalam:wght@700&family=Bungee&family=Pacifico&display=swap" />
 <section id="picture" class="lt-sec lt-pic-sec" data-ul-pic={data}>
   <div class="lt-in">
     <LtHead kicker={c.kicker} title={c.title} lead={c.lead} />
@@ -54,7 +59,7 @@ const data = JSON.stringify({
 
         <div class="lt-box" data-ul-edit hidden>
           <p class="lt-label">{l.selected || 'Selected'}</p>
-          <label class="lt-range"><span>{l.size || 'Size'}</span><input type="range" min="30" max="400" value="100" data-ul-size /></label>
+          <label class="lt-range"><span>{l.size || 'Size'}</span><input type="range" min="20" max="600" value="100" data-ul-size /></label>
           <label class="lt-range"><span>{l.turn || 'Turn'}</span><input type="range" min="-180" max="180" value="0" data-ul-turn /></label>
           <div class="lt-actions lt-actions-tight">
             <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-act="flip">{l.flip || 'Mirror'}</button>
@@ -69,6 +74,15 @@ const data = JSON.stringify({
           <input class="lt-input" maxlength="60" data-ul-cap placeholder={l.capPlaceholder || 'Write something or pick one below'} />
           <div class="lt-caps" data-ul-caps>
             {captions.map((t) => <button type="button" class="lt-cap" data-cap={t}>{t}</button>)}
+          </div>
+          <div class="lt-tstyle" data-ul-tstyle>
+            <p class="lt-label">{l.font || 'Font'}</p>
+            <div class="lt-fonts">{FONTS.map((f) => <button type="button" data-font={f.name} style={`font-family:'${f.name}'`} aria-pressed="false">{f.label}</button>)}</div>
+            <p class="lt-label">{l.color || 'Colour'}</p>
+            <div class="lt-swatches">{COLORS.map((c) => <button type="button" data-color={c} style={`--c:${c}`} aria-label={c} aria-pressed="false"></button>)}</div>
+            <p class="lt-label">{l.outline || 'Outline'}</p>
+            <div class="lt-swatches">{OUTLINES.map((o) => <button type="button" data-outline={o.c} style={`--c:${o.c || 'transparent'}`} aria-label={o.label} aria-pressed="false" class:list={[!o.c && 'is-none']}></button>)}</div>
+            <label class="lt-switch lt-switch-small"><input type="checkbox" role="switch" data-ul-shadow /><span class="lt-switch-track" aria-hidden="true"><i></i></span><span>{l.shadow || 'Shadow'}</span></label>
           </div>
         </div>
 
@@ -197,8 +211,34 @@ const data = JSON.stringify({
       }
       ctx.restore();
     };
+    // the words are an object on the picture like a light: moved, resized and turned the same way
+    const T = { text: '', font: 'Yatra One', color: '#FFF3C4', outline: '#141026', shadow: false };
+    const textLines = (x: St) => {
+      const px = 84; ctx.font = `${px}px '${T.font}', ${heading}`;
+      const lines = wrap(T.font === 'Pacifico' || T.font === 'Kalam' ? T.text : T.text.toUpperCase(), 900);
+      const w = Math.max(...lines.map((l) => ctx.measureText(l).width), 40);
+      return { px, lines, w: w * x.s, h: lines.length * px * 1.12 * x.s };
+    };
+    const dims = (x: St) => {
+      if (x.k.text) { const t = textLines(x); return { w: t.w + 24 * x.s, h: t.h + 12 * x.s }; }
+      const w = x.k.base * x.s; return { w, h: (x.img.naturalHeight / x.img.naturalWidth || 1) * w };
+    };
+    const drawText = (x: St) => {
+      const t = textLines(x), size = t.px * x.s;
+      ctx.save(); ctx.translate(x.x, x.y); ctx.rotate((x.r * Math.PI) / 180);
+      ctx.font = `${size}px '${T.font}', ${heading}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+      const y0 = -((t.lines.length - 1) * size * 1.12) / 2;
+      t.lines.forEach((ln, i) => {
+        const y = y0 + i * size * 1.12;
+        if (T.shadow) { ctx.fillStyle = 'rgba(10,6,30,.85)'; ctx.fillText(ln, size * 0.07, y + size * 0.08); if (T.outline) { ctx.lineWidth = size * 0.16; ctx.strokeStyle = 'rgba(10,6,30,.85)'; ctx.strokeText(ln, size * 0.07, y + size * 0.08); } }
+        if (T.outline) { ctx.lineWidth = size * 0.16; ctx.strokeStyle = T.outline; ctx.strokeText(ln, 0, y); }
+        ctx.fillStyle = T.color; ctx.fillText(ln, 0, y);
+      });
+      ctx.restore();
+    };
     const drawSticker = (x: St) => {
-      const w = x.k.base * x.s, h = (x.img.naturalHeight / x.img.naturalWidth || 1) * w;
+      if (x.k.text) return drawText(x);
+      const { w, h } = dims(x);
       ctx.save(); ctx.translate(x.x, x.y); ctx.rotate((x.r * Math.PI) / 180); if (x.flip) ctx.scale(-1, 1);
       ctx.drawImage(x.img, -w / 2, -h / 2, w, h); ctx.restore();
     };
@@ -208,7 +248,7 @@ const data = JSON.stringify({
       if (line) out.push(line); return out;
     };
     const drawCaption = () => {
-      if (!caption) return;
+      return;
       let size = 84, lines: string[] = [];
       for (const t of [84, 72, 62, 52, 44]) { size = t; ctx.font = `${t}px ${heading}`; lines = wrap(caption.toUpperCase(), S - 120); if (lines.length <= 2) break; }
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.lineJoin = 'round';
@@ -221,12 +261,23 @@ const data = JSON.stringify({
       ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(20,16,38,.8)'; ctx.strokeText(cfg.watermark, S - 30, 28);
       ctx.fillStyle = '#FFC94A'; ctx.fillText(cfg.watermark, S - 30, 28);
     };
+    // handles in the object's own (turned) coordinates; bigger on a phone
+    const HS = matchMedia('(pointer: coarse)').matches ? 46 : 30;
+    const handles = (x: St) => { const { w, h } = dims(x); const a = w / 2 + 8, b = h / 2 + 8; return [[-a, -b], [a, -b], [-a, b], [a, b]]; };
+    const turnHandle = (x: St) => [0, -dims(x).h / 2 - 8 - HS * 1.6];
     const render = (forExport = false) => {
       drawBase(); st.forEach(drawSticker); drawCaption(); drawMark();
       if (!forExport && cur) {
-        const w = cur.k.base * cur.s, h = (cur.img.naturalHeight / cur.img.naturalWidth || 1) * w;
+        const { w, h } = dims(cur);
         ctx.save(); ctx.translate(cur.x, cur.y); ctx.rotate((cur.r * Math.PI) / 180);
-        ctx.setLineDash([14, 10]); ctx.lineWidth = 4; ctx.strokeStyle = '#FFC94A'; ctx.strokeRect(-w / 2 - 8, -h / 2 - 8, w + 16, h + 16); ctx.restore();
+        ctx.setLineDash([14, 10]); ctx.lineWidth = 4; ctx.strokeStyle = '#FFC94A'; ctx.strokeRect(-w / 2 - 8, -h / 2 - 8, w + 16, h + 16);
+        ctx.setLineDash([]); ctx.lineWidth = 4; ctx.strokeStyle = '#141026';
+        // the corners resize, the round handle above turns
+        for (const [hx, hy] of handles(cur)) { ctx.fillStyle = '#FFC94A'; ctx.fillRect(hx - HS / 2, hy - HS / 2, HS, HS); ctx.strokeRect(hx - HS / 2, hy - HS / 2, HS, HS); }
+        const [tx, ty] = turnHandle(cur);
+        ctx.beginPath(); ctx.moveTo(0, -h / 2 - 8); ctx.lineTo(tx, ty); ctx.strokeStyle = '#FFC94A'; ctx.stroke();
+        ctx.beginPath(); ctx.arc(tx, ty, HS * 0.62, 0, 7); ctx.fillStyle = '#FFF3C4'; ctx.fill(); ctx.strokeStyle = '#141026'; ctx.stroke();
+        ctx.restore();
       }
       const lv = level();
       ($<HTMLElement>('[data-ul-meter]')).style.width = `${lv}%`;
@@ -273,6 +324,8 @@ const data = JSON.stringify({
     turn.addEventListener('input', () => { if (cur) { cur.r = Number(turn.value); render(); } });
     editBox.addEventListener('click', async (e) => {
       const act = (e.target as HTMLElement).closest<HTMLElement>('[data-ul-act]')?.dataset.ulAct; if (!act || !cur) return;
+      if ((cur.k as any).text && (act === 'flip' || act === 'copy')) return say(L.textOnly || 'The words can be moved, resized and turned. Change them in the field below.');
+      if (act === 'del' && (cur.k as any).text) { capIn.value = ''; setText(''); return; }
       if (act === 'flip') cur.flip = !cur.flip;
       if (act === 'front') { st = st.filter((x) => x !== cur); st.push(cur); }
       if (act === 'del') { st = st.filter((x) => x !== cur); if (cur.k.owl === 'landed') landedAuto = level() >= 100; select(null); return; }
@@ -284,26 +337,38 @@ const data = JSON.stringify({
     const toCanvas = (cx: number, cy: number) => { const r = cv.getBoundingClientRect(); return { x: ((cx - r.left) / r.width) * S, y: ((cy - r.top) / r.height) * S }; };
     const hit = (pt: { x: number; y: number }) => {
       for (let i = st.length - 1; i >= 0; i--) {
-        const x = st[i], w = x.k.base * x.s, h = (x.img.naturalHeight / x.img.naturalWidth || 1) * w;
+        const x = st[i], { w, h } = dims(x);
         const a = (-x.r * Math.PI) / 180, dx = pt.x - x.x, dy = pt.y - x.y;
         const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
         if (Math.abs(lx) <= w / 2 + 12 && Math.abs(ly) <= h / 2 + 12) return x;
       }
       return null;
     };
-    let drag: { x: St; dx: number; dy: number } | null = null;
+    let drag: { x: St; dx: number; dy: number; mode?: string; s0?: number; r0?: number; d0?: number; a0?: number } | null = null;
     let pinch: { x: St; d: number; a: number; s: number; r: number } | null = null;
+    const local = (x: St, pt: { x: number; y: number }) => { const a = (-x.r * Math.PI) / 180, dx = pt.x - x.x, dy = pt.y - x.y; return [dx * Math.cos(a) - dy * Math.sin(a), dx * Math.sin(a) + dy * Math.cos(a)]; };
     const startAt = (pt: { x: number; y: number }) => {
+      // a handle of the selected one first: a corner resizes, the round one turns
+      if (cur) {
+        const [lx, ly] = local(cur, pt), near = (hx: number, hy: number) => Math.abs(lx - hx) <= HS * 0.8 && Math.abs(ly - hy) <= HS * 0.8;
+        const [tx, ty] = turnHandle(cur);
+        if (near(tx, ty)) { drag = { x: cur, dx: 0, dy: 0, mode: 'turn', r0: cur.r, a0: Math.atan2(pt.y - cur.y, pt.x - cur.x) }; return true; }
+        if (handles(cur).some(([hx, hy]) => near(hx, hy))) { drag = { x: cur, dx: 0, dy: 0, mode: 'size', s0: cur.s, d0: Math.max(10, Math.hypot(pt.x - cur.x, pt.y - cur.y)) }; return true; }
+      }
       const x = hit(pt);
       if (!x) { if (cur) select(null); return false; }
       if (cur !== x) select(x);
       drag = { x, dx: pt.x - x.x, dy: pt.y - x.y };
       return true;
     };
-    const moveTo = (pt: { x: number; y: number }) => { if (!drag) return; drag.x.x = Math.max(0, Math.min(S, pt.x - drag.dx)); drag.x.y = Math.max(0, Math.min(S, pt.y - drag.dy)); render(); };
+    const moveTo = (pt: { x: number; y: number }) => {
+      if (!drag) return;
+      if (drag.mode === 'size') { drag.x.s = Math.max(0.2, Math.min(6, drag.s0! * (Math.hypot(pt.x - drag.x.x, pt.y - drag.x.y) / drag.d0!))); size.value = String(Math.round(drag.x.s * 100)); render(); return; }
+      if (drag.mode === 'turn') { let r = drag.r0! + ((Math.atan2(pt.y - drag.x.y, pt.x - drag.x.x) - drag.a0!) * 180) / Math.PI; r = ((r + 540) % 360) - 180; drag.x.r = r; turn.value = String(Math.round(r)); render(); return; }
+      drag.x.x = Math.max(0, Math.min(S, pt.x - drag.dx)); drag.x.y = Math.max(0, Math.min(S, pt.y - drag.dy)); render(); };
     cv.addEventListener('mousedown', (e) => { if (startAt(toCanvas(e.clientX, e.clientY))) e.preventDefault(); });
     addEventListener('mousemove', (e) => { if (drag) moveTo(toCanvas(e.clientX, e.clientY)); });
-    addEventListener('mouseup', () => { drag = null; });
+    addEventListener('mouseup', () => { if (drag?.mode === 'size') owlCheck(); drag = null; });
     const two = (t: TouchList) => { const a = toCanvas(t[0].clientX, t[0].clientY), b = toCanvas(t[1].clientX, t[1].clientY); return { d: Math.hypot(b.x - a.x, b.y - a.y), a: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI }; };
     // the page scrolls over the picture, except when a finger lands on a light
     cv.addEventListener('touchstart', (e) => {
@@ -311,10 +376,10 @@ const data = JSON.stringify({
       if (e.touches.length === 1 && startAt(toCanvas(e.touches[0].clientX, e.touches[0].clientY))) e.preventDefault();
     }, { passive: false });
     cv.addEventListener('touchmove', (e) => {
-      if (pinch && e.touches.length === 2) { const g = two(e.touches); pinch.x.s = Math.max(0.3, Math.min(4, pinch.s * (g.d / pinch.d))); pinch.x.r = pinch.r + (g.a - pinch.a); size.value = String(Math.round(pinch.x.s * 100)); turn.value = String(Math.round(((pinch.x.r + 540) % 360) - 180)); render(); e.preventDefault(); return; }
+      if (pinch && e.touches.length === 2) { const g = two(e.touches); pinch.x.s = Math.max(0.2, Math.min(6, pinch.s * (g.d / pinch.d))); pinch.x.r = pinch.r + (g.a - pinch.a); size.value = String(Math.round(pinch.x.s * 100)); turn.value = String(Math.round(((pinch.x.r + 540) % 360) - 180)); render(); e.preventDefault(); return; }
       if (drag && e.touches.length === 1) { moveTo(toCanvas(e.touches[0].clientX, e.touches[0].clientY)); e.preventDefault(); }
     }, { passive: false });
-    cv.addEventListener('touchend', () => { if (pinch) { owlCheck(); } pinch = null; drag = null; });
+    cv.addEventListener('touchend', () => { if (pinch || drag?.mode === 'size') { owlCheck(); } pinch = null; drag = null; });
     cv.addEventListener('wheel', (e) => { if (!cur || !hit(toCanvas(e.clientX, e.clientY))) return; e.preventDefault(); cur.s = Math.max(0.3, Math.min(4, cur.s * (e.deltaY < 0 ? 1.08 : 0.93))); size.value = String(Math.round(cur.s * 100)); render(); }, { passive: false });
     // keyboard: arrows move the selected light, +/- resize, Delete removes
     cv.tabIndex = 0;
@@ -364,11 +429,35 @@ const data = JSON.stringify({
 
     // ---- words ---------------------------------------------------------------------------------
     const capIn = $<HTMLInputElement>('[data-ul-cap]');
-    capIn.addEventListener('input', () => { caption = capIn.value.trim(); render(); });
+    const textKind: Kind & { text?: boolean } = { id: 'text', src: '', light: 0, base: 0, label: L.caption || 'Words', text: true } as any;
+    const textObj = () => st.find((x) => (x.k as any).text) || null;
+    const setText = (t: string, pick = false) => {
+      T.text = t.trim(); caption = T.text;
+      let o = textObj();
+      if (!T.text) { if (o) { st = st.filter((x) => x !== o); if (cur === o) select(null); } render(); return; }
+      if (!o) { o = { k: textKind, img: null as any, x: S / 2, y: S - 150, s: 1, r: 0, flip: false }; st.push(o); }
+      if (pick) select(o); else render();
+      document.fonts?.load(`84px '${T.font}'`).then(() => render()).catch(() => {});
+    };
+    capIn.addEventListener('input', () => setText(capIn.value));
     $<HTMLElement>('[data-ul-caps]').addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-cap]'); if (!b) return;
-      capIn.value = b.dataset.cap!; caption = capIn.value; render();
+      capIn.value = b.dataset.cap!; setText(capIn.value, true);
     });
+    const tstyle = $<HTMLElement>('[data-ul-tstyle]');
+    const markStyle = () => {
+      tstyle.querySelectorAll<HTMLElement>('[data-font]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.font === T.font)));
+      tstyle.querySelectorAll<HTMLElement>('[data-color]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.color === T.color)));
+      tstyle.querySelectorAll<HTMLElement>('[data-outline]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.outline === T.outline)));
+      ($<HTMLInputElement>('[data-ul-shadow]')).checked = T.shadow;
+    };
+    tstyle.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-font], [data-color], [data-outline]'); if (!b) return;
+      if (b.dataset.font) T.font = b.dataset.font; if (b.dataset.color) T.color = b.dataset.color; if (b.dataset.outline !== undefined) T.outline = b.dataset.outline;
+      markStyle(); if (!T.text) { capIn.focus(); return; } setText(T.text);
+    });
+    $<HTMLInputElement>('[data-ul-shadow]').addEventListener('change', (e) => { T.shadow = (e.target as HTMLInputElement).checked; render(); });
+    markStyle();
 
     // ---- saving and sharing --------------------------------------------------------------------
     const dl = $<HTMLAnchorElement>('[data-ul-pdl]');
@@ -378,10 +467,15 @@ const data = JSON.stringify({
       render(true);
       let out: HTMLCanvasElement = cv;
       if (round) {
+        // an avatar for X and Telegram: the middle of the picture in a circle with a painted ring, corners see-through
         out = document.createElement('canvas'); out.width = out.height = 512;
-        const c2 = out.getContext('2d')!;
-        c2.beginPath(); c2.arc(256, 256, 256, 0, Math.PI * 2); c2.clip();
-        c2.drawImage(cv, 0, 0, 512, 512);
+        const c2 = out.getContext('2d')!, C = 256;
+        c2.save(); c2.beginPath(); c2.arc(C, C, 226, 0, Math.PI * 2); c2.clip(); c2.drawImage(cv, 0, 0, 512, 512); c2.restore();
+        c2.lineWidth = 10; c2.strokeStyle = '#141026'; c2.beginPath(); c2.arc(C, C, 251, 0, 7); c2.stroke();
+        c2.lineWidth = 22; c2.strokeStyle = '#E8343B'; c2.beginPath(); c2.arc(C, C, 238, 0, 7); c2.stroke();
+        c2.fillStyle = '#FFF8E1'; for (let i = 0; i < 48; i++) { const a = (i / 48) * Math.PI * 2; c2.beginPath(); c2.arc(C + Math.cos(a) * 238, C + Math.sin(a) * 238, 3.4, 0, 7); c2.fill(); }
+        c2.lineWidth = 6; c2.strokeStyle = '#FFD21F'; c2.beginPath(); c2.arc(C, C, 225, 0, 7); c2.stroke();
+        c2.lineWidth = 3; c2.strokeStyle = '#141026'; c2.beginPath(); c2.arc(C, C, 221, 0, 7); c2.stroke();
       }
       const blob = await blobOf(out);
       render();
@@ -393,7 +487,7 @@ const data = JSON.stringify({
         if (lastUrl) URL.revokeObjectURL(lastUrl);
         lastUrl = URL.createObjectURL(blob);
         dl.href = lastUrl; dl.download = `${cfg.file}-${round ? 'avatar' : 'lights'}.png`; dl.click();
-        note.textContent = round ? L.savedAvatar || 'The avatar is saved.' : L.saved || 'The picture is saved.';
+        note.textContent = round ? L.savedAvatar || 'The round avatar is saved: 512×512, ready for X and Telegram.' : L.saved || 'The square picture is saved.';
         return blob;
       } catch {
         note.textContent = L.saveFail || 'This picture cannot be saved: it came from another site. Try your own picture.';
@@ -409,7 +503,7 @@ const data = JSON.stringify({
       window.open(`https://x.com/intent/post?${q}`, '_blank', 'noopener');
       save(false).then((b) => { if (b) note.textContent = L.shareNote || 'X opens with the text ready. The picture is saved: attach it to the post.'; });
     });
-    $<HTMLButtonElement>('[data-ul-clear]').addEventListener('click', () => { st = []; landedAuto = false; caption = ''; capIn.value = ''; select(null); say(L.tipStart || ''); });
+    $<HTMLButtonElement>('[data-ul-clear]').addEventListener('click', () => { st = []; landedAuto = false; caption = ''; T.text = ''; capIn.value = ''; select(null); say(L.tipStart || ''); });
 
     ul.on('ul:holder', () => { drawList(); if (!ul.holder) { st = st.filter((x) => !x.k.holder); if (cur?.k.holder) select(null); } if (baseKind === 'house') setBase('house'); else render(); });
     drawList();
@@ -425,7 +519,7 @@ const data = JSON.stringify({
     (root as any).picture = {
       add: (id: string, x?: number, y?: number) => add(kinds.find((k) => k.id === id)!, x == null ? undefined : { x, y: y! }),
       get stickers() { return st.map((x) => ({ id: x.k.id, x: x.x, y: x.y, s: x.s })); },
-      level, setBase, exportPng, setCaption: (t: string) => { capIn.value = t; caption = t; render(); },
+      level, setBase, exportPng, setCaption: (t: string) => { capIn.value = t; setText(t); },
     };
   }
 </script>

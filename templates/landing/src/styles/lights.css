@@ -506,3 +506,33 @@ html:not(.ul-motion) .lt-sleepy { transition: none; }
 .lt-house-sec.is-docked .lt-inv .lt-item { padding: 6px 3px 5px; }
 .lt-house-sec.is-docked .lt-inv .lt-item img { width: 46px; height: 46px; }
 .lt-house-sec.is-docked .lt-tip { margin-top: 6px; font-size: .95rem; }
+
+/* ---- The frame on the selected decoration of the house: move, resize by a corner, turn by the round handle ---- */
+.lt-sel { position: absolute; z-index: 3; border: 2px dashed var(--t-accent); border-radius: 8px; cursor: move; touch-action: none; box-shadow: 0 0 0 1px rgb(0 0 0 / .45); }
+.lt-sel i { position: absolute; width: 16px; height: 16px; border-radius: 4px; background: var(--t-accent); border: 2px solid var(--lt-ink); touch-action: none; }
+.lt-sel i[data-h="nw"] { left: -9px; top: -9px; cursor: nwse-resize; } .lt-sel i[data-h="se"] { right: -9px; bottom: -9px; cursor: nwse-resize; }
+.lt-sel i[data-h="ne"] { right: -9px; top: -9px; cursor: nesw-resize; } .lt-sel i[data-h="sw"] { left: -9px; bottom: -9px; cursor: nesw-resize; }
+.lt-sel b { position: absolute; left: 50%; top: -34px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--lt-cream); border: 2px solid var(--lt-ink); cursor: grab; touch-action: none; }
+.lt-sel b::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 14px; margin-left: -1px; background: var(--t-accent); }
+@media (pointer: coarse) { .lt-sel i { width: 24px; height: 24px; } .lt-sel i[data-h="nw"] { left: -13px; top: -13px; } .lt-sel i[data-h="se"] { right: -13px; bottom: -13px; } .lt-sel i[data-h="ne"] { right: -13px; top: -13px; } .lt-sel i[data-h="sw"] { left: -13px; bottom: -13px; } .lt-sel b { width: 26px; height: 26px; margin-left: -13px; top: -44px; } }
+/* decorations the owl has not brought yet: grey with a lock */
+.lt-item.is-locked img { filter: grayscale(1) brightness(.7); }
+.lt-item.is-locked::after { content: ""; position: absolute; left: auto; right: 6px; top: 6px; width: 14px; height: 14px; background: var(--t-muted);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z'/%3E%3C/svg%3E") center / contain no-repeat; }
+.lt-item.is-locked.is-holder::after { background: var(--t-accent); }
+
+/* ---- The words of "Light a picture": font, colour, outline, shadow ---- */
+.lt-tstyle { margin-top: 12px; }
+.lt-tstyle .lt-label { margin: 10px 0 6px; }
+.lt-fonts { display: flex; flex-wrap: wrap; gap: 6px; }
+.lt-fonts button { padding: 6px 12px; border-radius: 10px; border: 2px solid var(--lt-line); background: rgb(255 255 255 / .05); color: var(--t-text); font-size: 1.05rem; cursor: pointer; }
+.lt-fonts button[aria-pressed="true"] { border-color: var(--t-accent); background: color-mix(in srgb, var(--t-accent) 14%, transparent); }
+.lt-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.lt-swatches button { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--lt-ink); background: var(--c); box-shadow: 0 0 0 2px rgb(255 255 255 / .25); cursor: pointer; }
+.lt-swatches button.is-none { background: linear-gradient(135deg, transparent 45%, #E8343B 45% 55%, transparent 55%), rgb(255 255 255 / .08); }
+.lt-swatches button[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--t-accent); }
+.lt-switch-small { margin-top: 12px; }
+/* the frame's handles may stick out of the picture: the picture keeps its rounded corners, the box lets the handles out */
+.lt-house-sec .lt-stage-box { overflow: visible; }
+.lt-house-sec .lt-stage-svg { border-radius: inherit; overflow: hidden; }

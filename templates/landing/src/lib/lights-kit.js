@@ -144,7 +144,7 @@ export function cleanFree(list, holderOk = true) {
     let n = Number.isInteger(f.n) && f.n > 0 && !used.has(f.n) ? f.n : 0;
     if (!n) { n = 1; while (used.has(n)) n += 1; }
     used.add(n);
-    const e = { n, i: f.i, x: Math.round(num(f.x, 0, 600, 300)), y: Math.round(num(f.y, 0, 600, 300)), s: Math.round(num(f.s, 0.4, 2.5, 1) * 100) / 100, r: Math.round(num(f.r, -180, 180, 0)) };
+    const e = { n, i: f.i, x: Math.round(num(f.x, 0, 600, 300)), y: Math.round(num(f.y, 0, 600, 300)), s: Math.round(num(f.s, 0.4, 4, 1) * 100) / 100, r: Math.round(num(f.r, -180, 180, 0)) };
     if (it.custom) e.t = cleanSign(f.t) || 'HOOT';
     out.push(e);
   }

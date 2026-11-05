@@ -90,20 +90,20 @@ const iv: Record<string, string> = c.invite || {};
           <p class="lt-label">{l.inventory || 'What you have'} <span data-ul-inv-count></span></p>
           <div class="lt-tabs" data-ul-tabs role="tablist" aria-label={l.inventory || 'What you have'}></div>
           <div class="lt-inv" data-ul-inv></div>
-          <p class="lt-note">{l.invHint || 'Pick a decoration, then tap a glowing spot on the house, or tap anywhere on the picture to put it there. Tap a placed one to take it back.'}</p>
+          <p class="lt-note">{l.invHint || 'Tap a decoration: it appears on the house. Drag it, pull a corner to resize, pull the round handle to turn it.'}</p>
         </div>
 
         <div class="lt-box lt-edit" data-ul-edit hidden>
           <p class="lt-label" data-ul-edit-name></p>
-          <label class="lt-range"><span>{l.size || 'Size'}</span><input type="range" min="40" max="250" value="100" data-ul-edit-size /></label>
+          <label class="lt-range"><span>{l.size || 'Size'}</span><input type="range" min="40" max="400" value="100" data-ul-edit-size /></label>
           <label class="lt-range"><span>{l.turn || 'Turn'}</span><input type="range" min="-180" max="180" value="0" data-ul-edit-turn /></label>
           <label class="lt-range" data-ul-edit-text-row hidden><span>{l.signText || 'Words'}</span><input class="lt-input" maxlength="14" data-ul-edit-text placeholder={l.signPlaceholder || 'Up to 14 letters'} /></label>
           <div class="lt-actions lt-actions-tight">
-            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-edit-act="front">{l.front || 'To the front'}</button>
-            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-edit-act="back">{l.takeBackBtn || 'Back to the box'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-edit-act="copy">{l.copyBtn || 'One more'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-edit-act="front">{l.front || 'Bring to front'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-edit-act="back">{l.takeBackBtn || 'Remove'}</button>
             <button type="button" class="lt-btn lt-btn-small" data-ul-edit-act="done">{l.done || 'Done'}</button>
           </div>
-          <p class="lt-note">{l.editNote || 'Drag it on the picture to move it.'}</p>
         </div>
 
         <dl class="lt-stats">
@@ -294,15 +294,14 @@ const iv: Record<string, string> = c.invite || {};
         if (sl.kind === 'win') { b.style.width = `${(sl.w / K.VIEW) * 100}%`; b.style.height = `${((sl.h * 0.72) / K.VIEW) * 100}%`; b.style.borderRadius = '8px'; }
         b.classList.toggle('is-line', sl.kind === 'line' || sl.kind === 'door');
         const it = placed[sl.id];
-        const fits = sel && (K.ITEMS as any)[sel].kinds.includes(sl.kind) && !it;
-        b.classList.toggle('is-target', Boolean(fits));
-        b.classList.toggle('has-item', Boolean(it));
-        b.setAttribute('aria-label', it ? `${slotLabel(sl)}: ${itemName(it as string)}. ${L.takeBack || 'Take it back'}` : `${slotLabel(sl)}${fits ? '' : ''}`);
-        if (!it && !fits) b.tabIndex = -1;
+        if (!it) continue;   // only the filled spots are shown: a tap takes the decoration back
+        b.classList.add('has-item');
+        b.setAttribute('aria-label', `${slotLabel(sl)}: ${itemName(it as string)}. ${L.takeBack || 'Take it back'}`);
         slotsBox.appendChild(b);
       }
-      // handles of the decorations put anywhere: drag to move, tap to edit
+      // handles of the decorations put anywhere: drag to move, tap to edit; the selected one gets a frame instead
       for (const f of shownFree()) {
+        if (f.n === editN) continue;
         const b = document.createElement('button');
         b.type = 'button'; b.className = 'lt-free'; b.dataset.free = String(f.n);
         b.classList.toggle('is-on', editN === f.n);
@@ -311,43 +310,89 @@ const iv: Record<string, string> = c.invite || {};
         b.setAttribute('aria-label', `${itemName(f.i)}. ${L.editIt || 'Move or change it'}`);
         slotsBox.appendChild(b);
       }
+      drawFrame();
       $<HTMLElement>('[data-ul-no]').textContent = `No. ${h.no} · ${styleName(h.family)}`;
       $<HTMLElement>('[data-ul-plate]').textContent = plateText();
     };
 
+    // ---- the frame on the selected decoration: drag inside to move, a corner to resize, the round handle to turn ----
+    // While a finger or the mouse holds it, only that decoration moves (its group in the picture), the house is not redrawn.
+    let frameBox: { x: number; y: number; w: number; h: number } | null = null;
+    const gOf = (n: number) => svgBox.querySelector<SVGGElement>(`[data-fn="${n}"]`);
+    const placeFrame = (f: any) => {
+      const el = slotsBox.querySelector<HTMLElement>('.lt-sel'); if (!el || !frameBox) return;
+      const k = slotsBox.clientWidth / K.VIEW, a = (f.r * Math.PI) / 180;
+      const lx = (frameBox.x + frameBox.w / 2) * f.s, ly = (frameBox.y + frameBox.h / 2) * f.s;
+      const cx = f.x + lx * Math.cos(a) - ly * Math.sin(a), cy = f.y + lx * Math.sin(a) + ly * Math.cos(a);
+      el.style.left = `${cx * k}px`; el.style.top = `${cy * k}px`;
+      el.style.width = `${Math.max(28, frameBox.w * f.s * k + 14)}px`; el.style.height = `${Math.max(28, frameBox.h * f.s * k + 14)}px`;
+      el.style.transform = `translate(-50%, -50%) rotate(${f.r}deg)`;
+    };
+    const moveG = (f: any) => { gOf(f.n)?.setAttribute('transform', `translate(${f.x} ${f.y}) rotate(${Math.round(f.r)}) scale(${f.s.toFixed(2)})`); };
+    function drawFrame() {
+      const f = editN ? freeOf(editN) : null, g = f ? gOf(f.n) : null;
+      if (!f || !g || peek) { frameBox = null; return; }
+      try { const b = g.getBBox(); frameBox = { x: b.x, y: b.y, w: b.width, h: b.height }; } catch { frameBox = { x: -30, y: -30, w: 60, h: 60 }; }
+      const el = document.createElement('div'); el.className = 'lt-sel'; el.dataset.sel = String(f.n);
+      el.innerHTML = '<i data-h="nw"></i><i data-h="ne"></i><i data-h="sw"></i><i data-h="se"></i><b data-h="turn" aria-hidden="true"></b>';
+      el.setAttribute('aria-label', `${itemName(f.i)}. ${L.editIt || 'Move or change it'}`);
+      slotsBox.appendChild(el); placeFrame(f);
+    }
+    let gesture: any = null;
+    const toView = (e: PointerEvent) => { const r = slotsBox.getBoundingClientRect(); return { x: ((e.clientX - r.left) / r.width) * K.VIEW, y: ((e.clientY - r.top) / r.height) * K.VIEW }; };
+    slotsBox.addEventListener('pointerdown', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('.lt-sel'); if (!el || peek) return;
+      const f = freeOf(Number(el.dataset.sel)); if (!f) return;
+      e.preventDefault(); e.stopPropagation(); el.setPointerCapture(e.pointerId);
+      const pt = toView(e), mode = (e.target as HTMLElement).dataset.h ? ((e.target as HTMLElement).dataset.h === 'turn' ? 'turn' : 'size') : 'move';
+      gesture = { el, n: f.n, mode, pt, f0: { ...f }, d0: Math.max(4, Math.hypot(pt.x - f.x, pt.y - f.y)), a0: Math.atan2(pt.y - f.y, pt.x - f.x), moved: false };
+    }, true);
+    slotsBox.addEventListener('pointermove', (e) => {
+      if (!gesture) return;
+      const g = gesture, pt = toView(e), f0 = g.f0;
+      let q: any;
+      if (g.mode === 'move') q = { x: f0.x + pt.x - g.pt.x, y: f0.y + pt.y - g.pt.y };
+      else if (g.mode === 'size') q = { s: f0.s * (Math.hypot(pt.x - f0.x, pt.y - f0.y) / g.d0) };
+      else { let r = f0.r + ((Math.atan2(pt.y - f0.y, pt.x - f0.x) - g.a0) * 180) / Math.PI; r = ((r + 540) % 360) - 180; q = { r }; }
+      if (Math.abs(pt.x - g.pt.x) + Math.abs(pt.y - g.pt.y) > 2) g.moved = true;
+      p = K.updateFree(p, g.n, q);
+      const f = freeOf(g.n); if (f) { moveG(f); placeFrame(f); eSize.value = String(Math.round(f.s * 100)); eTurn.value = String(f.r); }
+    }, true);
+    const endGesture = () => { if (!gesture) return; const moved = gesture.moved; gesture = null; dragged = true; setTimeout(() => { dragged = false; }, 0); if (moved) { save(); refresh(); } };
+    slotsBox.addEventListener('pointerup', endGesture, true);
+    slotsBox.addEventListener('pointercancel', endGesture, true);
+
     slotsBox.addEventListener('click', (e) => {
       if (peek) return say(L.peekLocked || 'Turn off the preview to decorate.');
       if (dragged) { dragged = false; return; }
-      if ((e.target as HTMLElement).closest('[data-free]')) return;
+      if ((e.target as HTMLElement).closest('[data-free], .lt-sel')) return;
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-slot]');
-      if (!b) {
-        // a tap on the picture away from the glowing spots: put the selected decoration right there
-        if (!sel || setupOn) { if (editN) closeEdit(); return; }
-        const it = (K.ITEMS as any)[sel];
-        if (!it.free) return say(fill(L.notFree || '{item} only goes into the glowing spots.', { item: itemName(sel) }));
-        const r = slotsBox.getBoundingClientRect();
-        const x = ((e.clientX - r.left) / r.width) * K.VIEW, y = ((e.clientY - r.top) / r.height) * K.VIEW;
-        const n = K.placeFree(withLent(), sel, x, y, ul.holder, { t: it.custom ? 'HOOT' : undefined });
-        if (!n) return say((p.free || []).length >= K.FREE_MAX ? L.freeFull || 'That is a lot of decorations. Take some back first.' : fill(L.allPlaced || 'No free {item} left.', { item: itemName(sel) }));
-        p = { ...p, free: n.free }; save();
-        const placedNow = p.free[p.free.length - 1];
-        say(fill(L.placedFree || '{item} is up. Drag it to move it.', { item: itemName(sel) }));
-        if (!K.freeItems(withLent())[sel]) sel = '';
-        openEdit(placedNow.n);
-        return;
-      }
-      const id = b.dataset.slot!, sl = h.slots.find((x: any) => x.id === id)!;
+      if (!b) { if (editN) closeEdit(); return; }
+      const id = b.dataset.slot!;
       const it = shownPlaced()[id];
-      if (it) { const n = K.placeItem(p, id, ''); if (n) { p = n; save(); say(fill(L.tookBack || '{item}: back in your box.', { item: itemName(it as string) })); refresh(); } return; }
-      if (!sel) return say(L.pickFirst || 'Pick a decoration first.');
-      const n = K.placeItem(withLent(), id, sel, ul.holder);
-      if (!n) return say(fill(L.wrongSpot || '{item} cannot go there. Try a glowing spot.', { item: itemName(sel) }));
-      p = { ...p, placed: n.placed }; save();
-      say(fill(L.placed || '{item}: on the {spot}.', { item: itemName(sel), spot: slotLabel(sl) }));
-      const left = K.freeItems(withLent())[sel];
-      if (!left) sel = '';
-      refresh();
+      if (it) { const n = K.placeItem(p, id, ''); if (n) { p = n; save(); say(fill(L.tookBack || '{item}: taken off the house.', { item: itemName(it as string) })); refresh(); } }
     });
+
+    // a tap on a decoration in the box puts it on the house at once: on the front of the house (garlands under the roof),
+    // a little apart from the last one; window decorations go into the first empty window
+    let cascade = 0;
+    const putOnHouse = (id: string) => {
+      const it = (K.ITEMS as any)[id];
+      if (!it.free) {
+        const sl = h.slots.find((x: any) => x.kind === 'win' && !p.placed[x.id]) || h.slots.find((x: any) => it.kinds.includes(x.kind) && !p.placed[x.id]);
+        if (!sl) return say(L.winsFull || 'Every window has something in it. Tap one to take it out.');
+        const n = K.placeItem(withLent(), sl.id, id, ul.holder); if (!n) return say(fill(L.allPlaced || 'No free {item} left.', { item: itemName(id) }));
+        p = { ...p, placed: n.placed }; save(); say(fill(L.inWindow || '{item}: in the window. Tap it to take it out.', { item: itemName(id) })); return refresh();
+      }
+      cascade = (cascade + 1) % 6;
+      const line = ['string', 'flags', 'marigold', 'toran', 'pompom', 'tassel'].some((t) => it.type.startsWith(t)) || it.kinds.includes('line');
+      const x = h.cx + ((cascade % 3) - 1) * 70, y = line ? h.top + 8 + Math.floor(cascade / 3) * 40 : h.top + (548 - h.top) * 0.42 + Math.floor(cascade / 3) * 50;
+      const n = K.placeFree(withLent(), id, x, y, ul.holder, { t: it.custom ? 'HOOT' : undefined });
+      if (!n) return say((p.free || []).length >= K.FREE_MAX ? L.freeFull || 'That is a lot of decorations. Remove some first.' : fill(L.allPlaced || 'No free {item} left.', { item: itemName(id) }));
+      p = { ...p, free: n.free }; save();
+      say(fill(L.placedFree || '{item} is on the house. Drag it, pull a corner to resize, the round handle to turn.', { item: itemName(id) }));
+      openEdit(p.free[p.free.length - 1].n);
+    };
 
     // ---- inventory ---------------------------------------------------------------------------
     const inv = $<HTMLElement>('[data-ul-inv]');
@@ -359,9 +404,10 @@ const iv: Record<string, string> = c.invite || {};
     const drawInv = () => {
       const free = K.freeItems(withLent());
       const owned = withLent().inv;
-      // the owl's gifts first, then the common decorations that are open to everybody
-      const ids = K.ITEM_IDS.filter((id: string) => (owned[id] || K.isOpen(id)) && (!isHolderItem(id) || ul.holder))
-        .sort((a: string, b: string) => Number(K.isOpen(a)) - Number(K.isOpen(b)));
+      // every decoration there is, in the order of the catalogue: the open and owned ones in colour,
+      // the ones the owl has not brought yet in grey with a lock, the golden holder ones with a star
+      const ids = K.ITEM_IDS;
+      const has = (id: string) => (K.isOpen(id) || owned[id] > 0) && (!isHolderItem(id) || ul.holder);
       const cats = K.CATEGORIES.filter((c: string) => ids.some((id: string) => (K.ITEMS as any)[id].cat === c));
       if (tab !== 'all' && !cats.includes(tab)) tab = 'all';
       tabs.innerHTML = '';
@@ -377,9 +423,12 @@ const iv: Record<string, string> = c.invite || {};
         if (tab !== 'all' && it.cat !== tab) continue;
         const b = document.createElement('button');
         b.type = 'button'; b.className = `lt-item is-${it.rarity}`; b.dataset.item = id;
-        b.setAttribute('aria-pressed', String(sel === id || p.paint === id));
-        b.classList.toggle('is-empty', !free[id] && p.paint !== id);
-        b.innerHTML = `<img src="${thumb(id)}" alt="" width="56" height="56"><span class="lt-item-name"></span>${K.isOpen(id) ? '' : `<b class="lt-item-n">${free[id] || 0}</b>`}`;
+        b.setAttribute('aria-pressed', String(p.paint === id));
+        const got = has(id);
+        b.classList.toggle('is-locked', !got);
+        b.classList.toggle('is-holder', isHolderItem(id) && !ul.holder);
+        b.classList.toggle('is-empty', got && !free[id] && p.paint !== id);
+        b.innerHTML = `<img src="${thumb(id)}" alt="" width="56" height="56" loading="lazy"><span class="lt-item-name"></span>${got && !K.isOpen(id) ? `<b class="lt-item-n">${free[id] || 0}</b>` : ''}`;
         b.querySelector('.lt-item-name')!.textContent = itemName(id);
         inv.appendChild(b);
       }
@@ -392,6 +441,8 @@ const iv: Record<string, string> = c.invite || {};
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-item]'); if (!b) return;
       const id = b.dataset.item!, it = (K.ITEMS as any)[id];
       if (isHolderItem(id) && !ul.holder) { say(L.holderOnly || 'Golden decorations are for holders. Turn on the holder preview below.'); return; }
+      if (!K.isOpen(id) && !(withLent().inv[id] > 0)) { say(fill(L.locked || '{item} is not yours yet. The owl brings it: light your house every night.', { item: itemName(id) })); return; }
+      if (peek) return say(L.peekLocked || 'Turn off the preview to decorate.');
       // a can of paint is used at once: the walls change colour; tapping the same can again takes the paint off
       if (it.type === 'paint') {
         const n = K.applyPaint(withLent(), p.paint === id ? '' : id, ul.holder);
@@ -400,11 +451,8 @@ const iv: Record<string, string> = c.invite || {};
         say(p.paint ? fill(L.painted || '{item}: the walls are new. Tap the can again to take the paint off.', { item: itemName(id) }) : L.unpainted || 'The paint is off. The house has its own colour again.');
         return refresh();
       }
-      if (!K.freeItems(withLent())[id]) { say(fill(L.allPlaced || 'No free {item} left. Tap a placed one to take it back.', { item: itemName(id) })); return; }
-      sel = sel === id ? '' : id;
-      if (sel) closeEdit(false);
-      say(sel ? fill(it.kinds.includes('wall') ? L.whereFree || '{item}: tap anywhere on the picture.' : it.free ? L.whereTo || '{item}: tap a glowing spot, or anywhere on the picture.' : L.whereSlot || '{item}: tap a glowing spot.', { item: itemName(id) }) : L.tipStart || '');
-      refresh();
+      if (!K.freeItems(withLent())[id]) { say(fill(L.allPlaced || 'No free {item} left. Remove one from the house first.', { item: itemName(id) })); return; }
+      putOnHouse(id);
     });
 
     // ---- phones: the decorations and the editing box go right under the picture -----------------
@@ -447,8 +495,14 @@ const iv: Record<string, string> = c.invite || {};
     eText.addEventListener('change', () => { const f = freeOf(editN); if (f) eText.value = f.t || ''; });
     editBox.addEventListener('click', (e) => {
       const act = (e.target as HTMLElement).closest<HTMLElement>('[data-ul-edit-act]')?.dataset.ulEditAct; if (!act || !editN) return;
-      if (act === 'front') { p = K.frontFree(p, editN); save(); refresh(); }
-      if (act === 'back') { const f = freeOf(editN); p = K.removeFree(p, editN); save(); say(fill(L.tookBack || '{item}: back in your box.', { item: itemName(f?.i || '') })); closeEdit(); }
+      const f = freeOf(editN); if (!f) return closeEdit();
+      if (act === 'front') { p = K.frontFree(p, editN); save(); say(fill(L.broughtFront || '{item} is in front of the other decorations now.', { item: itemName(f.i) })); refresh(); }
+      if (act === 'back') { p = K.removeFree(p, editN); save(); say(fill(L.removed || '{item} is off the house.', { item: itemName(f.i) })); closeEdit(); }
+      if (act === 'copy') {
+        const n = K.placeFree(withLent(), f.i, Math.min(K.VIEW - 20, f.x + 40), Math.min(K.VIEW - 20, f.y + 30), ul.holder, { s: f.s, r: f.r, t: f.t });
+        if (!n) return say((p.free || []).length >= K.FREE_MAX ? L.freeFull || 'That is a lot of decorations. Remove some first.' : fill(L.allPlaced || 'No free {item} left.', { item: itemName(f.i) }));
+        p = { ...p, free: n.free }; save(); openEdit(p.free[p.free.length - 1].n);
+      }
       if (act === 'done') closeEdit();
     });
     // dragging a handle moves the decoration; the page does not scroll while a finger holds it
@@ -467,7 +521,7 @@ const iv: Record<string, string> = c.invite || {};
       if (!drag.moved) return;
       p = K.updateFree(p, drag.n, { x: drag.fx + dx, y: drag.fy + dy });
       const f = freeOf(drag.n); drag.el.style.left = `${(f.x / K.VIEW) * 100}%`; drag.el.style.top = `${(f.y / K.VIEW) * 100}%`;
-      cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { svgBox.innerHTML = K.houseSvg(h, shownPlaced(), { level: levelShown(view()), owl: owlFor(view()), id: 'ulh', friend, scene: K.sceneOf(K.tonightOf(p, today)?.event || ''), free: shownFree(), ctx: drawCtx }); });
+      moveG(f);   // only this decoration moves; the house is redrawn once, when the finger lets go
     });
     const endDrag = () => {
       if (!drag) return;
