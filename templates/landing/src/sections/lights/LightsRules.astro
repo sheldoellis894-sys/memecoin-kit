@@ -1,0 +1,17 @@
+---
+// Honest rules of the street and the disclaimer.
+import { config } from '../../lib/project';
+import { lights } from '../../lib/lights';
+import LtHead from './LtHead.astro';
+const r = lights.rules || {};
+const items: { title: string; text: string }[] = r.items || [];
+---
+<section id="rules" class="lt-sec">
+  <div class="lt-in lt-narrow">
+    <LtHead kicker={r.kicker} title={r.title} lead={r.lead} />
+    <dl class="lt-rules">
+      {items.map((it) => (<div data-ul-in><dt class="font-heading">{it.title}</dt><dd>{it.text}</dd></div>))}
+    </dl>
+    {config.disclaimer && <p class="lt-disclaimer">{config.disclaimer}</p>}
+  </div>
+</section>

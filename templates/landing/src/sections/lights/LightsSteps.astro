@@ -1,0 +1,23 @@
+---
+// How to buy: four diyas in a row, each lights up with its step.
+import { lights } from '../../lib/lights';
+import { config } from '../../lib/project';
+import LtHead from './LtHead.astro';
+const s = lights.steps || {};
+const steps: { title: string; text: string }[] = config.howToBuy || [];
+---
+<section id="how-to-buy" class="lt-sec">
+  <div class="lt-in">
+    <LtHead kicker={s.kicker} title={s.title} lead={s.lead} />
+    <ol class="lt-steps">
+      {steps.map((st, i) => (
+        <li class="lt-step" style={`--i:${i}`} data-ul-in>
+          <span class="lt-step-diya" aria-hidden="true"><i></i></span>
+          <p class="lt-step-no">{(s.step || 'Step {n}').replace('{n}', String(i + 1))}</p>
+          <h3 class="font-heading">{st.title}</h3>
+          <p>{st.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

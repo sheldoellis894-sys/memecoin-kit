@@ -1,0 +1,10 @@
+---
+// Heading of a section in the "lights" layout: a small rubric with a lamp, then the title.
+const { kicker, title, level = 2, center = false, lead = '' } = Astro.props;
+const H = `h${level}` as any;
+---
+<header class:list={['lt-head', center && 'is-center']} data-ul-in>
+  {kicker && <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{kicker}</p>}
+  <H class="lt-title font-heading">{title}</H>
+  {lead && <p class="lt-lead">{lead}</p>}
+</header>

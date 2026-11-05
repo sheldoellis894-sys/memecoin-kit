@@ -8,6 +8,7 @@ const f = theme.fonts;
 const tickerFont = f.ticker === 'heading' ? f.heading : f.body;
 const htmlClass = [
   theme.flavor && `flavor-${theme.flavor}`,
+  typeof (theme as any).decor === 'string' && /^[a-z]+$/.test((theme as any).decor) && `decor-${(theme as any).decor}`,
   f.ticker === 'heading' && 'ticker-heading',
   f.headingScale && 'scale-headings',
   f.headingLeading && 'lead-headings',
@@ -24,6 +25,8 @@ const vars = [
   f.headingMin && `--t-heading-min:${f.headingMin}`,
   f.bodyScale && `--t-body-scale:${f.bodyScale}`,
   f.mono && `--t-font-mono:'${f.mono}'`,
+  // optional colours of a flavor (theme.json "lights": { "glow": "#FFB52E", … } → --tl-glow); colour values only
+  ...Object.entries(theme.lights || {}).filter(([k, v]) => /^[a-zA-Z]+$/.test(k) && typeof v === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(v)).map(([k, v]) => `--tl-${k}:${v}`),
 ].filter(Boolean).join(';');
 
 const title = `${config.name} ($${config.ticker})`;

@@ -1,0 +1,753 @@
+{
+  "name": "Ullu",
+  "ticker": "ULLU",
+  "tagline": "Every night the owl brings fortune. The light decides where.",
+  "description": "Ullu is the owl who brings fortune to the brightest house on the street. Every visitor gets a house, lights it night after night and decorates it with what the owl leaves. Seven nights in a row and the owl lands on your roof with a sack of gold.",
+  "url": "",
+  "chain": "Solana",
+  "ca": "",
+  "theme": "bazaar",
+  "layout": "lights",
+  "links": {
+    "x": "",
+    "telegram": "",
+    "launch": "https://guru.fun",
+    "pumpfun": "",
+    "dexscreener": ""
+  },
+  "assets": {
+    "logo": "logo/ullu_logo.png",
+    "favicon": "logo/ullu_logo.png",
+    "hero": "banners/ullu_hero.jpg",
+    "og": "exports/ullu_og.jpg"
+  },
+  "hero": {
+    "kicker": "The owl of the lights",
+    "text": "In India they say the owl carries fortune, and it flies to the brightest light. So every night the whole street lights up, and every house hopes the owl lands on its roof. Here you get a house of your own. Light it up."
+  },
+  "about": {
+    "title": "",
+    "text": []
+  },
+  "lights": {
+    "bar": {
+      "chip": "My house",
+      "buy": "Buy",
+      "navLabel": "Sections"
+    },
+    "nav": [
+      {
+        "id": "house",
+        "label": "My house"
+      },
+      {
+        "id": "street",
+        "label": "The street"
+      },
+      {
+        "id": "picture",
+        "label": "Light a picture"
+      },
+      {
+        "id": "token",
+        "label": "Token"
+      },
+      {
+        "id": "how-to-buy",
+        "label": "How to buy"
+      }
+    ],
+    "hero": {
+      "cta": "Light my house",
+      "buy": "Buy",
+      "alt": "Ullu, a fat owl in a saffron turban, sits on gold coins with a cup of chai and winks",
+      "note": "He does not knock. He looks for the light."
+    },
+    "lore": {
+      "kicker": "The story",
+      "title": "The owl goes where the light is brightest",
+      "lead": "Ullu means owl. In Hindi it also means a fool. He is both, and he is never wrong about money.",
+      "cards": [
+        {
+          "title": "He flies at night",
+          "text": "Every night Ullu flies over the city with a sack of fortune. He does not read names on doors. He looks for the brightest window."
+        },
+        {
+          "title": "So everyone lights up",
+          "text": "Lamps on the sills, lights on the roofs, flowers on the doors. Every house wants to be the one the owl sees first."
+        },
+        {
+          "title": "Seven nights in a row",
+          "text": "Light your house every night. On the seventh night in a row the owl lands on your roof, puts on his sunglasses and leaves the whole sack."
+        }
+      ],
+      "rulesTitle": "The seven nights",
+      "rules": [
+        "On your first visit the street builds you a house. It is yours: nobody else has the same one.",
+        "Once a night, press Light up. The owl flies by and leaves something: a lamp, lights, flowers, sometimes one slipper.",
+        "Hang what he left on your house. Every night the house is brighter and the owl comes closer.",
+        "Miss a night and the house goes dark. The run starts again from night one.",
+        "Night seven: the owl lands on your roof with a sack of gold. Save the card, share it, put the house on the street."
+      ]
+    },
+    "gallery": {
+      "kicker": "Ullu at night",
+      "title": "Seen from the windows",
+      "lead": "",
+      "open": "Open",
+      "prev": "Back",
+      "next": "Next",
+      "close": "Close"
+    },
+    "token": {
+      "kicker": "The token",
+      "title": "Every window is a number",
+      "lead": "No presale, no team wallet, no tax. Just the house and the lights.",
+      "supply": "Supply",
+      "ca": "Contract address",
+      "copy": "Copy",
+      "copied": "Copied",
+      "noCa": "No address yet. Any address before the launch is fake."
+    },
+    "steps": {
+      "kicker": "How to buy",
+      "title": "Four lamps to the owl",
+      "lead": "",
+      "step": "Lamp {n}"
+    },
+    "plan": {
+      "kicker": "The plan",
+      "title": "Three evenings",
+      "lead": ""
+    },
+    "rules": {
+      "kicker": "Honest rules",
+      "title": "What the street does and does not do",
+      "lead": "",
+      "items": [
+        {
+          "title": "Your house lives in your browser",
+          "text": "There is no login and no wallet connection. The site remembers your house in this browser. Clear the browser data and the house is gone. To move it to another phone, copy the house code."
+        },
+        {
+          "title": "Where you are stays with you",
+          "text": "On your first visit the site asks the server which city you are near, only to suggest a street and to write the city on your cards. The server does not keep it. The city stays in your browser and never goes to the street."
+        },
+        {
+          "title": "The owl is a game",
+          "text": "The gifts, the nights and the sack of gold are pictures on this site. They are not tokens, not rewards and not a promise of anything."
+        },
+        {
+          "title": "Your own sign is public",
+          "text": "If your house stands on the street, the words on your own neon sign are seen by everyone. Latin letters and numbers only, no links. Signs that break the rules are taken down."
+        },
+        {
+          "title": "The street shows what you send",
+          "text": "Only the house, its name and its nights go to the street. The server draws the house from its code and counts its light itself. There is no proof of the nights: it is a game, not a leaderboard of money."
+        },
+        {
+          "title": "The holder preview is a preview",
+          "text": "The switch shows what holders could get: golden lights and clean cards. It does not check any wallet. Golden lights never go to the street."
+        },
+        {
+          "title": "Your pictures stay with you",
+          "text": "The picture tool works inside your browser. Nothing you upload leaves your phone."
+        }
+      ]
+    },
+    "buy": {
+      "kicker": "The last lamp",
+      "title": "Light the last lamp",
+      "lead": "The owl is watching. Hold the lamp until it burns.",
+      "hold": "Hold the lamp to light it",
+      "done": "Lit. The owl saw it.",
+      "cta": "Buy",
+      "noCa": "No contract address yet. Any address before the launch is fake."
+    },
+    "footer": {
+      "tag": "The owl who brings fortune to the brightest house.",
+      "note": "Ullu is a meme and a game. It is not financial advice and it promises nothing. Only buy what you can afford to lose.",
+      "launchLabel": "guru.fun"
+    }
+  },
+  "house": {
+    "kicker": "My house",
+    "title": "Your house on the owl's street",
+    "lead": "The street built this house for you on your first visit. Light it every night, hang what the owl leaves, and on night seven he lands on your roof.",
+    "owl": {
+      "fly": "stickers/ullu_fly.png",
+      "landed": "stickers/ullu_landed.png",
+      "sleep": "stickers/ullu_sleep.png"
+    },
+    "hide": { "label": "Ullu is asleep here. Wake him up" },
+    "watermark": "ULLU · guru.fun",
+    "shareText": "My house is lit, night {n} of 7. The owl is coming. ${ticker}",
+    "holderGift": {
+      "jhoomar": 1,
+      "golddiya": 2,
+      "string-gold": 1,
+      "paint-goldleaf": 1
+    },
+    "captions": [
+      "Night one. A lamp in the window. The owl noticed.",
+      "Night two. The owl flew by twice.",
+      "Night three. The neighbours are getting nervous.",
+      "Night four. The owl knows my address now.",
+      "Night five. My house is brighter than my future.",
+      "Night six. One more night. Do not touch the switch.",
+      "Night seven. The owl landed. Sunglasses on."
+    ],
+    "landedCaption": "Night seven. The owl landed on my roof with the whole sack.",
+    "afterCaption": "Night {n} in a row. The owl lives here now.",
+    "status": {
+      "first": "Your house is dark. Light the first lamp tonight.",
+      "due": "Night {n} of 7. Light up before the owl flies by.",
+      "lit": "Night {n} of 7 is lit. The owl comes back tomorrow night.",
+      "missed": "You missed a night. The house went dark. Start again from night one.",
+      "landed": "Seven nights in a row. The owl is on your roof.",
+      "after": "Night {n} in a row. The owl stays on your roof.",
+      "peek": "Night seven. This is how it looks when the owl lands."
+    },
+    "slotNames": {
+      "line": "roof edge",
+      "door": "door",
+      "step": "doorstep",
+      "side": "porch",
+      "sill": "window sill",
+      "hang": "window top",
+      "roof": "roof",
+      "win": "window",
+      "balcony": "balcony rail"
+    },
+    "labels": {
+      "house": "House",
+      "nightsLabel": "Nights in a row",
+      "light": "Light up tonight",
+      "lightFirst": "Light the first lamp",
+      "lit": "Lit for tonight",
+      "foundHint": "Every day Ullu falls asleep somewhere on this page. Find him and wake him up: he leaves a gift.",
+      "foundDone": "You found Ullu today. Tomorrow he naps somewhere else.",
+      "foundKicker": "Found him!",
+      "foundTitle": "Ullu woke up and left you: {item}",
+      "foundNote": "It is in your album now.",
+      "secretKicker": "Secret word",
+      "secretTitle": "Ullu flew by and dropped you: {item}",
+      "inventory": "What the owl left you",
+      "invHint": "Pick a decoration, then tap a glowing spot on the house, or tap anywhere on the picture to put it there. Tap a placed one to take it back.",
+      "invEmpty": "Nothing yet. Light up and the owl will leave something.",
+      "tipStart": "Pick a decoration below, then tap the house.",
+      "pickFirst": "Pick a decoration first.",
+      "whereTo": "{item}: tap a glowing spot, or anywhere on the picture.",
+      "wrongSpot": "{item} cannot go there. Try a glowing spot.",
+      "placed": "{item}: on the {spot}.",
+      "tookBack": "{item}: back in your box.",
+      "takeBack": "Take it back",
+      "allPlaced": "No free {item} left. Tap a placed one to take it back.",
+      "holderOnly": "Golden decorations are for holders. Turn on the holder preview below.",
+      "peekLocked": "Turn off the preview to decorate.",
+      "statNights": "Nights lit",
+      "statGifts": "Owl visits",
+      "statBest": "Best run",
+      "statLight": "Brightness",
+      "card": "Save the card",
+      "share": "Share on X",
+      "peek": "Peek at night 7",
+      "peekNote": "This is how night seven looks. Your own nights do not change.",
+      "cardAlt": "Your house card",
+      "download": "Download",
+      "shareNote": "X opens with the text ready. Attach the card you downloaded.",
+      "cardFail": "The card did not come out. Try again.",
+      "giftKicker": "Night {n} of 7",
+      "giftTitle": "The owl left you: {item}",
+      "giftOk": "Hang it on the house",
+      "landedTitle": "The owl landed on your roof!",
+      "landedNote": "Seven nights in a row. He brought the whole sack: {n} gifts.",
+      "chip": "Night {n}/7",
+      "chipFirst": "Light my house",
+      "more": "The street, the house code and holders",
+      "streetTitle": "Put your house on the street",
+      "namePlaceholder": "Name on the door",
+      "post": "Put it there",
+      "postNote": "Latin letters and numbers. Only the house, its name and its nights go to the street.",
+      "nameRule": "Use 2 to 18 Latin letters, numbers, spaces, dots or dashes. No links.",
+      "postDark": "Light up tonight first: a dark house cannot go on the street.",
+      "posting": "Carrying the house to the street…",
+      "posted": "Your house is on the street. Scroll down to see it.",
+      "codeTitle": "House code",
+      "codeNote": "The house lives in this browser. Copy the code to move it to another phone; the nights start again there.",
+      "copy": "Copy code",
+      "codePlaceholder": "Paste a code",
+      "restore": "Move in",
+      "copied": "The code is copied.",
+      "copyManual": "Copy the code from the field.",
+      "badCode": "This code does not open any house.",
+      "codeBusy": "This browser already has a house with nights on it. Move in on a new phone.",
+      "movedIn": "Welcome home. House No. {no}.",
+      "holder": "Holder preview",
+      "holderNote": "A preview: golden decorations and a clean card, without a wallet check.",
+      "plateOwner": "{name}'s house",
+      "plateBuilt": "built {date}",
+      "plateNext": "next door: {name}",
+      "plateNextNo": "house No. {no}",
+      "cardHouse": "House No. {no}",
+      "cardNights": "{nights} nights",
+      "diaryTitle": "Street diary",
+      "diaryEmpty": "Nothing yet. Light the first lamp.",
+      "diaryNight": "Night {n}",
+      "diaryGift": "Gift: {item}",
+      "bonusLine": "Bonus tonight: {items}.",
+      "loanLine": "Borrowed by the monkey: {item}. Back on your next night.",
+      "returnedLine": "The monkey brought back your {item}.",
+      "tonightTitle": "Tonight on your street",
+      "giftKickerAfter": "Night {n} in a row",
+      "tabAll": "All",
+      "whereFree": "{item}: tap anywhere on the picture.",
+      "whereSlot": "{item}: tap a glowing spot.",
+      "notFree": "{item} only goes into the glowing spots.",
+      "placedFree": "{item} is up. Drag it to move it.",
+      "freeFull": "That is a lot of decorations. Take some back first.",
+      "painted": "{item}: the walls are new. Tap the can again to take the paint off.",
+      "unpainted": "The paint is off. The house has its own colour again.",
+      "size": "Size",
+      "turn": "Turn",
+      "signText": "Words",
+      "signPlaceholder": "Up to 14 letters",
+      "front": "To the front",
+      "takeBackBtn": "Back to the box",
+      "done": "Done",
+      "editNote": "Drag it on the picture to move it.",
+      "editIt": "Move or change it",
+      "albumTitle": "Collection album",
+      "albumMissing": "Not found yet",
+      "albumHolder": "For holders",
+      "giftsTitle": "The owl left you {n} gifts",
+      "giftsOk": "Hang them on the house"
+    },
+    "styles": [],
+    "styleNames": {
+      "mumbai": "Mumbai block",
+      "haveli": "Jaipur haveli",
+      "jaisalmer": "Jaisalmer house",
+      "kolkata": "Kolkata house",
+      "goa": "Goa house"
+    },
+    "geoEndpoint": "/api/geo",
+    "wishes": {
+      "gold": {
+        "label": "Gold",
+        "note": "A golden house. The owl brings more bulbs and fairy lights."
+      },
+      "luck": {
+        "label": "Luck",
+        "note": "A green house. More sky lanterns and owl feathers."
+      },
+      "love": {
+        "label": "Love",
+        "note": "A pink house. More marigolds and rangoli."
+      },
+      "quiet": {
+        "label": "Peace and quiet",
+        "note": "A calm blue house. More clay lamps and flowers."
+      },
+      "fame": {
+        "label": "Fame",
+        "note": "A neon house. Everything the street can see from far away."
+      }
+    },
+    "setup": {
+      "count": "Step {n} of 3",
+      "nameTitle": "Whose house is this?",
+      "nameNote": "The name goes on your cards and on the street. Latin letters and numbers. You can skip it.",
+      "namePlaceholder": "Your name or nickname",
+      "wishTitle": "What do you want from the owl?",
+      "wishNote": "The wish paints your house and changes what the owl brings.",
+      "styleTitle": "Which street is yours?",
+      "styleNote": "Five streets of the owl's India. Pick the one where your house stands.",
+      "found": "The owl found you near {city}. Now pick your street.",
+      "back": "Back",
+      "next": "Next",
+      "build": "Build my house",
+      "skip": "Skip, build it now",
+      "invited": "{friend} invited you. Your house will stand right next to theirs.",
+      "someone": "A friend",
+      "welcome": "Welcome to your new {style}. Light the first lamp tonight.",
+      "welcomeFriend": "Welcome! {friend} lives next door and left you a housewarming gift: marigolds.",
+      "tip": "This is your house. Answer three questions, and it changes as you go."
+    },
+    "invite": {
+      "title": "Invite a neighbour",
+      "note": "Send the link to a friend: their house will stand next to yours, and they get a housewarming gift.",
+      "copy": "Copy the link",
+      "share": "Invite on X",
+      "copied": "The link is copied. Send it to a friend.",
+      "text": "Be my neighbour on the owl's street. ${ticker}",
+      "offer": "{friend} invited you to be neighbours. Their house can stand next to yours.",
+      "accept": "Move next to them",
+      "decline": "No, thanks",
+      "moved": "{friend} is your neighbour now."
+    },
+    "story": {
+      "nights": [
+        "Night one. The street is dark and quiet. One lamp in your window. Somewhere above, wings.",
+        "Night two. A stray cat moved onto your doorstep. Cats always know where the warm light is.",
+        "Night three. A chai cart parked next to your house. The street is starting to gather.",
+        "Night four. The neighbours hung lights of their own. It is a competition now.",
+        "Night five. Fireworks far away. A kid with a sparkler runs past your door.",
+        "Night six. Faces in every window. The whole street is watching the sky. So is the owl.",
+        "Night seven. The street goes quiet. The owl lands on your roof, puts on his sunglasses and opens the sack."
+      ],
+      "after": [
+        "Night {n}. The owl lives here now. He has opinions about your curtains.",
+        "Night {n}. The owl invited his cousins. They are sitting on the wires.",
+        "Night {n}. The street calls your house 'the owl house' now.",
+        "Night {n}. The owl says the sack is getting lighter. He is lying.",
+        "Night {n}. Your house is on the owl's map now. Marked in gold.",
+        "Night {n}. The cat and the owl have agreed to share the roof. For now."
+      ],
+      "missed": "Your house went dark. The cat left, the chai cart moved on, and the owl flew past without stopping. Light up tonight and start again.",
+      "due": "Light up and see what happens on your street tonight.",
+      "first": "Every night something happens on the street. Light the first lamp to see what."
+    },
+    "events": {
+      "diwali": "Festival of lights! The whole country is glowing tonight and the owl is working overtime. He left three gifts instead of one.",
+      "holi": "Holi! Somebody threw colour powder at your house. It is pink now. Partly green. The owl brought marigolds and a rangoli to match.",
+      "lunar": "Lunar New Year! Red lanterns on every door, fireworks on every roof. The owl brought two lanterns for yours.",
+      "newyear": "New Year's night. Fireworks everywhere. The owl brought extra fairy lights and asked for a raise.",
+      "fullmoon": "Full moon. The owl can see every roof in the city tonight, and he still picked yours. Double gift.",
+      "newmoon": "No moon tonight. Your house is the only light on the street. The owl came straight to you and left an extra lamp.",
+      "latenight": "It is {time}. Only you and the owl are awake. He left an extra feather for keeping him company.",
+      "early": "You lit up before it was even dark. The owl saw it from three streets away.",
+      "weekend": "Weekend night. The street is having a party and your house is the dance floor.",
+      "neighbour": "{friend} next door waved from the window. Two lit houses side by side: the owl noticed.",
+      "powercut": "Power cut on the whole street! Every window went dark except yours. Guess which house the owl saw first.",
+      "rain": "It rained all evening. Your lamps hissed but held on. The owl hates wet feathers and came anyway.",
+      "monsoon": "Monsoon rain. The street is a river, the chai cart is a boat, and your lights are the lighthouse.",
+      "fog": "Thick fog tonight. You could not see the house across the street. The owl found you by the glow alone.",
+      "wedding": "A wedding procession danced past with a brass band. Somebody threw marigolds on your doorstep.",
+      "kite": "A runaway kite got stuck on your roof. The owl says it is a sign. Of what, he would not say.",
+      "skylanterns": "The whole street let paper lanterns into the sky. One came back down on your roof.",
+      "shootingstar": "A shooting star fell right behind your roof. The owl says he did that. He left a feather as proof.",
+      "rickshaw": "An auto-rickshaw stopped at your door, honked twice and drove away. Nobody knows why. The owl is suspicious.",
+      "monkey": "A monkey climbed onto your roof and borrowed your {loan}. He promised to bring it back on your next night.",
+      "goat": "A goat walked in, stared at your lights for a long time and walked out. A tough critic.",
+      "cricket": "Big cricket match tonight. Half the street is watching TV. The other half is watching your house.",
+      "market": "A night market popped up in front of your house. Everyone is shopping under your lights.",
+      "bats": "Bats flew over the street at dusk. The owl told them to move along. This is his route.",
+      "jealous": "The neighbours bought more lights. The aunty next door says your house is 'a bit much'. Keep going.",
+      "counting": "A kid on the next roof is counting your lights instead of stars. He got to {count} and started again.",
+      "owllate": "The owl was late tonight. He blames traffic. Owls do not have traffic.",
+      "selfie": "The owl took a selfie with your house. It is his lock screen now.",
+      "wronghouse": "The owl flew to the wrong house first. Then he saw your lights and turned around.",
+      "chaiflood": "The chai seller ran out of cups and served chai in your flower pots. Business is booming.",
+      "tourists": "Tourists stopped to take photos of your house. You are a landmark now.",
+      "sandstorm": "A small sandstorm swept the street. Your lights shone through the dust like gold.",
+      "scooters": "A hundred scooters drove past your house tonight. Every single one slowed down to look.",
+      "camel": "A camel stopped in front of your house and refused to move. He likes the lights too.",
+      "quiet": "A quiet night. Just you, your lights and the owl somewhere above.",
+      "society": "A notice from the housing society: 'Too many lights on floor three.' The owl ate the notice.",
+      "carrom": "The neighbours played carrom under your lights until 2 a.m. They say your house brings luck.",
+      "tram": "The night tram rang its bell twice as it passed your house. The owl rang back.",
+      "adda": "The neighbours held an adda on your steps till midnight. Topic of the night: your lights.",
+      "fishermen": "Fishermen coming back from the sea stopped to look at your lights. One of them said it is brighter than the lighthouse."
+    },
+    "categories": {
+      "lamps": "Lamps",
+      "lanterns": "Lanterns",
+      "garlands": "Garlands",
+      "neon": "Neon",
+      "signs": "Signs",
+      "stickers": "Stickers",
+      "yard": "Yard and roof",
+      "windows": "Windows",
+      "paint": "Paint"
+    },
+    "rarityNames": {
+      "common": "common",
+      "rare": "rare",
+      "epic": "epic",
+      "legendary": "legendary"
+    }
+  },
+  "picture": {
+    "kicker": "Light a picture",
+    "title": "Hang the lights on anything",
+    "lead": "Your picture, your house or one of ours. The night falls on it, you hang the lights. Make it bright enough and the owl lands.",
+    "watermark": "ULLU · guru.fun",
+    "shareText": "I lit this up {n}% bright. The owl is on his way. $ULLU",
+    "fullAt": 100,
+    "bases": [
+      {
+        "src": "gallery/ullu_g01.jpg",
+        "label": "Ullu"
+      }
+    ],
+    "stickers": [
+      { "id": "owl-main", "src": "stickers/ullu_main.png", "label": "Owl on his coins" },
+      { "id": "owl-smug", "src": "stickers/ullu_smug.png", "label": "Smug owl" },
+      { "id": "owl-laughing", "src": "stickers/ullu_laughing.png", "label": "Laughing owl" },
+      { "id": "owl-shocked", "src": "stickers/ullu_shocked.png", "label": "Shocked owl" },
+      { "id": "owl-crying", "src": "stickers/ullu_crying.png", "label": "Crying owl" },
+      { "id": "owl-winking", "src": "stickers/ullu_winking.png", "label": "Winking owl" },
+      { "id": "owl-sleepy", "src": "stickers/ullu_sleep.png", "label": "Sleepy owl" }
+    ],
+    "captions": [
+      "Brighter than my portfolio",
+      "The owl is coming",
+      "Lights on. Fortune loading",
+      "Not a fool. An ullu",
+      "My house, my rules, my lights",
+      "Seven nights. No sleep"
+    ],
+    "labels": {
+      "canvasLabel": "Your picture with lights",
+      "meter": "Brightness",
+      "tipStart": "Pick a picture, then tap the lights to hang them. Drag to move, pinch or use the slider to resize.",
+      "base": "1. The picture",
+      "upload": "My picture",
+      "myHouse": "My house",
+      "blank": "Just the night",
+      "night": "Night",
+      "lights": "2. The lights",
+      "selected": "Selected",
+      "size": "Size",
+      "turn": "Turn",
+      "flip": "Mirror",
+      "duplicate": "One more",
+      "front": "To the front",
+      "remove": "Remove",
+      "caption": "3. The words",
+      "capPlaceholder": "Write something or pick one below",
+      "save": "Save the picture",
+      "avatar": "Round avatar",
+      "share": "Share on X",
+      "clear": "Start over",
+      "privacy": "Your picture stays on your phone. Nothing is uploaded.",
+      "holder": "Holder preview: golden lights, no watermark",
+      "owlFly": "Flying owl",
+      "owlLanded": "Owl in sunglasses",
+      "landed": "Too bright! The owl landed and put on his sunglasses.",
+      "added": "Drag it into place. Tap the picture away from it to let go.",
+      "holderOnly": "Golden lights are for holders. Turn on the holder preview.",
+      "loadFail": "This light did not load.",
+      "baseFail": "This picture did not open. Try another one.",
+      "notImage": "This is not a picture.",
+      "tooBig": "This picture is too big. Pick one under 25 MB.",
+      "uploaded": "Night has fallen on your picture. Now hang the lights.",
+      "saved": "The picture is saved.",
+      "savedAvatar": "The avatar is saved.",
+      "saveFail": "This picture cannot be saved. Try your own picture.",
+      "shareNote": "X opens with the text ready. Save the picture and attach it.",
+      "fromAlbum": "These are the decorations from your album. Light your house every night to collect more."
+    }
+  },
+  "street": {
+    "kicker": "The street",
+    "title": "The brightest houses tonight",
+    "lead": "Houses that visitors put on show. The owl looks at the top one first.",
+    "endpoint": "/api/street",
+    "minReal": 3,
+    "errors": {
+      "name": "This name does not fit on the door. Latin letters and numbers, no links.",
+      "code": "The street did not recognise this house.",
+      "sign": "One of your signs has a word the street does not allow. Change the words and try again.",
+      "taken": "This house is already on the street from another phone. It frees up two days after it was last lit there.",
+      "numbers": "The nights do not add up. Light up tonight and try again.",
+      "dark": "Light up tonight first: a dark house cannot go on the street.",
+      "busy": "Too many houses at once. Try again in a minute.",
+      "off": "The street is not open yet.",
+      "storage": "The street is resting. Try again later.",
+      "failed": "The street did not take the house. Try again later.",
+      "offline": "The street is not reachable from here right now."
+    },
+    "labels": {
+      "star": "House of the night",
+      "starLine": "{light}% bright · night {streak} in a row. The owl looks here first.",
+      "sortLabel": "Sort the street",
+      "byLight": "Brightest",
+      "byRun": "Longest run",
+      "byNew": "Just lit",
+      "loading": "Walking down the street…",
+      "cta": "Put my house here",
+      "count": "{n} houses on the street.",
+      "empty": "No real houses yet. Yours can be the first.",
+      "offline": "These are sample houses. Real ones appear once the street opens.",
+      "sample": "sample",
+      "more": "Show more houses",
+      "line": "Night {streak} in a row · {gifts} owl visits",
+      "lineLanded": "Night {streak} in a row · the owl is on the roof",
+      "lineDark": "Went dark. Best run: {best} nights.",
+      "best": "best run {best}",
+      "viewLabel": "A house on the street",
+      "close": "Back to the street",
+      "countOne": "One house on the street so far."
+    },
+    "samples": [
+      {
+        "name": "Raju Lights",
+        "seed": 7123,
+        "streak": 7,
+        "nights": 12,
+        "landings": 1,
+        "items": 10,
+        "style": "haveli",
+        "wish": "gold"
+      },
+      {
+        "name": "Meera",
+        "seed": 90211,
+        "streak": 5,
+        "nights": 6,
+        "items": 8,
+        "style": "mumbai",
+        "wish": "love"
+      },
+      {
+        "name": "Chai Wala",
+        "seed": 44017,
+        "streak": 3,
+        "nights": 9,
+        "best": 6,
+        "items": 6,
+        "style": "kolkata"
+      },
+      {
+        "name": "Bunty",
+        "seed": 120345,
+        "streak": 6,
+        "nights": 6,
+        "items": 9,
+        "style": "goa",
+        "wish": "luck"
+      },
+      {
+        "name": "Pinky Didi",
+        "seed": 3301,
+        "streak": 2,
+        "nights": 4,
+        "best": 3,
+        "items": 4,
+        "style": "jaisalmer"
+      },
+      {
+        "name": "Night Shift",
+        "seed": 515151,
+        "streak": 1,
+        "nights": 15,
+        "best": 7,
+        "landings": 1,
+        "items": 5,
+        "style": "mumbai"
+      }
+    ]
+  },
+  "howToBuy": [
+    {
+      "title": "Get a wallet",
+      "text": "Install Phantom or Solflare from the official website or app store. Show your seed phrase to no one. Not even the owl."
+    },
+    {
+      "title": "Get some SOL",
+      "text": "Buy SOL on an exchange or in the wallet and send it to your address. Keep a little for fees."
+    },
+    {
+      "title": "Open guru.fun",
+      "text": "Go to guru.fun and find $ULLU by the contract address on this page. No address here means no token yet."
+    },
+    {
+      "title": "Swap SOL for $ULLU",
+      "text": "Choose the amount and confirm in your wallet. Only use money you can afford to lose. The owl does not cover losses."
+    }
+  ],
+  "tokenomics": {
+    "supply": "1,000,000,000",
+    "items": [
+      {
+        "label": "Fair launch on guru.fun",
+        "value": "100%"
+      },
+      {
+        "label": "Buy and sell tax",
+        "value": "0%"
+      },
+      {
+        "label": "Team wallet",
+        "value": "0%"
+      },
+      {
+        "label": "Presale",
+        "value": "0%"
+      },
+      {
+        "label": "Nights to land the owl",
+        "value": "7"
+      }
+    ]
+  },
+  "gallery": [
+    {
+      "src": "gallery/ullu_g01.jpg",
+      "alt": "Ullu sits on the wires and looks at the one lamp burning on a dark windowsill",
+      "note": "Night one. One lamp is enough to start."
+    },
+    {
+      "src": "gallery/ullu_g02.jpg",
+      "alt": "Ullu flies over a long street where every house is lit and the cats on the roofs look up",
+      "note": "The whole street, waiting."
+    },
+    {
+      "src": "gallery/ullu_g03.jpg",
+      "alt": "Soaked Ullu holds an umbrella over the last burning lamp in the rain",
+      "note": "Rain all night. He saved one lamp."
+    },
+    {
+      "src": "gallery/ullu_g04.jpg",
+      "alt": "Ullu in sunglasses lands with a sack of gold on a house covered in lights",
+      "note": "Night seven. Sunglasses required."
+    }
+  ],
+  "roadmap": [
+    {
+      "phase": "First evening",
+      "title": "The street opens",
+      "items": [
+        "Launch on guru.fun",
+        "Your house, the seven nights and the street",
+        "X and Telegram open"
+      ]
+    },
+    {
+      "phase": "Second evening",
+      "title": "More lights",
+      "items": [
+        "New decorations from the owl",
+        "A weekly house of the week on X",
+        "Holder check for golden lights"
+      ]
+    },
+    {
+      "phase": "Third evening",
+      "title": "The whole city",
+      "items": [
+        "Neighbourhoods: streets of friends",
+        "Owl visits to the brightest street",
+        "More pictures, more Ullu"
+      ]
+    }
+  ],
+  "disclaimer": "$ULLU is a meme coin with no promise of value or profit. The house, the nights and the owl's gifts are a game on this website, not rewards. Crypto is risky: only use money you can afford to lose. Nothing here is financial advice.",
+  "images": {
+    "optimize": true
+  },
+  "effects": {
+    "reveal": false,
+    "parallax": false,
+    "cursor": false,
+    "sparks": false
+  },
+  "server": {
+    "functions": [
+      "street",
+      "geo"
+    ]
+  }
+}

@@ -1,0 +1,232 @@
+---
+// Layout "lights": a night street where the owl brings fortune to the brightest house.
+// This section draws what stays in place while the page scrolls (the night sky and the top bar)
+// and sets up the shared state of the page, window.ul: storage, the holder preview, events.
+import { config, asset } from '../../lib/project';
+import { lights, houseCfg, owlImages } from '../../lib/lights';
+const bar = lights.bar || {};
+const nav: { id: string; label: string }[] = lights.nav || [];
+// Sparkler behind the cursor and a small firework on a click into empty space; config "lights.sparks": false turns it off
+const sparks = lights.sparks !== false;
+// "Find the owl": once a day the sleeping owl hides somewhere on the page; config "house.hide": false turns it off
+const hc: Record<string, any> = (houseCfg as any).hide || {};
+const hide = (houseCfg as any).hide !== false && owlImages.sleep
+  ? JSON.stringify({ img: owlImages.sleep, fly: owlImages.fly || owlImages.sleep, label: hc.label || 'A sleeping owl. Wake him up', file: config.ticker.toLowerCase() }) : '';
+---
+{hide && <template data-ul-hide={hide}></template>}
+{owlImages.sleep && lights.sleepy !== false && <template data-ul-sleepy={owlImages.sleep}></template>}
+{owlImages.fly && lights.secret !== false && <template data-ul-secret={JSON.stringify({ img: owlImages.fly, word: lights.secretWord || config.ticker, file: config.ticker.toLowerCase() })}></template>}
+{sparks && <canvas class="lt-sparks" data-ul-sparks aria-hidden="true"></canvas>}
+<div class="lt-sky" aria-hidden="true"><i class="lt-stars"></i><i class="lt-stars lt-stars-b"></i><i class="lt-moon"></i></div>
+<header class="lt-bar" data-ul-shell>
+  <a href="#home" class="lt-brand" aria-label={config.name}>
+    <img src={asset(config.assets.logo)} alt="" width="40" height="40" />
+    <span class="font-heading">{config.shortName || config.name}</span>
+  </a>
+  <nav class="lt-nav" aria-label={bar.navLabel || 'Sections'}>
+    {nav.map((n) => <a href={`#${n.id}`} data-ul-nav={n.id}>{n.label}</a>)}
+  </nav>
+  <a class="lt-chip" href="#house" data-ul-chip><span class="lt-chip-dot" aria-hidden="true"></span><span data-ul-chip-text>{bar.chip || 'My house'}</span></a>
+  <a class="lt-btn lt-btn-small" href="#buy">{bar.buy || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+</header>
+
+<script>
+  import { dayKey } from '../../lib/lights-kit.js';
+  const K = { dayKey };
+  const root = document.documentElement;
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root.classList.add('ul-js');
+  if (!calm) root.classList.add('ul-motion');
+  const store = {
+    get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k: string, v: string) => { try { localStorage.setItem(k, v); return true; } catch { return false; } },
+  };
+  const fire = (name: string, detail?: unknown) => document.dispatchEvent(new CustomEvent(name, { detail }));
+  const ul: any = (window as any).ul = {
+    calm, store, holder: false,
+    setHolder(on: boolean) { if (ul.holder === on) return; ul.holder = on; root.classList.toggle('ul-holder', on); fire('ul:holder', { on }); },
+    on: (name: string, fn: (d: any) => void) => document.addEventListener(name, (e) => fn((e as CustomEvent).detail)),
+    fire,
+  };
+  // Every holder switch on the page shows the same state
+  document.addEventListener('change', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t && t.matches('[data-ul-holder]')) ul.setHolder(t.checked);
+  });
+  ul.on('ul:holder', ({ on }: { on: boolean }) => document.querySelectorAll<HTMLInputElement>('[data-ul-holder]').forEach((b) => { b.checked = on; }));
+
+  // The chip in the bar shows the night of the visitor's house (set by the house section)
+  const chip = document.querySelector<HTMLElement>('[data-ul-chip-text]');
+  ul.on('ul:night', (d: { text: string; lit: boolean }) => { if (chip && d?.text) chip.textContent = d.text; document.querySelector('[data-ul-chip]')?.classList.toggle('is-lit', Boolean(d?.lit)); });
+
+  // Bar background once the page moves, menu follows the page
+  const marks = [...document.querySelectorAll<HTMLElement>('[data-ul-nav]')].map((a) => ({ a, el: document.getElementById(a.dataset.ulNav!) }));
+  let queued = false, lastNav = '';
+  const paint = () => {
+    queued = false;
+    root.classList.toggle('ul-scrolled', scrollY > 12);
+    const mid = innerHeight * 0.45; let on = '';
+    for (const m of marks) if (m.el && m.el.getBoundingClientRect().top < mid) on = m.a.dataset.ulNav!;
+    if (on !== lastNav) { lastNav = on; marks.forEach((m) => m.a.classList.toggle('is-on', m.a.dataset.ulNav === on)); }
+  };
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(paint); } }, { passive: true });
+  paint();
+
+  // Blocks light up when they scroll into view
+  const targets = document.querySelectorAll('[data-ul-in]');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { io.unobserve(e.target); e.target.classList.add('is-in'); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    targets.forEach((el) => io.observe(el));
+  } else targets.forEach((el) => el.classList.add('is-in'));
+
+  // Sparkler: a short trail of sparks behind the mouse cursor, and a small firework on a click (or a tap) into empty space.
+  // Nothing on clicks on buttons, links, fields, the house picture or the picture tool. At most 240 sparks at once;
+  // the drawing stops as soon as the last spark is gone. Off with reduced motion.
+  const cv = document.querySelector<HTMLCanvasElement>('[data-ul-sparks]');
+  const g = cv?.getContext('2d');
+  if (cv && g && !calm) {
+    const css = getComputedStyle(root);
+    const col = (v: string, d: string) => css.getPropertyValue(v).trim() || d;
+    const trail = [col('--lt-flame-light', '#FFF3B0'), col('--lt-glow', '#FFB52E'), col('--lt-flame', '#FF7A1C')];
+    const burst = [col('--t-accent', '#FFE14D'), col('--t-primary', '#B8E62E'), col('--t-secondary', '#FF9A1F'), '#FF4FA3', '#7AF0FF', '#FFFFFF'];
+    type P = { x: number; y: number; vx: number; vy: number; life: number; max: number; r: number; c: string; drag: number; fall: number };
+    const parts: P[] = []; const MAX = 240;
+    let dpr = 1, raf = 0, last = 0;
+    const fit = () => { dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    fit(); addEventListener('resize', fit, { passive: true });
+    const add = (p: P) => { if (parts.length >= MAX) parts.shift(); parts.push(p); };
+    const draw = (now: number) => {
+      raf = 0; const dt = Math.min(48, now - (last || now)) / 16.7; last = now;
+      g.clearRect(0, 0, innerWidth, innerHeight); g.globalCompositeOperation = 'lighter';
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i]; p.life -= 16.7 * dt;
+        if (p.life <= 0) { parts.splice(i, 1); continue; }
+        p.vx *= Math.pow(p.drag, dt); p.vy = p.vy * Math.pow(p.drag, dt) + p.fall * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+        const k = p.life / p.max;
+        g.globalAlpha = Math.min(1, k * 1.6); g.fillStyle = p.c;
+        g.beginPath(); g.arc(p.x, p.y, p.r * (0.4 + 0.6 * k), 0, 6.283); g.fill();
+      }
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+      if (parts.length) raf = requestAnimationFrame(draw); else last = 0;
+    };
+    const go = () => { if (!raf) raf = requestAnimationFrame(draw); };
+    let px = -1, py = -1;
+    if (matchMedia('(pointer: fine)').matches) addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const d = px < 0 ? 0 : Math.hypot(e.clientX - px, e.clientY - py); px = e.clientX; py = e.clientY;
+      const n = Math.min(3, Math.round(d / 14));   // more sparks the faster the cursor moves; none while it stands still
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * 6.283, s = 0.4 + Math.random() * 1.6, life = 320 + Math.random() * 260;
+        add({ x: e.clientX, y: e.clientY, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 0.3, life, max: life, r: 1.2 + Math.random() * 1.6, c: trail[(Math.random() * 3) | 0], drag: 0.94, fall: 0.06 });
+      }
+      if (n) go();
+    }, { passive: true });
+    ul.on('ul:burst', (d: { x: number; y: number }) => { if (d && isFinite(d.x) && isFinite(d.y)) boom(d.x, d.y); });
+    // gold coins that fall from the flying owl (the secret word)
+    ul.on('ul:coins', (d: { x: number; y: number }) => {
+      if (!d || !isFinite(d.x) || !isFinite(d.y)) return;
+      for (let i = 0; i < 5; i++) { const life = 900 + Math.random() * 500; add({ x: d.x + (Math.random() - 0.5) * 30, y: d.y, vx: (Math.random() - 0.5) * 1.6, vy: -1 - Math.random() * 1.5, life, max: life, r: 3 + Math.random() * 2.5, c: Math.random() < 0.5 ? '#FFD21F' : '#FFB21F', drag: 0.985, fall: 0.18 }); }
+      go();
+    });
+    const skip = 'a, button, input, select, textarea, label, summary, canvas, dialog, [role="slider"], [data-ul-house] .lt-stage-box, .lt-street, .lt-gallery, .lt-big-diya';
+    function boom(x: number, y: number) {
+      const n = 36 + ((Math.random() * 12) | 0), c1 = burst[(Math.random() * burst.length) | 0], c2 = burst[(Math.random() * burst.length) | 0];
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * 6.283 + Math.random() * 0.2, s = 3.2 + Math.random() * 2.8, life = 700 + Math.random() * 500;
+        add({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life, max: life, r: 1.6 + Math.random() * 1.6, c: i % 2 ? c1 : c2, drag: 0.93, fall: 0.05 });
+      }
+      go();
+    }
+    addEventListener('pointerdown', (e) => {
+      if (e.button > 0 || (e.target as HTMLElement).closest(skip)) return;
+      boom(e.clientX, e.clientY);
+    }, { passive: true });
+  }
+
+  // The sleepy owl: after 40 seconds without a move, a click, a key or a scroll, the owl falls asleep in the lower left corner
+  // of the screen. Any move wakes him: he jumps and slides away. He is only a picture (clicks go through him).
+  const sleepTpl = document.querySelector<HTMLElement>('[data-ul-sleepy]');
+  if (sleepTpl) {
+    const zz = document.createElement('img'); zz.className = 'lt-sleepy'; zz.src = sleepTpl.dataset.ulSleepy!; zz.alt = ''; zz.setAttribute('aria-hidden', 'true'); zz.decoding = 'async';
+    document.body.appendChild(zz);
+    let timer = 0, asleep = false, awayT = 0;
+    const IDLE = 40000;
+    const nap = () => { if (document.hidden || document.querySelector('dialog[open]')) return arm(); asleep = true; clearTimeout(awayT); zz.classList.remove('is-wake'); zz.classList.add('is-on'); };
+    const arm = () => { clearTimeout(timer); timer = window.setTimeout(nap, IDLE); };
+    const poke = () => {
+      if (asleep) { asleep = false; zz.classList.add('is-wake'); awayT = window.setTimeout(() => zz.classList.remove('is-on', 'is-wake'), calm ? 0 : 650); }
+      arm();
+    };
+    for (const ev of ['pointermove', 'pointerdown', 'keydown', 'scroll', 'wheel', 'touchstart']) addEventListener(ev, poke, { passive: true });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) arm(); });
+    arm();
+  }
+
+  // The secret word: type u-l-l-u anywhere on the page (not in a text field). The owl flies across the screen from right
+  // to left and drops coins; the first time ever it also leaves a gift (a neon coin) for the house. Off for phones (no keys).
+  const eggTpl = document.querySelector<HTMLElement>('[data-ul-secret]');
+  if (eggTpl) {
+    const E = JSON.parse(eggTpl.dataset.ulSecret!);
+    const word = String(E.word || 'ullu').toLowerCase(); const EKEY = `ul-secret-${E.file}`;
+    let typed = '', flying = false;
+    addEventListener('keydown', (e) => {
+      const t = e.target as HTMLElement;
+      if (e.ctrlKey || e.metaKey || e.altKey || (t && (t.isContentEditable || t.closest('input, textarea, select')))) return;
+      if (e.key.length !== 1) return;
+      typed = (typed + e.key.toLowerCase()).slice(-word.length);
+      if (typed !== word || flying) return;
+      typed = '';
+      const first = ul.store.get(EKEY) !== '1';
+      if (first) ul.store.set(EKEY, '1');
+      const done = () => { flying = false; if (first) ul.fire('ul:secret', {}); };
+      if (calm) return done();
+      flying = true;
+      const owl = document.createElement('img'); owl.className = 'lt-flyby'; owl.src = E.img; owl.alt = ''; owl.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(owl);
+      const w = Math.min(220, innerWidth * 0.3), y0 = innerHeight * 0.55, y1 = innerHeight * 0.2;
+      owl.style.width = `${w}px`;
+      const anim = owl.animate([
+        { transform: `translate(${innerWidth + 20}px, ${y0}px) rotate(-6deg)` },
+        { transform: `translate(${innerWidth * 0.5 - w / 2}px, ${y1}px) rotate(0deg)`, offset: 0.5 },
+        { transform: `translate(${-w - 20}px, ${y0 * 0.8}px) rotate(8deg)` },
+      ], { duration: 2800, easing: 'ease-in-out' });
+      const drop = window.setInterval(() => { const r = owl.getBoundingClientRect(); ul.fire('ul:coins', { x: r.left + r.width * 0.45, y: r.top + r.height * 0.7 }); }, 180);
+      anim.onfinish = () => { clearInterval(drop); owl.remove(); done(); };
+    });
+  }
+
+  // Find the owl: every day the sleeping owl naps on the edge of another block of the page (the day picks the place,
+  // the same for everyone that day). A click wakes him: a firework, he flies off, and the house gets one gift (LightsHouse).
+  // Once a day per browser. The list of places is in the order of the page; places that are not on the page are skipped.
+  const hideTpl = document.querySelector<HTMLElement>('[data-ul-hide]');
+  if (hideTpl) {
+    const H = JSON.parse(hideTpl.dataset.ulHide!);
+    const FKEY = `ul-found-${H.file}`;
+    const day = K.dayKey();
+    if (ul.store.get(FKEY) !== day) {
+      const spots: [string, string][] = [
+        ['.lt-hero-note', 'tr'], ['#lore .lt-rules-strip', 'tr'], ['#lore .lt-card:nth-child(2)', 'tl'], ['#house .lt-stats', 'tr'],
+        ['#street .lt-head', 'tr'], ['#picture .lt-head', 'tr'], ['#gallery .lt-head', 'tr'], ['#token .lt-facade', 'tl'],
+        ['#how-to-buy .lt-step:last-child', 'tr'], ['#plan .lt-plan-card:nth-child(2)', 'tl'], ['#rules .lt-rules > div:nth-child(3)', 'tr'], ['.lt-footer-in', 'tr'],
+      ];
+      const ok = spots.filter(([s]) => { const el = document.querySelector(s); return el && el.getClientRects().length; });
+      if (ok.length) {
+        let h = 7; for (const ch of day) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+        const [sel, pos] = ok[h % ok.length];
+        const host = document.querySelector<HTMLElement>(sel)!;
+        if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+        const b = document.createElement('button'); b.type = 'button'; b.className = `lt-hide is-${pos}`; b.setAttribute('aria-label', H.label); b.title = H.label;
+        const im = document.createElement('img'); im.src = H.img; im.alt = ''; im.width = 64; im.height = 63; im.decoding = 'async'; b.appendChild(im);
+        host.appendChild(b);
+        b.addEventListener('click', () => {
+          if (ul.store.get(FKEY) === day) return;
+          ul.store.set(FKEY, day);
+          const r = b.getBoundingClientRect(); ul.fire('ul:burst', { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+          b.disabled = true; im.src = H.fly; b.classList.add('is-found');
+          ul.fire('ul:owl-found', { day });
+          setTimeout(() => b.remove(), calm ? 0 : 1100);
+        });
+      }
+    }
+  }
+</script>

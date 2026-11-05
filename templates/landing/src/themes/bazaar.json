@@ -1,0 +1,51 @@
+{
+  "name": "bazaar",
+  "flavor": "lights",
+  "decor": "truck",
+  "colors": {
+    "bg": "#140B33",
+    "surface": "#251654",
+    "text": "#FFF8E1",
+    "muted": "#C3B8E8",
+    "primary": "#B8E62E",
+    "onPrimary": "#140B33",
+    "secondary": "#FF9A1F",
+    "accent": "#FFE14D"
+  },
+  "lights": {
+    "ink": "#120A2A",
+    "glow": "#FFC21F",
+    "cream": "#FFF6C8",
+    "flameLight": "#FFF6B8",
+    "flame": "#FF7A1C",
+    "edge": "#4F6A00",
+    "skyTop": "#0A0520",
+    "skyBottom": "#261257",
+    "skyGlow": "#4E1E7A",
+    "archMid": "#7A2E8E",
+    "archEnd": "#22125A",
+    "stage": "#120A2E",
+    "deep": "#0C0626",
+    "dim": "#4A3F7A",
+    "track": "#2E1E66",
+    "track2": "#24175A",
+    "paneOff": "#22165A",
+    "paneText": "#8C80B8",
+    "garland": "#2C1A5E",
+    "dialog": "#3B1C70",
+    "facade": "#E8343B",
+    "clay": "#D9682B",
+    "clayLight": "#FFD27A",
+    "pane": "#FFE14D",
+    "star": "#FFF2B8",
+    "houseSky": ["#0E0828", "#22125A", "#3A1C7A"],
+    "houseVeil": "#120A33"
+  },
+  "fonts": {
+    "heading": "Yatra One",
+    "body": "Baloo 2",
+    "googleFonts": "family=Yatra+One&family=Baloo+2:wght@500;600;700;800",
+    "ticker": "heading"
+  },
+  "radius": { "button": "999px", "card": "26px" }
+}

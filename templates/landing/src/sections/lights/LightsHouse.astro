@@ -1,0 +1,922 @@
+---
+// The game of the "lights" layout: every visitor gets a unique house built from a seed on the first visit.
+// Light up once a night: the owl comes by and leaves something (a new decoration). Decorate the house with what you have.
+// Every night in a row the house is brighter and the owl flies closer; a missed night drops the house to level 1;
+// on night seven the owl lands on the roof with a sack of fortune. The house is kept in the browser, no wallet, no login.
+// The result is saved as a card with a caption for the night, shared on X, or put on the street (section lightsStreet).
+// Wording comes from config.house, colours from the theme. Test hook: element.house (see the end of the script).
+import { config, asset } from '../../lib/project';
+import { houseCfg, owlImages, itemNames, streetCfg, nightCtx } from '../../lib/lights';
+import { ITEMS, ITEM_IDS, NIGHTS } from '../../lib/lights-kit.js';
+import LtHead from './LtHead.astro';
+const c = houseCfg;
+const l: Record<string, string> = c.labels || {};
+const data = JSON.stringify({
+  owl: owlImages, items: itemNames, holderItems: ITEM_IDS.filter((i) => (ITEMS as any)[i].holder),
+  captions: c.captions || [], landedCaption: c.landedCaption || '', afterCaption: c.afterCaption || '',
+  status: c.status || {}, labels: l, slotNames: c.slotNames || {}, watermark: c.watermark || '', styles: c.styles || [], styleNames: c.styleNames || {},
+  shareText: c.shareText || '', url: config.url || '', name: config.name, ticker: config.ticker, file: config.ticker.toLowerCase(),
+  endpoint: streetCfg.enabled === false ? '' : streetCfg.endpoint || '/api/street', streetErrors: streetCfg.errors || {},
+  holderGift: c.holderGift || { jhoomar: 1, golddiya: 2, 'string-gold': 1, 'paint-goldleaf': 1 }, categories: c.categories || {}, rarityNames: c.rarityNames || {},
+  story: c.story || {}, events: c.events || {}, night: nightCtx,
+  geo: c.geoEndpoint === '' ? '' : c.geoEndpoint || '/api/geo', wishes: c.wishes || {}, setup: c.setup || {}, invite: c.invite || {},
+});
+const su: Record<string, string> = c.setup || {};
+const iv: Record<string, string> = c.invite || {};
+---
+<section id="house" class="lt-sec lt-house-sec" data-ul-house={data}>
+  <div class="lt-in">
+    <LtHead kicker={c.kicker} title={c.title} lead={c.lead} />
+    <div class="lt-house">
+      <div class="lt-stage" data-ul-in>
+        <div class="lt-stage-box">
+          <div class="lt-stage-svg" data-ul-svg aria-hidden="true"></div>
+          <div class="lt-slots" data-ul-slots></div>
+          <p class="lt-stage-tag"><span>{l.house || 'House'}</span> <b data-ul-no>No. —</b></p>
+        </div>
+        <p class="lt-plate" data-ul-plate></p>
+        <p class="lt-tip" data-ul-tip aria-live="polite">{l.tipStart}</p>
+      </div>
+
+      <div class="lt-panel" data-ul-in>
+        <div class="lt-setup" data-ul-setup hidden>
+          <p class="lt-invite-note" data-ul-invite-note hidden></p>
+          <p class="lt-label" data-ul-setup-count></p>
+          <div class="lt-setup-step" data-step="1">
+            <h3 class="font-heading">{su.nameTitle || 'Whose house is this?'}</h3>
+            <p class="lt-note">{su.nameNote || 'The name goes on the door, on your cards and on the street. Latin letters and numbers.'}</p>
+            <input class="lt-input" data-ul-setup-name maxlength="18" autocomplete="nickname" placeholder={su.namePlaceholder || 'Your name or nickname'} />
+          </div>
+          <div class="lt-setup-step" data-step="2" hidden>
+            <h3 class="font-heading">{su.wishTitle || 'What do you want from the owl?'}</h3>
+            <p class="lt-note">{su.wishNote || 'The wish paints your house and changes what the owl brings.'}</p>
+            <div class="lt-wishes" data-ul-wishes></div>
+          </div>
+          <div class="lt-setup-step" data-step="3" hidden>
+            <h3 class="font-heading">{su.styleTitle || 'Which street is yours?'}</h3>
+            <p class="lt-note" data-ul-found>{su.styleNote || 'The owl flies all over the world. Pick the street where your house stands.'}</p>
+            <div class="lt-styles" data-ul-styles></div>
+          </div>
+          <p class="lt-note" data-ul-setup-msg aria-live="polite"></p>
+          <div class="lt-actions lt-actions-tight">
+            <button type="button" class="lt-btn lt-btn-ghost lt-btn-small" data-ul-setup-back hidden>{su.back || 'Back'}</button>
+            <button type="button" class="lt-btn" data-ul-setup-next>{su.next || 'Next'}</button>
+            <button type="button" class="lt-btn lt-btn-ghost lt-btn-small" data-ul-setup-skip>{su.skip || 'Skip, build it now'}</button>
+          </div>
+        </div>
+
+        <div data-ul-main>
+        <div class="lt-invite-offer" data-ul-invite-offer hidden>
+          <p data-ul-invite-offer-text></p>
+          <div class="lt-actions lt-actions-tight">
+            <button type="button" class="lt-btn lt-btn-small" data-ul-invite-accept>{iv.accept || 'Move next to them'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-invite-decline>{iv.decline || 'No, thanks'}</button>
+          </div>
+        </div>
+        <ol class="lt-nights" data-ul-nights aria-label={l.nightsLabel || 'Nights in a row'}>
+          {Array.from({ length: NIGHTS }, (_, i) => <li><span class="lt-sr">{i + 1}</span></li>)}
+        </ol>
+        <p class="lt-status" data-ul-status aria-live="polite"></p>
+        <div class="lt-story" data-ul-story>
+          <p class="lt-label">{l.tonightTitle || 'Tonight on your street'}</p>
+          <p data-ul-story-night></p>
+          <p class="lt-story-event" data-ul-story-event></p>
+        </div>
+        <button type="button" class="lt-btn lt-btn-big lt-light-btn" data-ul-light>{l.light || 'Light up tonight'}</button>
+        {owlImages.sleep && (houseCfg as any).hide !== false && <p class="lt-found-hint" data-ul-found-hint>{l.foundHint || 'Every day the owl naps somewhere on this page. Find him and he leaves a gift.'}</p>}
+
+        <div class="lt-box">
+          <p class="lt-label">{l.inventory || 'What you have'} <span data-ul-inv-count></span></p>
+          <div class="lt-tabs" data-ul-tabs role="tablist" aria-label={l.inventory || 'What you have'}></div>
+          <div class="lt-inv" data-ul-inv></div>
+          <p class="lt-note">{l.invHint || 'Pick a decoration, then tap a glowing spot on the house, or tap anywhere on the picture to put it there. Tap a placed one to take it back.'}</p>
+        </div>
+
+        <div class="lt-box lt-edit" data-ul-edit hidden>
+          <p class="lt-label" data-ul-edit-name></p>
+          <label class="lt-range"><span>{l.size || 'Size'}</span><input type="range" min="40" max="250" value="100" data-ul-edit-size /></label>
+          <label class="lt-range"><span>{l.turn || 'Turn'}</span><input type="range" min="-180" max="180" value="0" data-ul-edit-turn /></label>
+          <label class="lt-range" data-ul-edit-text-row hidden><span>{l.signText || 'Words'}</span><input class="lt-input" maxlength="14" data-ul-edit-text placeholder={l.signPlaceholder || 'Up to 14 letters'} /></label>
+          <div class="lt-actions lt-actions-tight">
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-edit-act="front">{l.front || 'To the front'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-edit-act="back">{l.takeBackBtn || 'Back to the box'}</button>
+            <button type="button" class="lt-btn lt-btn-small" data-ul-edit-act="done">{l.done || 'Done'}</button>
+          </div>
+          <p class="lt-note">{l.editNote || 'Drag it on the picture to move it.'}</p>
+        </div>
+
+        <dl class="lt-stats">
+          <div><dt>{l.statNights || 'Nights lit'}</dt><dd data-ul-stat="nights">0</dd></div>
+          <div><dt>{l.statGifts || 'Owl visits'}</dt><dd data-ul-stat="gifts">0</dd></div>
+          <div><dt>{l.statBest || 'Best run'}</dt><dd data-ul-stat="best">0</dd></div>
+          <div><dt>{l.statLight || 'Brightness'}</dt><dd data-ul-stat="light">0%</dd></div>
+        </dl>
+
+        <details class="lt-more lt-album" data-ul-album-box>
+          <summary><span>{l.albumTitle || 'Collection album'}</span> <b data-ul-album-count></b></summary>
+          <div class="lt-album-in" data-ul-album></div>
+        </details>
+
+        <details class="lt-more lt-diary">
+          <summary>{l.diaryTitle || 'Street diary'}</summary>
+          <ol class="lt-diary-list" data-ul-diary></ol>
+        </details>
+
+        <div class="lt-actions lt-actions-tight">
+          <button type="button" class="lt-btn" data-ul-card>{l.card || 'Save the card'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-share>{l.share || 'Share on X'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-peek aria-pressed="false">{l.peek || 'Peek at night 7'}</button>
+        </div>
+        <p class="lt-note" data-ul-peek-note hidden>{l.peekNote || 'This is how night seven looks. Your own nights are not changed.'}</p>
+
+        <div class="lt-tray" data-ul-tray hidden>
+          <img data-ul-out alt={l.cardAlt || 'Your house card'} width="1080" height="1080" />
+          <div class="lt-actions lt-actions-tight">
+            <a class="lt-btn lt-btn-small" data-ul-download download>{l.download || 'Download'}</a>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-share2>{l.share || 'Share on X'}</button>
+          </div>
+          <p class="lt-note" data-ul-share-note hidden>{l.shareNote || 'X opens with the text ready. Attach the card you downloaded.'}</p>
+        </div>
+
+        <details class="lt-more">
+          <summary>{l.more || 'Street, house code and holders'}</summary>
+          <div class="lt-more-in">
+            <form class="lt-form" data-ul-post>
+              <label class="lt-label" for="ul-name">{l.streetTitle || 'Put your house on the street'}</label>
+              <div class="lt-row">
+                <input id="ul-name" class="lt-input" name="name" maxlength="18" autocomplete="nickname" placeholder={l.namePlaceholder || 'Name on the door'} required />
+                <button type="submit" class="lt-btn lt-btn-small">{l.post || 'Put it there'}</button>
+              </div>
+              <p class="lt-note" data-ul-post-note>{l.postNote || 'Latin letters and numbers. Only the house, its name and its nights go to the street.'}</p>
+            </form>
+            <div class="lt-form">
+              <p class="lt-label">{l.codeTitle || 'House code'}</p>
+              <p class="lt-note">{l.codeNote || 'The house lives in this browser. Copy the code to move the house to another phone; the nights start there again.'}</p>
+              <div class="lt-row">
+                <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-copy>{l.copy || 'Copy code'}</button>
+                <input class="lt-input" data-ul-code-in placeholder={l.codePlaceholder || 'Paste a code'} />
+                <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-restore>{l.restore || 'Move in'}</button>
+              </div>
+              <p class="lt-note" data-ul-code-note aria-live="polite"></p>
+            </div>
+            <div class="lt-form">
+              <p class="lt-label">{iv.title || 'Invite a neighbour'}</p>
+              <p class="lt-note">{iv.note || 'Send the link to a friend: their house will stand next to yours, and they get a housewarming gift.'}</p>
+              <div class="lt-row">
+                <button type="button" class="lt-btn lt-btn-small" data-ul-invite-copy>{iv.copy || 'Copy the link'}</button>
+                <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-invite-x>{iv.share || 'Invite on X'}</button>
+              </div>
+              <p class="lt-note" data-ul-invite-msg aria-live="polite"></p>
+            </div>
+            <div class="lt-holder">
+              <label class="lt-switch">
+                <input type="checkbox" role="switch" data-ul-holder />
+                <span class="lt-switch-track" aria-hidden="true"><i></i></span>
+                <span>{l.holder || 'Holder preview'}</span>
+              </label>
+              <p class="lt-note">{l.holderNote || 'A preview: golden decorations and a clean card, without a wallet check.'}</p>
+            </div>
+          </div>
+        </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <dialog class="lt-gift" data-ul-gift aria-labelledby="ul-gift-title">
+    <div class="lt-gift-in">
+      <img data-ul-gift-img alt="" width="160" height="160" />
+      <ul class="lt-gift-list" data-ul-gift-list hidden></ul>
+      <p class="lt-kicker" data-ul-gift-kicker></p>
+      <h3 id="ul-gift-title" class="font-heading" data-ul-gift-title></h3>
+      <p data-ul-gift-note></p>
+      <p class="lt-gift-event" data-ul-gift-event></p>
+      <p class="lt-gift-bonus" data-ul-gift-bonus></p>
+      <form method="dialog"><button class="lt-btn" data-ul-gift-ok>{l.giftOk || 'Put it on the house'}</button></form>
+    </div>
+  </dialog>
+</section>
+
+<script>
+  import * as K from '../../lib/lights-kit.js';
+
+  const root = document.querySelector<HTMLElement>('[data-ul-house]');
+  const ul: any = (window as any).ul;
+  if (root && ul) {
+    const cfg = JSON.parse(root.dataset.ulHouse!);
+    const L: Record<string, string> = cfg.labels;
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
+    const KEY = `ul-house-${cfg.file}`;
+    const ID_KEY = `ul-id-${cfg.file}`;
+    const STREET_KEY = `ul-street-${cfg.file}`;   // the name, once the house stands on the street
+    const css = getComputedStyle(document.documentElement);
+    const heading = `${css.getPropertyValue('--t-font-heading').trim() || 'sans-serif'}, system-ui, sans-serif`;
+    const body = `${css.getPropertyValue('--t-font-body').trim() || 'sans-serif'}, system-ui, sans-serif`;
+
+    // ---- state -----------------------------------------------------------------------------
+    // A new visitor gets one of the Indian streets (or one of config.house.styles), picked by the seed; the first-visit
+    // questions let them choose another. ?style=<street> in the address shows that street (for demos); it changes only
+    // a house without nights, and keeps its name, wish and neighbour.
+    const styleList: string[] = Array.isArray(cfg.styles) && cfg.styles.length ? cfg.styles.filter((f: string) => K.FAMILY_IDS.includes(f)) : K.FAMILY_IDS;
+    const askStyle = new URLSearchParams(location.search).get('style') || '';
+    const newHouse = (seed = K.newSeed()) => K.freshProgress(seed, styleList.includes(askStyle) ? askStyle : styleList[(seed >>> 3) % styleList.length]);
+    const stored = ul.store.get(KEY);
+    let p = stored ? K.readProgress(stored) : newHouse();
+    if (!styleList.includes(p.family) && !p.nights) p = { ...p, family: styleList[(p.seed >>> 3) % styleList.length], placed: {}, free: [] };
+    if (stored && styleList.includes(askStyle) && p.family !== askStyle && !p.nights) p = { ...p, family: askStyle, placed: {}, free: [] };
+    // an invite link (?n=…): the friend's house stands next door. The parameter is taken out of the address at once.
+    const params = new URLSearchParams(location.search);
+    const invite = params.get('n') ? K.decodeInvite(params.get('n')) : null;
+    if (params.has('n')) { params.delete('n'); const q = params.toString(); history.replaceState(null, '', location.pathname + (q ? `?${q}` : '') + location.hash); }
+    const houseFor = (q: any) => K.houseOfP({ ...q, paint: q.paint && (!isHolderItemRaw(q.paint) || ul.holder) ? q.paint : '' });
+    function isHolderItemRaw(id: string) { return Boolean((K.ITEMS as any)[id]?.holder); }
+    let h = houseFor(p);
+    let friend = p.neighbour ? houseFor(p.neighbour) : null;
+    let today = K.dayKey();
+    let pinnedDay = false;   // set by the test hook
+    let sel = '';
+    let peek = false;
+    const save = () => ul.store.set(KEY, JSON.stringify(p));
+    if (!stored) save();
+    const owlSrc: Record<string, string> = { fly: cfg.owl.fly || K.owlPlaceholder('fly'), landed: cfg.owl.landed || K.owlPlaceholder('landed') };
+    const itemName = (id: string) => cfg.items[id]?.name || id;
+    const isHolderItem = (id: string) => cfg.holderItems.includes(id);
+    // In the holder preview the golden decorations are lent to the house; they are not stored as owned.
+    const lent = () => (ul.holder ? cfg.holderGift : {});
+    const withLent = () => { const inv = { ...p.inv }; for (const [i, n] of Object.entries(lent())) inv[i] = (inv[i] || 0) + (n as number); return { ...p, inv }; };
+    // what goes to the street: golden holder decorations stay at home (there is no wallet check)
+    const ownPlaced = () => Object.fromEntries(Object.entries(p.placed).filter(([, i]) => !isHolderItem(i as string)));
+    const shownPlaced = () => (ul.holder ? p.placed : Object.fromEntries(Object.entries(p.placed).filter(([, i]) => !isHolderItem(i as string))));
+    const ownFree = () => (p.free || []).filter((f: any) => !isHolderItem(f.i));
+    const shownFree = () => (ul.holder ? p.free || [] : ownFree());
+    const ownPaint = () => (p.paint && !isHolderItem(p.paint) ? p.paint : '');
+    const drawCtx = { ticker: cfg.ticker, ...cfg.night };
+
+    const view = () => {
+      const s = K.statusOf(p, today);
+      if (peek) return { ...s, level: K.NIGHTS, landed: true, streak: K.NIGHTS, litTonight: true, due: false, missed: false };
+      return s;
+    };
+    const levelShown = (s: any) => (s.first && s.due ? 0 : s.level);
+    const owlFor = (s: any) => {
+      const pos = s.landed ? K.owlPlace(h, K.NIGHTS, true) : K.owlPlace(h, s.litTonight ? s.streak : Math.max(1, s.streak), false);
+      return { ...pos, href: owlSrc[pos.pose] };
+    };
+
+    // ---- the house on the page ---------------------------------------------------------------
+    const svgBox = $<HTMLElement>('[data-ul-svg]');
+    const slotsBox = $<HTMLElement>('[data-ul-slots]');
+    const tip = $<HTMLElement>('[data-ul-tip]');
+    const say = (t: string) => { tip.textContent = t; };
+    const SLOT_NAMES: Record<string, string> = { line: 'roof edge', balcony: 'balcony rail', door: 'door', step: 'doorstep', side: 'porch', sill: 'window sill', hang: 'window top', roof: 'roof', win: 'window' };
+    // a line slot on a balcony (id b1-line, b2-line…) is the balcony rail, not the roof edge
+    const slotLabel = (sl: any) => { const k = sl.kind === 'line' && /^b\d/.test(sl.id) ? 'balcony' : sl.kind; return cfg.slotNames[k] || SLOT_NAMES[k] || k; };
+
+    const drawHouse = () => {
+      const s = view();
+      const setupLevel = setupOn ? 2 : levelShown(s);
+      const scene = setupOn || peek ? '' : K.sceneOf(K.tonightOf(p, today)?.event || '');
+      h = houseFor(p);
+      svgBox.innerHTML = K.houseSvg(h, shownPlaced(), { level: setupLevel, owl: setupOn ? null : owlFor(s), slotsFor: sel, id: 'ulh', friend, scene, free: shownFree(), ctx: drawCtx });
+      slotsBox.innerHTML = '';
+      const placed = shownPlaced();
+      for (const sl of h.slots) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'lt-slot'; b.dataset.slot = sl.id;
+        const x = sl.kind === 'line' || sl.kind === 'door' ? (sl.x1 + sl.x2) / 2 : sl.x;
+        // a window slot covers the upper part of its window (the sill below it is a slot of its own)
+        const y = sl.kind === 'line' || sl.kind === 'door' ? sl.y + 10 : sl.kind === 'step' ? sl.y : sl.kind === 'win' ? sl.y + sl.h * 0.38 : sl.y - 14;
+        b.style.left = `${(x / K.VIEW) * 100}%`; b.style.top = `${(y / K.VIEW) * 100}%`;
+        if (sl.kind === 'line' || sl.kind === 'door') b.style.width = `${((sl.x2 - sl.x1) / K.VIEW) * 100}%`;
+        if (sl.kind === 'win') { b.style.width = `${(sl.w / K.VIEW) * 100}%`; b.style.height = `${((sl.h * 0.72) / K.VIEW) * 100}%`; b.style.borderRadius = '8px'; }
+        b.classList.toggle('is-line', sl.kind === 'line' || sl.kind === 'door');
+        const it = placed[sl.id];
+        const fits = sel && (K.ITEMS as any)[sel].kinds.includes(sl.kind) && !it;
+        b.classList.toggle('is-target', Boolean(fits));
+        b.classList.toggle('has-item', Boolean(it));
+        b.setAttribute('aria-label', it ? `${slotLabel(sl)}: ${itemName(it as string)}. ${L.takeBack || 'Take it back'}` : `${slotLabel(sl)}${fits ? '' : ''}`);
+        if (!it && !fits) b.tabIndex = -1;
+        slotsBox.appendChild(b);
+      }
+      // handles of the decorations put anywhere: drag to move, tap to edit
+      for (const f of shownFree()) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'lt-free'; b.dataset.free = String(f.n);
+        b.classList.toggle('is-on', editN === f.n);
+        b.style.left = `${(f.x / K.VIEW) * 100}%`; b.style.top = `${(f.y / K.VIEW) * 100}%`;
+        b.style.setProperty('--fs', String(f.s));
+        b.setAttribute('aria-label', `${itemName(f.i)}. ${L.editIt || 'Move or change it'}`);
+        slotsBox.appendChild(b);
+      }
+      $<HTMLElement>('[data-ul-no]').textContent = `No. ${h.no} · ${styleName(h.family)}`;
+      $<HTMLElement>('[data-ul-plate]').textContent = plateText();
+    };
+
+    slotsBox.addEventListener('click', (e) => {
+      if (peek) return say(L.peekLocked || 'Turn off the preview to decorate.');
+      if (dragged) { dragged = false; return; }
+      if ((e.target as HTMLElement).closest('[data-free]')) return;
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-slot]');
+      if (!b) {
+        // a tap on the picture away from the glowing spots: put the selected decoration right there
+        if (!sel || setupOn) { if (editN) closeEdit(); return; }
+        const it = (K.ITEMS as any)[sel];
+        if (!it.free) return say(fill(L.notFree || '{item} only goes into the glowing spots.', { item: itemName(sel) }));
+        const r = slotsBox.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width) * K.VIEW, y = ((e.clientY - r.top) / r.height) * K.VIEW;
+        const n = K.placeFree(withLent(), sel, x, y, ul.holder, { t: it.custom ? 'HOOT' : undefined });
+        if (!n) return say((p.free || []).length >= K.FREE_MAX ? L.freeFull || 'That is a lot of decorations. Take some back first.' : fill(L.allPlaced || 'No free {item} left.', { item: itemName(sel) }));
+        p = { ...p, free: n.free }; save();
+        const placedNow = p.free[p.free.length - 1];
+        say(fill(L.placedFree || '{item} is up. Drag it to move it.', { item: itemName(sel) }));
+        if (!K.freeItems(withLent())[sel]) sel = '';
+        openEdit(placedNow.n);
+        return;
+      }
+      const id = b.dataset.slot!, sl = h.slots.find((x: any) => x.id === id)!;
+      const it = shownPlaced()[id];
+      if (it) { const n = K.placeItem(p, id, ''); if (n) { p = n; save(); say(fill(L.tookBack || '{item}: back in your box.', { item: itemName(it as string) })); refresh(); } return; }
+      if (!sel) return say(L.pickFirst || 'Pick a decoration first.');
+      const n = K.placeItem(withLent(), id, sel, ul.holder);
+      if (!n) return say(fill(L.wrongSpot || '{item} cannot go there. Try a glowing spot.', { item: itemName(sel) }));
+      p = { ...p, placed: n.placed }; save();
+      say(fill(L.placed || '{item}: on the {spot}.', { item: itemName(sel), spot: slotLabel(sl) }));
+      const left = K.freeItems(withLent())[sel];
+      if (!left) sel = '';
+      refresh();
+    });
+
+    // ---- inventory ---------------------------------------------------------------------------
+    const inv = $<HTMLElement>('[data-ul-inv]');
+    const tabs = $<HTMLElement>('[data-ul-tabs]');
+    const thumbCache: Record<string, string> = {};
+    const thumb = (id: string) => (thumbCache[id] ||= K.svgUrl(K.itemSvg(id, 72, drawCtx)));
+    const catName = (c: string) => cfg.categories[c] || c.charAt(0).toUpperCase() + c.slice(1);
+    let tab = 'all';
+    const drawInv = () => {
+      const free = K.freeItems(withLent());
+      const owned = withLent().inv;
+      const ids = K.ITEM_IDS.filter((id: string) => owned[id] && (!isHolderItem(id) || ul.holder));
+      const cats = K.CATEGORIES.filter((c: string) => ids.some((id: string) => (K.ITEMS as any)[id].cat === c));
+      if (tab !== 'all' && !cats.includes(tab)) tab = 'all';
+      tabs.innerHTML = '';
+      for (const c of ['all', ...cats]) {
+        const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.tab = c;
+        b.setAttribute('aria-selected', String(tab === c)); b.textContent = c === 'all' ? L.tabAll || 'All' : catName(c);
+        tabs.appendChild(b);
+      }
+      tabs.hidden = cats.length < 2;
+      inv.innerHTML = '';
+      for (const id of ids) {
+        const it = (K.ITEMS as any)[id];
+        if (tab !== 'all' && it.cat !== tab) continue;
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = `lt-item is-${it.rarity}`; b.dataset.item = id;
+        b.setAttribute('aria-pressed', String(sel === id || p.paint === id));
+        b.classList.toggle('is-empty', !free[id] && p.paint !== id);
+        b.innerHTML = `<img src="${thumb(id)}" alt="" width="56" height="56"><span class="lt-item-name"></span><b class="lt-item-n">${free[id] || 0}</b>`;
+        b.querySelector('.lt-item-name')!.textContent = itemName(id);
+        inv.appendChild(b);
+      }
+      if (!inv.children.length) inv.innerHTML = `<p class="lt-note">${L.invEmpty || ''}</p>`;
+      const total = Object.values(free).reduce((a: number, b: any) => a + b, 0);
+      $<HTMLElement>('[data-ul-inv-count]').textContent = total ? `· ${total}` : '';
+    };
+    tabs.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]'); if (!b) return; tab = b.dataset.tab!; drawInv(); });
+    inv.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-item]'); if (!b) return;
+      const id = b.dataset.item!, it = (K.ITEMS as any)[id];
+      if (isHolderItem(id) && !ul.holder) { say(L.holderOnly || 'Golden decorations are for holders. Turn on the holder preview below.'); return; }
+      // a can of paint is used at once: the walls change colour; tapping the same can again takes the paint off
+      if (it.type === 'paint') {
+        const n = K.applyPaint(withLent(), p.paint === id ? '' : id, ul.holder);
+        if (!n) return say(fill(L.allPlaced || 'No free {item} left.', { item: itemName(id) }));
+        p = { ...p, paint: n.paint }; save(); sel = '';
+        say(p.paint ? fill(L.painted || '{item}: the walls are new. Tap the can again to take the paint off.', { item: itemName(id) }) : L.unpainted || 'The paint is off. The house has its own colour again.');
+        return refresh();
+      }
+      if (!K.freeItems(withLent())[id]) { say(fill(L.allPlaced || 'No free {item} left. Tap a placed one to take it back.', { item: itemName(id) })); return; }
+      sel = sel === id ? '' : id;
+      if (sel) closeEdit(false);
+      say(sel ? fill(it.kinds.includes('wall') ? L.whereFree || '{item}: tap anywhere on the picture.' : it.free ? L.whereTo || '{item}: tap a glowing spot, or anywhere on the picture.' : L.whereSlot || '{item}: tap a glowing spot.', { item: itemName(id) }) : L.tipStart || '');
+      refresh();
+    });
+
+    // ---- decorations put anywhere: drag, size, turn, words --------------------------------------
+    let editN = 0, dragged = false;
+    const editBox = $<HTMLElement>('[data-ul-edit]');
+    const eSize = $<HTMLInputElement>('[data-ul-edit-size]');
+    const eTurn = $<HTMLInputElement>('[data-ul-edit-turn]');
+    const eText = $<HTMLInputElement>('[data-ul-edit-text]');
+    const freeOf = (n: number) => (p.free || []).find((f: any) => f.n === n);
+    function openEdit(n: number) {
+      const f = freeOf(n); if (!f) return;
+      editN = n; editBox.hidden = false;
+      $<HTMLElement>('[data-ul-edit-name]').textContent = itemName(f.i);
+      eSize.value = String(Math.round(f.s * 100)); eTurn.value = String(f.r);
+      const custom = Boolean((K.ITEMS as any)[f.i].custom);
+      $<HTMLElement>('[data-ul-edit-text-row]').hidden = !custom; if (custom) eText.value = f.t || '';
+      refresh();
+    }
+    function closeEdit(redraw = true) { editN = 0; editBox.hidden = true; if (redraw) refresh(); }
+    let raf = 0;
+    const patch = (q: any, redraw = true) => { if (!editN) return; p = K.updateFree(p, editN, q); save(); if (redraw) { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawHouse); } };
+    eSize.addEventListener('input', () => patch({ s: Number(eSize.value) / 100 }));
+    eTurn.addEventListener('input', () => patch({ r: Number(eTurn.value) }));
+    eText.addEventListener('input', () => { patch({ t: eText.value }); });
+    eText.addEventListener('change', () => { const f = freeOf(editN); if (f) eText.value = f.t || ''; });
+    editBox.addEventListener('click', (e) => {
+      const act = (e.target as HTMLElement).closest<HTMLElement>('[data-ul-edit-act]')?.dataset.ulEditAct; if (!act || !editN) return;
+      if (act === 'front') { p = K.frontFree(p, editN); save(); refresh(); }
+      if (act === 'back') { const f = freeOf(editN); p = K.removeFree(p, editN); save(); say(fill(L.tookBack || '{item}: back in your box.', { item: itemName(f?.i || '') })); closeEdit(); }
+      if (act === 'done') closeEdit();
+    });
+    // dragging a handle moves the decoration; the page does not scroll while a finger holds it
+    let drag: any = null;
+    slotsBox.addEventListener('pointerdown', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-free]'); if (!b || peek) return;
+      const f = freeOf(Number(b.dataset.free)); if (!f) return;
+      e.preventDefault(); b.setPointerCapture(e.pointerId);
+      drag = { n: f.n, x0: e.clientX, y0: e.clientY, fx: f.x, fy: f.y, moved: false, el: b };
+    });
+    slotsBox.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const r = slotsBox.getBoundingClientRect();
+      const dx = ((e.clientX - drag.x0) / r.width) * K.VIEW, dy = ((e.clientY - drag.y0) / r.height) * K.VIEW;
+      if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+      if (!drag.moved) return;
+      p = K.updateFree(p, drag.n, { x: drag.fx + dx, y: drag.fy + dy });
+      const f = freeOf(drag.n); drag.el.style.left = `${(f.x / K.VIEW) * 100}%`; drag.el.style.top = `${(f.y / K.VIEW) * 100}%`;
+      cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { svgBox.innerHTML = K.houseSvg(h, shownPlaced(), { level: levelShown(view()), owl: owlFor(view()), id: 'ulh', friend, scene: K.sceneOf(K.tonightOf(p, today)?.event || ''), free: shownFree(), ctx: drawCtx }); });
+    });
+    const endDrag = () => {
+      if (!drag) return;
+      const d = drag; drag = null;
+      if (d.moved) { dragged = true; save(); setTimeout(() => { dragged = false; }, 0); refresh(); }
+      else openEdit(d.n);
+    };
+    slotsBox.addEventListener('pointerup', endDrag);
+    slotsBox.addEventListener('pointercancel', endDrag);
+    // keyboard: a focused handle moves with the arrows, Delete takes it back
+    slotsBox.addEventListener('keydown', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-free]'); if (!b) return;
+      const n = Number(b.dataset.free), f = freeOf(n); if (!f) return;
+      const step = e.shiftKey ? 30 : 8;
+      const m: Record<string, any> = { ArrowLeft: { x: f.x - step }, ArrowRight: { x: f.x + step }, ArrowUp: { y: f.y - step }, ArrowDown: { y: f.y + step } };
+      if (m[e.key]) { e.preventDefault(); p = K.updateFree(p, n, m[e.key]); save(); refresh(); (slotsBox.querySelector(`[data-free="${n}"]`) as HTMLElement)?.focus(); }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); p = K.removeFree(p, n); save(); closeEdit(); }
+    });
+
+    // ---- the album: every decoration there is, the ones you have are in colour ----------------
+    const albumBox = $<HTMLElement>('[data-ul-album]');
+    const drawAlbum = () => {
+      const seen = p.seen || {};
+      const all = K.ITEM_IDS;
+      $<HTMLElement>('[data-ul-album-count]').textContent = `${all.filter((i: string) => seen[i]).length} / ${all.length}`;
+      if (!(albumBox.parentElement as HTMLDetailsElement).open) return;
+      albumBox.innerHTML = '';
+      for (const c of K.CATEGORIES) {
+        const ids = all.filter((i: string) => (K.ITEMS as any)[i].cat === c);
+        const sec = document.createElement('section');
+        sec.innerHTML = `<h4></h4><ul></ul>`;
+        sec.querySelector('h4')!.textContent = `${catName(c)} · ${ids.filter((i: string) => seen[i]).length}/${ids.length}`;
+        const ul2 = sec.querySelector('ul')!;
+        for (const id of ids) {
+          const it = (K.ITEMS as any)[id], got = Boolean(seen[id]);
+          const li = document.createElement('li'); li.className = `is-${it.rarity}${got ? '' : ' is-missing'}${it.holder ? ' is-holder' : ''}`;
+          li.innerHTML = `<img src="${thumb(id)}" alt="" width="48" height="48" loading="lazy"><span></span>`;
+          li.querySelector('span')!.textContent = got ? itemName(id) : (cfg.rarityNames[it.rarity] || it.rarity);
+          li.title = got ? `${itemName(id)} · ${cfg.rarityNames[it.rarity] || it.rarity}` : (it.holder ? L.albumHolder || 'For holders' : L.albumMissing || 'Not found yet');
+          ul2.appendChild(li);
+        }
+        albumBox.appendChild(sec);
+      }
+    };
+    $<HTMLElement>('[data-ul-album-box]').addEventListener('toggle', drawAlbum);
+
+    // ---- status, nights, stats -----------------------------------------------------------------
+    const status = $<HTMLElement>('[data-ul-status]');
+    const lightBtn = $<HTMLButtonElement>('[data-ul-light]');
+    const dots = [...root.querySelectorAll<HTMLElement>('[data-ul-nights] li')];
+    const statusText = (s: any) => {
+      const S = cfg.status;
+      if (peek) return S.peek || 'Night seven. The owl is on the roof.';
+      if (s.first) return S.first || 'Your house is dark. Light the first lamp tonight.';
+      if (s.missed) return S.missed || 'You missed a night. The house went dark. Start again from night one.';
+      if (s.due) return fill(S.due || 'Night {n} of 7. Light up before the owl flies by.', { n: Math.min(s.night, K.NIGHTS) });
+      if (s.landed && s.streak === K.NIGHTS) return S.landed || 'Seven nights in a row. The owl is on your roof.';
+      if (s.landed) return fill(S.after || 'Night {n}. The owl stays on your roof.', { n: s.streak });
+      return fill(S.lit || 'Night {n} of 7 is lit. The owl comes back tomorrow.', { n: s.streak });
+    };
+    const drawStatus = () => {
+      const s = view();
+      status.textContent = statusText(s);
+      lightBtn.disabled = peek || !s.due;
+      lightBtn.textContent = s.due ? (s.first ? L.lightFirst || L.light || 'Light up tonight' : L.light || 'Light up tonight') : L.lit || 'Lit for tonight';
+      const filled = s.litTonight || (!s.missed && !s.first) ? Math.min(s.streak, K.NIGHTS) : 0;
+      dots.forEach((d, i) => { d.classList.toggle('is-on', i < filled); d.classList.toggle('is-next', !peek && s.due && i === filled && i < K.NIGHTS); });
+      const st = (k: string, v: string | number) => { root.querySelector(`[data-ul-stat="${k}"]`)!.textContent = String(v); };
+      st('nights', p.nights); st('gifts', p.gifts); st('best', p.best);
+      st('light', `${K.lightOf(h, shownPlaced(), levelShown(s), shownFree())}%`);
+      ul.fire('ul:night', { text: peek ? fill(L.chip || 'Night {n}/7', { n: K.NIGHTS }) : s.first ? L.chipFirst || 'Light my house' : fill(L.chip || 'Night {n}/7', { n: Math.min(s.litTonight ? s.streak : s.night, K.NIGHTS) }), lit: s.litTonight || peek });
+    };
+    // ---- the story of the nights and tonight's event ------------------------------------------
+    const ST = cfg.story;
+    const itemsText = (b: Record<string, number>) => Object.entries(b).map(([id, n]) => `${n > 1 ? `${n} × ` : ''}${itemName(id)}`).join(', ');
+    const eventText = (e: any) => (e && e.event && cfg.events[e.event] ? fill(cfg.events[e.event], {
+      friend: p.neighbour?.name || cfg.setup.someone || 'Your neighbour', time: e.time || '', count: Object.keys(p.placed).length + (p.free || []).length,
+      loan: e.loan ? itemName(e.loan).toLowerCase() : '', n: e.night,
+    }) : '');
+    const storyNight = (n: number) => (n <= K.NIGHTS ? (ST.nights || [])[n - 1] || '' : fill((ST.after || [])[(n - K.NIGHTS - 1) % Math.max(1, (ST.after || []).length)] || '', { n }));
+    const drawStory = () => {
+      const s = view(), e = K.tonightOf(p, today);
+      let night = '', ev = '';
+      if (peek) night = storyNight(K.NIGHTS);
+      else if (s.litTonight) { night = storyNight(s.streak); ev = eventText(e); }
+      else if (s.first) night = ST.first || '';
+      else if (s.missed) night = ST.missed || '';
+      else night = ST.due || '';
+      $<HTMLElement>('[data-ul-story-night]').textContent = night;
+      $<HTMLElement>('[data-ul-story-event]').textContent = ev;
+      $<HTMLElement>('[data-ul-story]').hidden = !night && !ev;
+    };
+    const drawDiary = () => {
+      const list = $<HTMLElement>('[data-ul-diary]');
+      list.innerHTML = '';
+      const entries = [...p.log].reverse().slice(0, 14);
+      if (!entries.length) { list.innerHTML = `<li class="lt-note"></li>`; list.firstElementChild!.textContent = L.diaryEmpty || ''; return; }
+      for (const e of entries) {
+        const li = document.createElement('li');
+        const d = new Date(`${e.date}T12:00:00`);
+        li.innerHTML = '<b></b><span></span><p></p>';
+        li.querySelector('b')!.textContent = `${d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} · ${fill(L.diaryNight || 'Night {n}', { n: e.night })}`;
+        li.querySelector('span')!.textContent = [e.gift ? fill(L.diaryGift || 'Gift: {item}', { item: itemName(e.gift) }) : '', e.bonus ? itemsText(e.bonus) : ''].filter(Boolean).join(' · ');
+        li.querySelector('p')!.textContent = eventText(e);
+        list.appendChild(li);
+      }
+    };
+    const ctxNow = () => {
+      const d = new Date(), wd = new Date(`${today}T12:00:00`).getDay();
+      return { hour: pinnedDay ? 21 : d.getHours(), weekday: wd, moon: K.moonPhase(new Date(`${today}T21:00:00`)), allowed: Object.keys(cfg.events) };
+    };
+    const refresh = () => { drawHouse(); drawInv(); drawStatus(); drawStory(); drawDiary(); drawAlbum(); };
+
+    // ---- lighting up tonight -------------------------------------------------------------------
+    const dlg = $<HTMLDialogElement>('[data-ul-gift]');
+    const openDialog = () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); };
+    const light = () => {
+      if (!pinnedDay) today = K.dayKey();
+      const res = K.lightTonight(p, today, Math.random, ul.holder, ctxNow());
+      if (!res.gift) { refresh(); return res; }
+      p = res.p; sel = ''; say(L.tipStart || '');
+      { const d = new Date(); p.log[p.log.length - 1].time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+      save();
+      refresh();
+      const gi = cfg.items[res.gift] || { name: res.gift, note: '' };
+      const many = (res.gifts || [res.gift]).length > 1;
+      ($<HTMLImageElement>('[data-ul-gift-img]')).src = res.landedNow ? owlSrc.landed : thumb(res.gift);
+      ($<HTMLImageElement>('[data-ul-gift-img]')).hidden = many && !res.landedNow;
+      const gl = $<HTMLElement>('[data-ul-gift-list]'); gl.innerHTML = ''; gl.hidden = !many;
+      if (many) for (const g of res.gifts) { const it = (K.ITEMS as any)[g]; const li = document.createElement('li'); li.className = `is-${it.rarity}`; li.innerHTML = `<img src="${thumb(g)}" alt="" width="56" height="56"><span></span><b></b>`; li.querySelector('span')!.textContent = itemName(g); li.querySelector('b')!.textContent = cfg.rarityNames[it.rarity] || it.rarity; gl.appendChild(li); }
+      $<HTMLElement>('[data-ul-gift-kicker]').textContent = p.streak > K.NIGHTS ? fill(L.giftKickerAfter || 'Night {n} in a row', { n: p.streak }) : fill(L.giftKicker || 'Night {n} of 7', { n: p.streak });
+      $<HTMLElement>('[data-ul-gift-title]').textContent = res.landedNow ? L.landedTitle || 'The owl landed on your roof!' : many ? fill(L.giftsTitle || 'The owl left you {n} gifts', { n: res.gifts.length }) : fill(L.giftTitle || 'The owl left you: {item}', { item: gi.name });
+      $<HTMLElement>('[data-ul-gift-note]').textContent = res.landedNow ? fill(L.landedNote || 'Seven nights in a row. He brought the whole sack: {n} gifts.', { item: gi.name, n: (res.gifts || []).length }) : many ? '' : gi.note;
+      const last = p.log[p.log.length - 1];
+      $<HTMLElement>('[data-ul-gift-event]').textContent = eventText(last);
+      const extra = [res.bonus && Object.keys(res.bonus).length ? fill(L.bonusLine || 'Bonus tonight: {items}.', { items: itemsText(res.bonus) }) : '',
+        res.loan ? fill(L.loanLine || 'Borrowed by the monkey: {item}. Back on your next night.', { item: itemName(res.loan) }) : '',
+        res.returned ? fill(L.returnedLine || 'The monkey brought back your {item}.', { item: itemName(res.returned).toLowerCase() }) : ''].filter(Boolean).join(' ');
+      $<HTMLElement>('[data-ul-gift-bonus]').textContent = extra;
+      $<HTMLElement>('[data-ul-gift-ok]').textContent = many ? L.giftsOk || 'Hang them on the house' : L.giftOk || 'Hang it on the house';
+      root.classList.toggle('is-landed', res.landedNow);
+      openDialog();
+      ul.fire('ul:lit', { night: p.streak, gift: res.gift, landed: res.landedNow });
+      // a house on the street is lit there too
+      const onStreet = ul.store.get(STREET_KEY); if (onStreet) post(onStreet);
+      return res;
+    };
+    lightBtn.addEventListener('click', () => { light(); });
+
+    // ---- "Find the owl": he naps somewhere on the page once a day (LightsShell); found = one gift, put in the album ------
+    const FOUND_KEY = `ul-found-${cfg.file}`;
+    const foundHint = root.querySelector<HTMLElement>('[data-ul-found-hint]');
+    const drawFound = () => { if (foundHint) foundHint.textContent = ul.store.get(FOUND_KEY) === K.dayKey() ? L.foundDone || 'You found the owl today. Tomorrow he naps somewhere else.' : L.foundHint || 'Every day the owl naps somewhere on this page. Find him and he leaves a gift.'; };
+    drawFound();
+    // one extra gift outside the nights (found owl, secret word): into the album, then the gift window with its own words
+    const extraGift = (g: string, kicker: string, title: string) => {
+      p.inv[g] = (p.inv[g] || 0) + 1; p.seen = { ...(p.seen || {}), [g]: ((p.seen || {})[g] || 0) + 1 };
+      save(); refresh(); drawFound();
+      const gi = cfg.items[g] || { name: g, note: '' };
+      const im = $<HTMLImageElement>('[data-ul-gift-img]'); im.src = thumb(g); im.hidden = false;
+      const gl = $<HTMLElement>('[data-ul-gift-list]'); gl.innerHTML = ''; gl.hidden = true;
+      $<HTMLElement>('[data-ul-gift-kicker]').textContent = kicker;
+      $<HTMLElement>('[data-ul-gift-title]').textContent = fill(title, { item: gi.name });
+      $<HTMLElement>('[data-ul-gift-note]').textContent = gi.note || '';
+      $<HTMLElement>('[data-ul-gift-event]').textContent = '';
+      $<HTMLElement>('[data-ul-gift-bonus]').textContent = L.foundNote || 'It is in your album now.';
+      $<HTMLElement>('[data-ul-gift-ok]').textContent = L.giftOk || 'Hang it on the house';
+      root.classList.remove('is-landed');
+      openDialog();
+    };
+    ul.on('ul:owl-found', () => extraGift(K.giftFor(Math.random, ul.holder, p.wish, 3), L.foundKicker || 'Found him!', L.foundTitle || 'The owl woke up and left you: {item}'));
+    // the secret word: the owl flies over the page and drops a coin, once per browser
+    ul.on('ul:secret', () => extraGift((K.ITEMS as any)['neon-coin'] ? 'neon-coin' : K.giftFor(Math.random, ul.holder, p.wish, 3), L.secretKicker || 'Secret word', L.secretTitle || 'The owl dropped you: {item}'));
+
+    // ---- peek at night seven -------------------------------------------------------------------
+    const peekBtn = $<HTMLButtonElement>('[data-ul-peek]');
+    const peekNote = $<HTMLElement>('[data-ul-peek-note]');
+    const setPeek = (on: boolean) => { peek = on; peekBtn.setAttribute('aria-pressed', String(on)); peekNote.hidden = !on; root.classList.toggle('is-peek', on); if (on) sel = ''; refresh(); };
+    peekBtn.addEventListener('click', () => setPeek(!peek));
+
+    // ---- the card ------------------------------------------------------------------------------
+    const loadImg = (src: string) => new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('image')); i.src = src; });
+    const dataUrl = async (src: string) => {
+      if (src.startsWith('data:')) return src;
+      const blob = await (await fetch(src)).blob();
+      return new Promise<string>((res) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result)); fr.readAsDataURL(blob); });
+    };
+    const captionFor = (s: any) => {
+      if (s.landed && s.streak > K.NIGHTS && cfg.afterCaption) return fill(cfg.afterCaption, { n: s.streak, no: h.no });
+      if (s.landed && cfg.landedCaption) return fill(cfg.landedCaption, { n: K.NIGHTS, no: h.no });
+      const n = Math.max(1, Math.min(K.NIGHTS, s.litTonight ? s.streak : s.missed || s.first ? 1 : s.streak || 1));
+      return fill(cfg.captions[n - 1] || 'Night {n} of 7', { n, no: h.no });
+    };
+    const wrap = (ctx: CanvasRenderingContext2D, text: string, max: number) => {
+      const words = text.split(/\s+/).filter(Boolean), out: string[] = []; let line = '';
+      for (const w of words) { const t = line ? `${line} ${w}` : w; if (ctx.measureText(t).width <= max || !line) line = t; else { out.push(line); line = w; } }
+      if (line) out.push(line); return out;
+    };
+    let lastFile: File | null = null, lastUrl = '';
+    const card = async () => {
+      const s = view(), S = 1080;
+      const owl = owlFor(s);
+      owl.href = await dataUrl(owl.href).catch(() => K.owlPlaceholder(owl.pose));
+      const img = await loadImg(K.svgUrl(K.houseSvg(h, shownPlaced(), { level: levelShown(s), owl, id: 'ulc', size: S, pad: 150, friend, free: shownFree(), ctx: drawCtx })));
+      const cv = document.createElement('canvas'); cv.width = cv.height = S;
+      const ctx = cv.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, S, S);
+      const top = ctx.createLinearGradient(0, 0, 0, 300); top.addColorStop(0, 'rgba(8,10,34,.85)'); top.addColorStop(1, 'rgba(8,10,34,0)');
+      ctx.fillStyle = top; ctx.fillRect(0, 0, S, 300);
+      // caption
+      let size = 72, lines: string[] = [];
+      for (const t of [72, 64, 56, 48, 42]) { size = t; ctx.font = `${t}px ${heading}`; lines = wrap(ctx, captionFor(s), S - 140); if (lines.length <= 2) break; }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.lineJoin = 'round';
+      lines.forEach((ln, i) => { const y = 54 + i * size * 1.12; ctx.lineWidth = size * 0.16; ctx.strokeStyle = '#141026'; ctx.strokeText(ln, S / 2, y); ctx.fillStyle = '#FFF3C4'; ctx.fillText(ln, S / 2, y); });
+      // bottom line: house number and nights
+      const bot = ctx.createLinearGradient(0, S - 150, 0, S); bot.addColorStop(0, 'rgba(8,10,34,0)'); bot.addColorStop(1, 'rgba(8,10,34,.9)');
+      ctx.fillStyle = bot; ctx.fillRect(0, S - 150, S, 150);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#FFFFFF';
+      const line = [p.name, fill(L.cardHouse || 'House No. {no}', { no: h.no }), p.city, fill(L.cardNights || '{nights} nights', { nights: p.nights })].filter(Boolean).join(' · ');
+      const room = S - 96 - (cfg.watermark && !ul.holder ? 300 : 0);
+      for (const fs of [34, 30, 27, 24]) { ctx.font = `800 ${fs}px ${body}`; if (ctx.measureText(line).width <= room) break; }
+      ctx.fillText(line, 48, S - 52);
+      if (cfg.watermark && !ul.holder) { ctx.textAlign = 'right'; ctx.font = `800 28px ${body}`; ctx.fillStyle = '#FFC94A'; ctx.fillText(cfg.watermark, S - 48, S - 54); }
+      const blob: Blob = await new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error('blob'))), 'image/png'));
+      if (lastUrl) URL.revokeObjectURL(lastUrl);
+      lastUrl = URL.createObjectURL(blob);
+      const name = `${cfg.file}-house-${h.no}-night-${Math.min(s.streak || 1, 99)}.png`;
+      try { lastFile = new File([blob], name, { type: 'image/png' }); } catch { lastFile = null; }
+      ($<HTMLImageElement>('[data-ul-out]')).src = lastUrl;
+      const dl = $<HTMLAnchorElement>('[data-ul-download]'); dl.href = lastUrl; dl.download = name;
+      $<HTMLElement>('[data-ul-tray]').hidden = false;
+      return { size: blob.size, name };
+    };
+    const cardBtn = $<HTMLButtonElement>('[data-ul-card]');
+    cardBtn.addEventListener('click', () => { cardBtn.disabled = true; card().then(() => $<HTMLElement>('[data-ul-tray]').scrollIntoView({ block: 'nearest', behavior: ul.calm ? 'auto' : 'smooth' })).catch(() => say(L.cardFail || 'The card did not come out. Try again.')).finally(() => { cardBtn.disabled = false; }); });
+    const share = async () => {
+      const s = view();
+      const text = fill(cfg.shareText || '', { n: Math.min(s.streak || 1, K.NIGHTS), no: h.no, ticker: cfg.ticker });
+      const nav = navigator as any;
+      if (!lastFile) await card().catch(() => {});
+      if (lastFile && nav.canShare?.({ files: [lastFile] })) {
+        try { await nav.share({ files: [lastFile], text: cfg.url ? `${text} ${cfg.url}` : text }); return; } catch (err) { if ((err as Error)?.name === 'AbortError') return; }
+      }
+      const q = new URLSearchParams({ text }); if (cfg.url) q.set('url', cfg.url);
+      window.open(`https://x.com/intent/post?${q}`, '_blank', 'noopener');
+      $<HTMLElement>('[data-ul-share-note]').hidden = false;
+    };
+    $<HTMLButtonElement>('[data-ul-share]').addEventListener('click', share);
+    $<HTMLButtonElement>('[data-ul-share2]').addEventListener('click', share);
+
+    // ---- the street ----------------------------------------------------------------------------
+    const visitorId = () => {
+      let id = ul.store.get(ID_KEY) || '';
+      if (!/^[a-z0-9]{16,32}$/.test(id)) { id = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 20); ul.store.set(ID_KEY, id); }
+      return id;
+    };
+    const postNote = $<HTMLElement>('[data-ul-post-note]');
+    const form = $<HTMLFormElement>('[data-ul-post]');
+    const nameField = form.elements.namedItem('name') as HTMLInputElement;
+    { const n = ul.store.get(STREET_KEY) || p.name; if (n) nameField.value = n; }
+    const post = async (name: string) => {
+      const clean = name.trim().replace(/\s+/g, ' ');
+      if (!/^[A-Za-z0-9 ._'-]{2,18}$/.test(clean)) { postNote.textContent = L.nameRule || 'Use 2 to 18 Latin letters, numbers, spaces, dots or dashes.'; return { ok: false, error: 'name' }; }
+      if (!cfg.endpoint) { postNote.textContent = cfg.streetErrors.off || 'The street is closed for now.'; return { ok: false, error: 'off' }; }
+      const s = K.statusOf(p, today);
+      if (!p.nights || s.streak < 1) { postNote.textContent = L.postDark || 'Light up tonight first: a dark house cannot go on the street.'; return { ok: false, error: 'dark' }; }
+      postNote.textContent = L.posting || 'Carrying the house to the street…';
+      try {
+        const res = await fetch(cfg.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: visitorId(), name: clean, code: K.encodeHouse(p.seed, ownPlaced(), p.family, p.wish, { free: ownFree(), paint: ownPaint() }), nights: p.nights, gifts: p.gifts, best: p.best, landings: p.landings, streak: s.streak }) });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok || !out.ok) { postNote.textContent = cfg.streetErrors[out.error] || cfg.streetErrors.failed || 'The street did not take the house. Try later.'; return { ok: false, error: out.error || 'failed' }; }
+        postNote.textContent = L.posted || 'Your house is on the street. Scroll down to see it.';
+        ul.store.set(STREET_KEY, clean);
+        ul.fire('ul:street', { refresh: true });
+        return { ok: true };
+      } catch {
+        postNote.textContent = cfg.streetErrors.offline || 'The street is not reachable from here.';
+        return { ok: false, error: 'offline' };
+      }
+    };
+    form.addEventListener('submit', (e) => { e.preventDefault(); post(String(new FormData(form).get('name') || '')); });
+
+    // ---- house code ----------------------------------------------------------------------------
+    const codeNote = $<HTMLElement>('[data-ul-code-note]');
+    $<HTMLButtonElement>('[data-ul-copy]').addEventListener('click', async () => {
+      const code = K.encodeHouse(p.seed, p.placed, p.family, p.wish, { free: p.free, paint: p.paint });
+      try { await navigator.clipboard.writeText(code); codeNote.textContent = L.copied || 'Code copied.'; }
+      catch { ($<HTMLInputElement>('[data-ul-code-in]')).value = code; codeNote.textContent = L.copyManual || 'Copy the code from the field.'; }
+    });
+    const moveIn = (code: string) => {
+      const got = K.decodeHouse(code.trim());
+      if (!got) { codeNote.textContent = L.badCode || 'This code does not open any house.'; return false; }
+      if (p.nights > 0 && (got.seed !== p.seed || got.family !== p.family)) { codeNote.textContent = L.codeBusy || 'This browser already has a house with nights on it. Move in on a new phone.'; return false; }
+      const inv = { ...p.inv };
+      const need: Record<string, number> = {};
+      for (const it of [...(Object.values(got.placed) as string[]), ...got.free.map((f: any) => f.i), ...(got.paint ? [got.paint] : [])]) if (!isHolderItem(it)) need[it] = (need[it] || 0) + 1;
+      for (const [it, n] of Object.entries(need)) inv[it] = Math.max(inv[it] || 0, n);
+      p = { ...p, seed: got.seed, family: got.family, wish: got.wish, setup: true, placed: Object.fromEntries(Object.entries(got.placed).filter(([, i]) => !isHolderItem(i as string))), free: got.free.filter((f: any) => !isHolderItem(f.i)), paint: got.paint && !isHolderItem(got.paint) ? got.paint : '', inv, seen: { ...(p.seen || {}), ...need } };
+      h = houseFor(p); save(); sel = '';
+      codeNote.textContent = fill(L.movedIn || 'Welcome home. House No. {no}.', { no: h.no }); refresh();
+      return true;
+    };
+    $<HTMLButtonElement>('[data-ul-restore]').addEventListener('click', () => moveIn(($<HTMLInputElement>('[data-ul-code-in]')).value));
+
+    // ---- keeping up with the clock and the holder preview --------------------------------------
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !pinnedDay) { const t = K.dayKey(); if (t !== today) { today = t; refresh(); } } });
+    ul.on('ul:holder', () => { if (sel && isHolderItem(sel) && !ul.holder) sel = ''; refresh(); });
+
+    // ---- the first visit: three questions build the house -------------------------------------
+    // Name on the door, the wish (colours and gifts), the street (style; suggested from the city or the time zone).
+    // The house on the left changes with every answer. Nothing leaves the browser.
+    const setupBox = $<HTMLElement>('[data-ul-setup]');
+    const mainBox = $<HTMLElement>('[data-ul-main]');
+    const setupMsg = $<HTMLElement>('[data-ul-setup-msg]');
+    const nextBtn = $<HTMLButtonElement>('[data-ul-setup-next]');
+    const backBtn = $<HTMLButtonElement>('[data-ul-setup-back]');
+    const nameIn = $<HTMLInputElement>('[data-ul-setup-name]');
+    const SU = cfg.setup;
+    let setupOn = false, step = 1;
+    function styleName(f: string) { return cfg.styleNames[f] || K.FAMILIES[f].label; }
+    function plateText() {
+      if (setupOn) return '';
+      const bits = [p.name ? fill(L.plateOwner || "{name}'s house", { name: p.name }) : ''];
+      if (p.born) { const d = new Date(p.born); if (!isNaN(+d)) bits.push(fill(L.plateBuilt || 'built {date}', { date: d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) })); }
+      if (p.city) bits.push(p.city);
+      if (p.neighbour) bits.push(fill(L.plateNext || 'next door: {name}', { name: p.neighbour.name || fill(L.plateNextNo || 'house No. {no}', { no: friend?.no || '' }) }));
+      return bits.filter(Boolean).join(' · ');
+    }
+    function showSetup(on: boolean) { setupOn = on; setupBox.hidden = !on; mainBox.hidden = on; root.classList.toggle('is-setup', on); if (on) say(SU.tip || 'This is your house. Answer three questions, and it changes as you go.'); }
+    const wishBox = $<HTMLElement>('[data-ul-wishes]');
+    const styleBox = $<HTMLElement>('[data-ul-styles]');
+    const drawWishes = () => {
+      wishBox.innerHTML = '';
+      for (const w of K.WISH_IDS) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'lt-wish'; b.dataset.wish = w;
+        b.setAttribute('aria-pressed', String(p.wish === w));
+        b.style.setProperty('--w1', K.WISHES[w].walls[0]); b.style.setProperty('--w2', K.WISHES[w].walls[2]);
+        b.innerHTML = '<i aria-hidden="true"></i><b></b><span></span>';
+        b.querySelector('b')!.textContent = cfg.wishes[w]?.label || w;
+        b.querySelector('span')!.textContent = cfg.wishes[w]?.note || '';
+        wishBox.appendChild(b);
+      }
+    };
+    const styleChoices = () => styleList;
+    const drawStyles = () => {
+      styleBox.innerHTML = '';
+      for (const f of styleChoices()) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'lt-style'; b.dataset.style = f;
+        b.setAttribute('aria-pressed', String(p.family === f));
+        const thumb = K.svgUrl(K.houseSvg(K.houseOf(p.seed, f, { wish: p.wish }), {}, { level: 3, id: `uls${f}`, size: 160, ctx: drawCtx }));
+        b.innerHTML = `<img src="${thumb}" alt="" width="160" height="160"><span></span>`;
+        b.querySelector('span')!.textContent = styleName(f);
+        styleBox.appendChild(b);
+      }
+    };
+    const rebuild = () => { h = houseFor(p); drawHouse(); };
+    const goStep = (n: number) => {
+      step = n;
+      root.querySelectorAll<HTMLElement>('[data-step]').forEach((el) => { el.hidden = Number(el.dataset.step) !== n; });
+      $<HTMLElement>('[data-ul-setup-count]').textContent = fill(SU.count || 'Step {n} of 3', { n });
+      backBtn.hidden = n === 1;
+      nextBtn.textContent = n === 3 ? SU.build || 'Build my house' : SU.next || 'Next';
+      setupMsg.textContent = '';
+      if (n === 2) drawWishes();
+      if (n === 3) drawStyles();
+    };
+    const finishSetup = () => {
+      p.setup = true;
+      const d = new Date(); const pad2 = (x: number) => String(x).padStart(2, '0');
+      p.born = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+      save(); showSetup(false); h = houseFor(p);
+      if (p.name && !nameField.value) nameField.value = p.name;
+      say(p.neighbour ? fill(SU.welcomeFriend || 'Welcome! {friend} lives next door and left you a housewarming gift: marigolds.', { friend: p.neighbour.name || 'Your friend' }) : fill(SU.welcome || 'Welcome to your new {style}. Light the first lamp tonight.', { style: styleName(p.family) }));
+      refresh();
+      ul.fire('ul:house-ready', { family: p.family, wish: p.wish });
+    };
+    nameIn.addEventListener('input', () => { setupMsg.textContent = ''; });
+    nextBtn.addEventListener('click', () => {
+      if (step === 1) {
+        const raw = nameIn.value.trim();
+        if (raw) { const n = K.cleanName(raw); if (!n) { setupMsg.textContent = L.nameRule || 'Use 2 to 18 Latin letters, numbers, spaces, dots or dashes. No links.'; return; } p.name = n; } else p.name = '';
+        goStep(2);
+      } else if (step === 2) goStep(3);
+      else finishSetup();
+    });
+    backBtn.addEventListener('click', () => goStep(Math.max(1, step - 1)));
+    $<HTMLButtonElement>('[data-ul-setup-skip]').addEventListener('click', finishSetup);
+    wishBox.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-wish]'); if (!b) return;
+      p.wish = p.wish === b.dataset.wish ? '' : b.dataset.wish!;
+      drawWishes(); rebuild();
+    });
+    styleBox.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-style]'); if (!b) return;
+      p.family = b.dataset.style!;
+      styleBox.querySelectorAll('[data-style]').forEach((x) => x.setAttribute('aria-pressed', String((x as HTMLElement).dataset.style === p.family)));
+      rebuild();
+    });
+    // where the visitor is: the server tells the country and city (Vercel, Cloudflare or nginx), the browser tells the time zone
+    const locate = async () => {
+      if (!cfg.geo) return null;
+      try {
+        const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 2500);
+        const res = await fetch(cfg.geo, { signal: ctl.signal }); clearTimeout(t);
+        return res.ok ? await res.json() : null;
+      } catch { return null; }
+    };
+    function startSetup() {
+      showSetup(true); goStep(1);
+      nameIn.value = p.name || '';
+      const note = $<HTMLElement>('[data-ul-invite-note]');
+      if (p.neighbour) { note.hidden = false; note.textContent = fill(SU.invited || '{friend} invited you. Your house will stand right next to theirs.', { friend: p.neighbour.name || SU.someone || 'A friend' }); }
+      refresh();
+      locate().then((g) => {
+        if (!g) return;
+        p.city = K.cleanPlace(g.city || ''); p.country = /^[A-Z]{2}$/.test(g.country || '') ? g.country : '';
+        if (p.city) $<HTMLElement>('[data-ul-found]').textContent = fill(SU.found || 'The owl found you near {city}. Now pick your street.', { city: p.city });
+        if (setupOn && step === 3) drawStyles();
+        save();
+      });
+    }
+
+    // ---- invites -------------------------------------------------------------------------------
+    const inviteLink = () => `${cfg.url || location.origin + location.pathname}?n=${K.encodeInvite(p)}#house`;
+    const inviteMsg = $<HTMLElement>('[data-ul-invite-msg]');
+    $<HTMLButtonElement>('[data-ul-invite-copy]').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(inviteLink()); inviteMsg.textContent = cfg.invite.copied || 'The link is copied. Send it to a friend.'; }
+      catch { inviteMsg.textContent = inviteLink(); }
+    });
+    $<HTMLButtonElement>('[data-ul-invite-x]').addEventListener('click', () => {
+      const q = new URLSearchParams({ text: fill(cfg.invite.text || 'Be my neighbour on the owl\'s street. ${ticker}', { ticker: cfg.ticker }), url: inviteLink() });
+      window.open(`https://x.com/intent/post?${q}`, '_blank', 'noopener');
+    });
+    const setNeighbour = (inv: any) => {
+      p.neighbour = { seed: inv.seed, family: inv.family, wish: inv.wish, name: inv.name };
+      friend = houseFor(p.neighbour);
+    };
+    if (invite && invite.seed !== p.seed) {
+      // the housewarming marigolds come once: opening invite links again before the house is built gives nothing more
+      if (!p.setup) { const first = !p.neighbour; setNeighbour(invite); if (first) { p.inv.marigold = (p.inv.marigold || 0) + 1; p.seen = { ...(p.seen || {}), marigold: ((p.seen || {}).marigold || 0) + 1 }; } save(); }
+      else if (!p.neighbour || p.neighbour.seed !== invite.seed) {
+        const offer = $<HTMLElement>('[data-ul-invite-offer]');
+        offer.hidden = false;
+        $<HTMLElement>('[data-ul-invite-offer-text]').textContent = fill(cfg.invite.offer || '{friend} invited you to be neighbours. Their house can stand next to yours.', { friend: invite.name || cfg.setup.someone || 'A friend' });
+        $<HTMLButtonElement>('[data-ul-invite-accept]').addEventListener('click', () => { setNeighbour(invite); save(); offer.hidden = true; say(fill(cfg.invite.moved || '{friend} is your neighbour now.', { friend: invite.name || cfg.setup.someone || 'A friend' })); refresh(); });
+        $<HTMLButtonElement>('[data-ul-invite-decline]').addEventListener('click', () => { offer.hidden = true; });
+      }
+    }
+
+    if (!p.setup && !p.nights) startSetup(); else refresh();
+
+    // Test hook: everything the checks need, without clicking through seven real nights.
+    (root as any).house = {
+      get p() { return p; }, get h() { return h; }, get today() { return today; },
+      setToday(key: string) { today = key; pinnedDay = true; refresh(); },
+      // lights "today" (see setToday) without the dialog, so a check can walk through the nights
+      light: () => { const res = K.lightTonight(p, today, Math.random, ul.holder, ctxNow()); if (res.gift) { p = res.p; save(); refresh(); } return res; },
+      lightWith: (ctx: any) => { const res = K.lightTonight(p, today, Math.random, ul.holder, { ...ctxNow(), ...ctx }); if (res.gift) { p = res.p; save(); refresh(); } return res; },
+      lightClick: () => light(),
+      place(slot: string, item: string) { const n = K.placeItem(withLent(), slot, item, ul.holder); if (n) { p = { ...p, placed: n.placed }; save(); refresh(); } return Boolean(n); },
+      select(item: string) { sel = item; refresh(); },
+      card, post, moveIn, setPeek,
+      reset(seed?: number, family?: string, more: any = {}) { p = K.freshProgress(seed ?? K.newSeed(), family || newHouse(seed).family, { setup: true, ...more }); h = houseFor(p); friend = p.neighbour ? houseFor(p.neighbour) : null; save(); sel = ''; showSetup(false); refresh(); },
+      code: () => K.encodeHouse(p.seed, p.placed, p.family, p.wish, { free: p.free, paint: p.paint }),
+      placeFree: (item: string, x: number, y: number, more: any = {}) => { const n = K.placeFree(withLent(), item, x, y, ul.holder, more); if (n) { p = { ...p, free: n.free }; save(); refresh(); } return Boolean(n); },
+      paint: (item: string) => { const n = K.applyPaint(withLent(), item, ul.holder); if (n) { p = { ...p, paint: n.paint }; save(); refresh(); } return Boolean(n); },
+      give: (items: Record<string, number>) => { for (const [i, n] of Object.entries(items)) { p.inv[i] = (p.inv[i] || 0) + n; p.seen = { ...(p.seen || {}), [i]: ((p.seen || {})[i] || 0) + n }; } save(); refresh(); },
+      inviteLink, startSetup: () => startSetup(), setupState: () => ({ on: setupOn, step, p }),
+    };
+  }
+</script>

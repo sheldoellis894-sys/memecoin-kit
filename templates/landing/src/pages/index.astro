@@ -99,6 +99,21 @@ import WheelRules from '../sections/wheel/WheelRules.astro';
 import WheelBall from '../sections/wheel/WheelBall.astro';
 import WheelFooter from '../sections/wheel/WheelFooter.astro';
 
+// Layout "lights": the site is a night street; the tool is a house that gets brighter night after night, a street of houses and a picture tool
+import LightsShell from '../sections/lights/LightsShell.astro';
+import LightsHero from '../sections/lights/LightsHero.astro';
+import LightsLore from '../sections/lights/LightsLore.astro';
+import LightsHouse from '../sections/lights/LightsHouse.astro';
+import LightsStreet from '../sections/lights/LightsStreet.astro';
+import LightsPicture from '../sections/lights/LightsPicture.astro';
+import LightsGallery from '../sections/lights/LightsGallery.astro';
+import LightsToken from '../sections/lights/LightsToken.astro';
+import LightsSteps from '../sections/lights/LightsSteps.astro';
+import LightsPlan from '../sections/lights/LightsPlan.astro';
+import LightsRules from '../sections/lights/LightsRules.astro';
+import LightsBuy from '../sections/lights/LightsBuy.astro';
+import LightsFooter from '../sections/lights/LightsFooter.astro';
+
 const registry: Record<string, any> = {
   header: Header, hero: Hero, about: About, howToBuy: HowToBuy,
   tokenomics: Tokenomics, gallery: Gallery, roadmap: Roadmap, footer: Footer, marquee: Marquee, digGame: DigGame,
@@ -119,6 +134,8 @@ const registry: Record<string, any> = {
   wheelShell: WheelShell, wheelHero: WheelHero, wheelIssue: WheelIssue, wheelAbout: WheelAbout, wheelHow: WheelHow,
   wheelHolders: WheelHolders, wheelMoons: WheelMoons, wheelStars: WheelStars, wheelCalendar: WheelCalendar, wheelBubbles: WheelBubbles,
   wheelPlan: WheelPlan, wheelRules: WheelRules, wheelBall: WheelBall, wheelFooter: WheelFooter,
+  lightsShell: LightsShell, lightsHero: LightsHero, lightsLore: LightsLore, lightsHouse: LightsHouse, lightsStreet: LightsStreet, lightsPicture: LightsPicture, lightsGallery: LightsGallery,
+  lightsToken: LightsToken, lightsSteps: LightsSteps, lightsPlan: LightsPlan, lightsRules: LightsRules, lightsBuy: LightsBuy, lightsFooter: LightsFooter,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);

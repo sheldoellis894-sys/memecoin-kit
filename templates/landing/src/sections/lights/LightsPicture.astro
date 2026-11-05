@@ -1,0 +1,425 @@
+---
+// The second tool of the "lights" layout: "Light up any picture". The visitor takes their own picture
+// (or their house, or one of the project pictures), the night falls on it, and they hang lights over it.
+// Every light makes the picture brighter; at 100% the owl lands on the picture, wearing sunglasses.
+// Save as a picture, as a round avatar, or share on X. Everything happens in the browser; nothing is uploaded.
+// Wording comes from config.picture. Test hook: element.picture (see the end of the script).
+import { config, asset } from '../../lib/project';
+import { pictureCfg, owlImages, itemNames, nightCtx } from '../../lib/lights';
+import { ITEM_IDS, ITEMS } from '../../lib/lights-kit.js';
+import LtHead from './LtHead.astro';
+const c = pictureCfg;
+const l: Record<string, string> = c.labels || {};
+const bases: { src: string; label: string }[] = (c.bases || []).map((b: any) => ({ src: asset(b.src), label: b.label || '' }));
+const extra: { id: string; src: string; label: string }[] = (c.stickers || []).map((s: any, i: number) => ({ id: s.id || `x${i}`, src: asset(s.src), label: s.label || '' }));
+const captions: string[] = c.captions || [];
+const data = JSON.stringify({
+  owl: owlImages, items: itemNames, holderItems: ITEM_IDS.filter((i) => (ITEMS as any)[i].holder), extra, bases, night: nightCtx,
+  captions, labels: l, watermark: c.watermark || '', shareText: c.shareText || '', url: config.url || '',
+  ticker: config.ticker, file: config.ticker.toLowerCase(), houseKey: `ul-house-${config.ticker.toLowerCase()}`, full: c.fullAt || 100,
+});
+---
+<section id="picture" class="lt-sec lt-pic-sec" data-ul-pic={data}>
+  <div class="lt-in">
+    <LtHead kicker={c.kicker} title={c.title} lead={c.lead} />
+    <div class="lt-pic">
+      <div class="lt-pic-stage" data-ul-in>
+        <canvas class="lt-canvas" width="1080" height="1080" data-ul-canvas aria-label={l.canvasLabel || 'Your picture with lights'}></canvas>
+        <div class="lt-meter" aria-hidden="true"><i data-ul-meter></i></div>
+        <p class="lt-meter-text"><span>{l.meter || 'Brightness'}</span> <b data-ul-meter-text>0%</b></p>
+        <p class="lt-tip" data-ul-pic-tip aria-live="polite">{l.tipStart || 'Pick a picture, then tap the lights to hang them. Drag to move, pinch or use the slider to resize.'}</p>
+      </div>
+
+      <div class="lt-panel" data-ul-in>
+        <div class="lt-box">
+          <p class="lt-label">{l.base || '1. The picture'}</p>
+          <div class="lt-bases" data-ul-bases>
+            <label class="lt-base lt-base-up">
+              <input type="file" accept="image/*" data-ul-file class="lt-sr" />
+              <span>{l.upload || 'My picture'}</span>
+            </label>
+            <button type="button" class="lt-base" data-base="house"><span>{l.myHouse || 'My house'}</span></button>
+            {bases.map((b, i) => <button type="button" class="lt-base" data-base={`b${i}`}><img src={b.src} alt="" width="56" height="56" loading="lazy" /><span>{b.label}</span></button>)}
+            <button type="button" class="lt-base" data-base="night"><span>{l.blank || 'Just the night'}</span></button>
+          </div>
+          <label class="lt-range"><span>{l.night || 'Night'}</span><input type="range" min="0" max="100" value="60" data-ul-night /></label>
+        </div>
+
+        <div class="lt-box">
+          <p class="lt-label">{l.lights || '2. The lights'}</p>
+          <div class="lt-inv lt-inv-pic" data-ul-stickers></div>
+          <p class="lt-note">{l.fromAlbum || 'These are the decorations from your album. Light your house every night to collect more.'}</p>
+        </div>
+
+        <div class="lt-box" data-ul-edit hidden>
+          <p class="lt-label">{l.selected || 'Selected'}</p>
+          <label class="lt-range"><span>{l.size || 'Size'}</span><input type="range" min="30" max="400" value="100" data-ul-size /></label>
+          <label class="lt-range"><span>{l.turn || 'Turn'}</span><input type="range" min="-180" max="180" value="0" data-ul-turn /></label>
+          <div class="lt-actions lt-actions-tight">
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-act="flip">{l.flip || 'Mirror'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-act="copy">{l.duplicate || 'One more'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-act="front">{l.front || 'To the front'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-act="del">{l.remove || 'Remove'}</button>
+          </div>
+        </div>
+
+        <div class="lt-box">
+          <p class="lt-label">{l.caption || '3. The words'}</p>
+          <input class="lt-input" maxlength="60" data-ul-cap placeholder={l.capPlaceholder || 'Write something or pick one below'} />
+          <div class="lt-caps" data-ul-caps>
+            {captions.map((t) => <button type="button" class="lt-cap" data-cap={t}>{t}</button>)}
+          </div>
+        </div>
+
+        <div class="lt-actions lt-actions-tight">
+          <button type="button" class="lt-btn" data-ul-save>{l.save || 'Save the picture'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-avatar>{l.avatar || 'Round avatar'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-pshare>{l.share || 'Share on X'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-clear>{l.clear || 'Start over'}</button>
+        </div>
+        <p class="lt-note" data-ul-pnote aria-live="polite">{l.privacy || 'Your picture stays on your phone. Nothing is uploaded.'}</p>
+        <label class="lt-switch">
+          <input type="checkbox" role="switch" data-ul-holder />
+          <span class="lt-switch-track" aria-hidden="true"><i></i></span>
+          <span>{l.holder || 'Holder preview: golden lights, no watermark'}</span>
+        </label>
+        <a class="lt-sr" data-ul-pdl download>download</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import * as K from '../../lib/lights-kit.js';
+
+  const root = document.querySelector<HTMLElement>('[data-ul-pic]');
+  const ul: any = (window as any).ul;
+  if (root && ul) {
+    const cfg = JSON.parse(root.dataset.ulPic!);
+    const L: Record<string, string> = cfg.labels;
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const S = 1080;
+    const cv = $<HTMLCanvasElement>('[data-ul-canvas]');
+    const ctx = cv.getContext('2d')!;
+    const css = getComputedStyle(document.documentElement);
+    const heading = `${css.getPropertyValue('--t-font-heading').trim() || 'sans-serif'}, system-ui, sans-serif`;
+    const body = `${css.getPropertyValue('--t-font-body').trim() || 'sans-serif'}, system-ui, sans-serif`;
+    const tip = $<HTMLElement>('[data-ul-pic-tip]');
+    const note = $<HTMLElement>('[data-ul-pnote]');
+    const say = (t: string) => { tip.textContent = t; };
+
+    type Kind = { id: string; src: string; light: number; base: number; holder?: boolean; owl?: string; label: string };
+    type St = { k: Kind; img: HTMLImageElement; x: number; y: number; s: number; r: number; flip: boolean };
+    const imgs = new Map<string, HTMLImageElement>();
+    const load = (src: string) => {
+      if (imgs.has(src)) return Promise.resolve(imgs.get(src)!);
+      return new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.decoding = 'async'; i.onload = () => { imgs.set(src, i); res(i); }; i.onerror = () => rej(new Error('image')); i.src = src; });
+    };
+
+    // ---- what can be hung ------------------------------------------------------------------
+    // the decorations of the visitor's album (everything the owl ever brought), plus the start ones
+    const itemKind = (id: string) => ({ id, src: K.svgUrl(K.itemSvg(id, 240, { ticker: cfg.ticker })), light: (K.ITEMS as any)[id].light, base: 220, holder: Boolean((K.ITEMS as any)[id].holder), label: cfg.items[id]?.name || id });
+    const albumIds = () => { const seen = K.readProgress(ul.store.get(cfg.houseKey)).seen || {}; return K.ITEM_IDS.filter((id: string) => (seen[id] || (K.START_ITEMS as any)[id]) && (K.ITEMS as any)[id].type !== 'paint' && !(K.ITEMS as any)[id].kinds.includes('win')); };
+    const kinds: Kind[] = [
+      ...albumIds().map(itemKind),
+      { id: 'owl-fly', src: cfg.owl.fly || K.owlPlaceholder('fly'), light: 0, base: 300, owl: 'fly', label: L.owlFly || 'Flying owl' },
+      { id: 'owl-landed', src: cfg.owl.landed || K.owlPlaceholder('landed'), light: 0, base: 340, owl: 'landed', label: L.owlLanded || 'Owl in sunglasses' },
+      ...cfg.extra.map((x: any) => ({ id: x.id, src: x.src, light: 0, base: 260, label: x.label })),
+    ];
+    const list = $<HTMLElement>('[data-ul-stickers]');
+    const drawList = () => {
+      // the album grows while the visitor plays: new decorations join the list
+      for (const id of albumIds()) if (!kinds.some((k) => k.id === id)) kinds.splice(kinds.findIndex((k) => k.owl), 0, itemKind(id));
+      list.innerHTML = '';
+      for (const k of kinds) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'lt-item'; b.dataset.kind = k.id;
+        b.classList.toggle('is-locked', Boolean(k.holder && !ul.holder));
+        b.innerHTML = `<img src="${k.src}" alt="" width="56" height="56"><span class="lt-item-name"></span>`;
+        b.querySelector('.lt-item-name')!.textContent = k.label;
+        list.appendChild(b);
+      }
+    };
+
+    // ---- state ---------------------------------------------------------------------------------
+    let base: HTMLImageElement | null = null;
+    let baseKind = 'night';
+    let night = 0.6;
+    let caption = '';
+    let st: St[] = [];
+    let cur: St | null = null;
+    let landedAuto = false;
+
+    const glowOf = () => st.reduce((s, x) => s + x.k.light * Math.min(2, x.s), 0);
+    const level = () => Math.min(100, Math.round((glowOf() / (cfg.full || 100)) * 100));
+
+    // ---- drawing -------------------------------------------------------------------------------
+    const drawBase = () => {
+      ctx.fillStyle = '#0B0F2E'; ctx.fillRect(0, 0, S, S);
+      if (base) {
+        const k = Math.max(S / base.naturalWidth, S / base.naturalHeight);
+        const w = base.naturalWidth * k, h = base.naturalHeight * k;
+        ctx.drawImage(base, (S - w) / 2, (S - h) / 2, w, h);
+      } else {
+        const g = ctx.createLinearGradient(0, 0, 0, S); g.addColorStop(0, '#0B0F2E'); g.addColorStop(1, '#2A1850');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+        ctx.fillStyle = '#FFF3C4';
+        for (let i = 0; i < 70; i++) { const r = K.rng(i + 7); ctx.globalAlpha = 0.3 + r() * 0.6; ctx.beginPath(); ctx.arc(r() * S, r() * S * 0.7, 1 + r() * 2.4, 0, 7); ctx.fill(); }
+        ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.arc(S * 0.8, S * 0.18, 70, 0, 7); ctx.fill();
+      }
+      // the night falls: the picture goes dark and blue, the lights then cut warm holes in it
+      const lv = level() / 100;
+      const dark = night * (1 - lv * 0.55);
+      if (dark > 0) {
+        ctx.save(); ctx.globalCompositeOperation = 'multiply';
+        ctx.fillStyle = `rgba(28,32,92,${(0.35 + dark * 0.6).toFixed(3)})`; ctx.fillRect(0, 0, S, S);
+        ctx.restore();
+        ctx.fillStyle = `rgba(6,8,30,${(dark * 0.35).toFixed(3)})`; ctx.fillRect(0, 0, S, S);
+      }
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      for (const x of st) {
+        if (!x.k.light) continue;
+        const r = (110 + x.k.light * 9) * x.s;
+        const g = ctx.createRadialGradient(x.x, x.y, 0, x.x, x.y, r);
+        g.addColorStop(0, `rgba(255,190,90,${(0.22 + night * 0.25).toFixed(3)})`); g.addColorStop(1, 'rgba(255,140,30,0)');
+        ctx.fillStyle = g; ctx.fillRect(x.x - r, x.y - r, r * 2, r * 2);
+      }
+      ctx.restore();
+    };
+    const drawSticker = (x: St) => {
+      const w = x.k.base * x.s, h = (x.img.naturalHeight / x.img.naturalWidth || 1) * w;
+      ctx.save(); ctx.translate(x.x, x.y); ctx.rotate((x.r * Math.PI) / 180); if (x.flip) ctx.scale(-1, 1);
+      ctx.drawImage(x.img, -w / 2, -h / 2, w, h); ctx.restore();
+    };
+    const wrap = (text: string, max: number) => {
+      const words = text.split(/\s+/).filter(Boolean), out: string[] = []; let line = '';
+      for (const w of words) { const t = line ? `${line} ${w}` : w; if (ctx.measureText(t).width <= max || !line) line = t; else { out.push(line); line = w; } }
+      if (line) out.push(line); return out;
+    };
+    const drawCaption = () => {
+      if (!caption) return;
+      let size = 84, lines: string[] = [];
+      for (const t of [84, 72, 62, 52, 44]) { size = t; ctx.font = `${t}px ${heading}`; lines = wrap(caption.toUpperCase(), S - 120); if (lines.length <= 2) break; }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.lineJoin = 'round';
+      const y0 = S - 70 - (lines.length - 1) * size * 1.08;
+      lines.forEach((ln, i) => { const y = y0 + i * size * 1.08; ctx.lineWidth = size * 0.18; ctx.strokeStyle = '#141026'; ctx.strokeText(ln, S / 2, y); ctx.fillStyle = '#FFF3C4'; ctx.fillText(ln, S / 2, y); });
+    };
+    const drawMark = () => {
+      if (!cfg.watermark || ul.holder) return;
+      ctx.font = `800 28px ${body}`; ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+      ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(20,16,38,.8)'; ctx.strokeText(cfg.watermark, S - 30, 28);
+      ctx.fillStyle = '#FFC94A'; ctx.fillText(cfg.watermark, S - 30, 28);
+    };
+    const render = (forExport = false) => {
+      drawBase(); st.forEach(drawSticker); drawCaption(); drawMark();
+      if (!forExport && cur) {
+        const w = cur.k.base * cur.s, h = (cur.img.naturalHeight / cur.img.naturalWidth || 1) * w;
+        ctx.save(); ctx.translate(cur.x, cur.y); ctx.rotate((cur.r * Math.PI) / 180);
+        ctx.setLineDash([14, 10]); ctx.lineWidth = 4; ctx.strokeStyle = '#FFC94A'; ctx.strokeRect(-w / 2 - 8, -h / 2 - 8, w + 16, h + 16); ctx.restore();
+      }
+      const lv = level();
+      ($<HTMLElement>('[data-ul-meter]')).style.width = `${lv}%`;
+      $<HTMLElement>('[data-ul-meter-text]').textContent = `${lv}%`;
+      root.classList.toggle('is-full', lv >= 100);
+    };
+
+    // ---- the owl lands at 100% -----------------------------------------------------------------
+    const owlCheck = async () => {
+      if (level() < 100 || landedAuto || st.some((x) => x.k.owl === 'landed')) return;
+      landedAuto = true;
+      const k = kinds.find((x) => x.id === 'owl-landed')!;
+      const top = st.reduce((m, x) => (x.y < m.y ? x : m), st[0]);
+      await add(k, { x: Math.min(S - 180, Math.max(180, top ? top.x : S / 2)), y: Math.max(200, (top ? top.y : S / 2) - 170) }, false);
+      say(L.landed || 'Too bright! The owl landed and put on his sunglasses.');
+    };
+
+    // ---- adding and editing stickers -----------------------------------------------------------
+    const editBox = $<HTMLElement>('[data-ul-edit]');
+    const size = $<HTMLInputElement>('[data-ul-size]');
+    const turn = $<HTMLInputElement>('[data-ul-turn]');
+    const select = (x: St | null) => {
+      cur = x; editBox.hidden = !x;
+      if (x) { size.value = String(Math.round(x.s * 100)); turn.value = String(Math.round(x.r)); }
+      render();
+    };
+    let spread = 0;
+    const add = async (k: Kind, at?: { x: number; y: number }, pick = true) => {
+      const img = await load(k.src);
+      spread = (spread + 1) % 9;
+      const x: St = { k, img, x: at?.x ?? 240 + (spread % 3) * 300, y: at?.y ?? 260 + Math.floor(spread / 3) * 220, s: 1, r: 0, flip: false };
+      st.push(x); if (pick) select(x); else render();
+      if (k.light) await owlCheck();
+      return x;
+    };
+    list.addEventListener('click', async (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-kind]'); if (!b) return;
+      const k = kinds.find((x) => x.id === b.dataset.kind)!;
+      if (k.holder && !ul.holder) { say(L.holderOnly || 'Golden lights are for holders. Turn on the holder preview.'); return; }
+      try { await add(k); say(L.added || 'Drag it into place. Tap the picture away from it to let go.'); } catch { say(L.loadFail || 'This light did not load.'); }
+    });
+    size.addEventListener('input', () => { if (cur) { cur.s = Number(size.value) / 100; render(); owlCheck(); } });
+    turn.addEventListener('input', () => { if (cur) { cur.r = Number(turn.value); render(); } });
+    editBox.addEventListener('click', async (e) => {
+      const act = (e.target as HTMLElement).closest<HTMLElement>('[data-ul-act]')?.dataset.ulAct; if (!act || !cur) return;
+      if (act === 'flip') cur.flip = !cur.flip;
+      if (act === 'front') { st = st.filter((x) => x !== cur); st.push(cur); }
+      if (act === 'del') { st = st.filter((x) => x !== cur); if (cur.k.owl === 'landed') landedAuto = level() >= 100; select(null); return; }
+      if (act === 'copy') { const c0 = cur; const n = await add(c0.k, { x: Math.min(S - 60, c0.x + 60), y: Math.min(S - 60, c0.y + 40) }); n.s = c0.s; n.r = c0.r; n.flip = c0.flip; select(n); owlCheck(); return; }
+      render();
+    });
+
+    // ---- moving with the finger or the mouse ---------------------------------------------------
+    const toCanvas = (cx: number, cy: number) => { const r = cv.getBoundingClientRect(); return { x: ((cx - r.left) / r.width) * S, y: ((cy - r.top) / r.height) * S }; };
+    const hit = (pt: { x: number; y: number }) => {
+      for (let i = st.length - 1; i >= 0; i--) {
+        const x = st[i], w = x.k.base * x.s, h = (x.img.naturalHeight / x.img.naturalWidth || 1) * w;
+        const a = (-x.r * Math.PI) / 180, dx = pt.x - x.x, dy = pt.y - x.y;
+        const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+        if (Math.abs(lx) <= w / 2 + 12 && Math.abs(ly) <= h / 2 + 12) return x;
+      }
+      return null;
+    };
+    let drag: { x: St; dx: number; dy: number } | null = null;
+    let pinch: { x: St; d: number; a: number; s: number; r: number } | null = null;
+    const startAt = (pt: { x: number; y: number }) => {
+      const x = hit(pt);
+      if (!x) { if (cur) select(null); return false; }
+      if (cur !== x) select(x);
+      drag = { x, dx: pt.x - x.x, dy: pt.y - x.y };
+      return true;
+    };
+    const moveTo = (pt: { x: number; y: number }) => { if (!drag) return; drag.x.x = Math.max(0, Math.min(S, pt.x - drag.dx)); drag.x.y = Math.max(0, Math.min(S, pt.y - drag.dy)); render(); };
+    cv.addEventListener('mousedown', (e) => { if (startAt(toCanvas(e.clientX, e.clientY))) e.preventDefault(); });
+    addEventListener('mousemove', (e) => { if (drag) moveTo(toCanvas(e.clientX, e.clientY)); });
+    addEventListener('mouseup', () => { drag = null; });
+    const two = (t: TouchList) => { const a = toCanvas(t[0].clientX, t[0].clientY), b = toCanvas(t[1].clientX, t[1].clientY); return { d: Math.hypot(b.x - a.x, b.y - a.y), a: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI }; };
+    // the page scrolls over the picture, except when a finger lands on a light
+    cv.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2 && cur) { const g = two(e.touches); pinch = { x: cur, d: g.d, a: g.a, s: cur.s, r: cur.r }; drag = null; e.preventDefault(); return; }
+      if (e.touches.length === 1 && startAt(toCanvas(e.touches[0].clientX, e.touches[0].clientY))) e.preventDefault();
+    }, { passive: false });
+    cv.addEventListener('touchmove', (e) => {
+      if (pinch && e.touches.length === 2) { const g = two(e.touches); pinch.x.s = Math.max(0.3, Math.min(4, pinch.s * (g.d / pinch.d))); pinch.x.r = pinch.r + (g.a - pinch.a); size.value = String(Math.round(pinch.x.s * 100)); turn.value = String(Math.round(((pinch.x.r + 540) % 360) - 180)); render(); e.preventDefault(); return; }
+      if (drag && e.touches.length === 1) { moveTo(toCanvas(e.touches[0].clientX, e.touches[0].clientY)); e.preventDefault(); }
+    }, { passive: false });
+    cv.addEventListener('touchend', () => { if (pinch) { owlCheck(); } pinch = null; drag = null; });
+    cv.addEventListener('wheel', (e) => { if (!cur || !hit(toCanvas(e.clientX, e.clientY))) return; e.preventDefault(); cur.s = Math.max(0.3, Math.min(4, cur.s * (e.deltaY < 0 ? 1.08 : 0.93))); size.value = String(Math.round(cur.s * 100)); render(); }, { passive: false });
+    // keyboard: arrows move the selected light, +/- resize, Delete removes
+    cv.tabIndex = 0;
+    cv.addEventListener('keydown', (e) => {
+      if (!cur) return; const step = e.shiftKey ? 40 : 12;
+      const m: Record<string, () => void> = { ArrowLeft: () => (cur!.x -= step), ArrowRight: () => (cur!.x += step), ArrowUp: () => (cur!.y -= step), ArrowDown: () => (cur!.y += step), '+': () => (cur!.s = Math.min(4, cur!.s * 1.1)), '=': () => (cur!.s = Math.min(4, cur!.s * 1.1)), '-': () => (cur!.s = Math.max(0.3, cur!.s / 1.1)), Delete: () => { st = st.filter((x) => x !== cur); cur = null; editBox.hidden = true; }, Escape: () => select(null) };
+      if (m[e.key]) { e.preventDefault(); m[e.key](); render(); }
+    });
+
+    // ---- the picture under the lights ----------------------------------------------------------
+    const setBase = async (kind: string, src = '') => {
+      baseKind = kind;
+      root.querySelectorAll<HTMLElement>('[data-base]').forEach((b) => b.classList.toggle('is-on', b.dataset.base === kind));
+      root.querySelector('.lt-base-up')?.classList.toggle('is-on', kind === 'upload');
+      if (kind === 'night') { base = null; render(); return; }
+      if (kind === 'house') {
+        // the house as it is on the page: wall paint and decorations put anywhere too; golden ones only with the holder preview
+        const p = K.readProgress(ul.store.get(cfg.houseKey));
+        const own = (i: string) => ul.holder || !cfg.holderItems.includes(i);
+        const h = K.houseOfP({ ...p, paint: p.paint && own(p.paint) ? p.paint : '' }), stt = K.statusOf(p);
+        const placed = Object.fromEntries(Object.entries(p.placed).filter(([, i]) => own(i as string)));
+        src = K.svgUrl(K.houseSvg(h, placed, { level: stt.first ? 1 : stt.level, id: 'ulp', size: S, free: (p.free || []).filter((f: any) => own(f.i)), ctx: { ticker: cfg.ticker, ...cfg.night } }));
+      }
+      try { base = await load(src); } catch { base = null; say(L.baseFail || 'This picture did not open. Try another one.'); }
+      render();
+    };
+    $<HTMLElement>('[data-ul-bases]').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-base]'); if (!b) return;
+      const k = b.dataset.base!;
+      if (k.startsWith('b')) setBase(k, cfg.bases[Number(k.slice(1))].src); else setBase(k);
+    });
+    const file = $<HTMLInputElement>('[data-ul-file]');
+    let upUrl = '';
+    file.addEventListener('change', async () => {
+      const f = file.files?.[0]; if (!f) return;
+      if (!f.type.startsWith('image/')) { say(L.notImage || 'This is not a picture.'); return; }
+      // a very large file can freeze a phone while it opens
+      if (f.size > 25 * 1024 * 1024) { say(L.tooBig || 'This picture is too big. Pick one under 25 MB.'); return; }
+      if (upUrl) URL.revokeObjectURL(upUrl);
+      upUrl = URL.createObjectURL(f);
+      imgs.delete(upUrl);
+      await setBase('upload', upUrl);
+      say(L.uploaded || 'Night has fallen on your picture. Now hang the lights.');
+    });
+    const nightIn = $<HTMLInputElement>('[data-ul-night]');
+    nightIn.addEventListener('input', () => { night = Number(nightIn.value) / 100; render(); });
+
+    // ---- words ---------------------------------------------------------------------------------
+    const capIn = $<HTMLInputElement>('[data-ul-cap]');
+    capIn.addEventListener('input', () => { caption = capIn.value.trim(); render(); });
+    $<HTMLElement>('[data-ul-caps]').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-cap]'); if (!b) return;
+      capIn.value = b.dataset.cap!; caption = capIn.value; render();
+    });
+
+    // ---- saving and sharing --------------------------------------------------------------------
+    const dl = $<HTMLAnchorElement>('[data-ul-pdl]');
+    let lastUrl = '';
+    const blobOf = (c: HTMLCanvasElement) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('blob'))), 'image/png'));
+    const exportPng = async (round = false) => {
+      render(true);
+      let out: HTMLCanvasElement = cv;
+      if (round) {
+        out = document.createElement('canvas'); out.width = out.height = 512;
+        const c2 = out.getContext('2d')!;
+        c2.beginPath(); c2.arc(256, 256, 256, 0, Math.PI * 2); c2.clip();
+        c2.drawImage(cv, 0, 0, 512, 512);
+      }
+      const blob = await blobOf(out);
+      render();
+      return blob;
+    };
+    const save = async (round = false) => {
+      try {
+        const blob = await exportPng(round);
+        if (lastUrl) URL.revokeObjectURL(lastUrl);
+        lastUrl = URL.createObjectURL(blob);
+        dl.href = lastUrl; dl.download = `${cfg.file}-${round ? 'avatar' : 'lights'}.png`; dl.click();
+        note.textContent = round ? L.savedAvatar || 'The avatar is saved.' : L.saved || 'The picture is saved.';
+        return blob;
+      } catch {
+        note.textContent = L.saveFail || 'This picture cannot be saved: it came from another site. Try your own picture.';
+        return null;
+      }
+    };
+    $<HTMLButtonElement>('[data-ul-save]').addEventListener('click', () => save(false));
+    $<HTMLButtonElement>('[data-ul-avatar]').addEventListener('click', () => save(true));
+    $<HTMLButtonElement>('[data-ul-pshare]').addEventListener('click', async () => {
+      const text = (cfg.shareText || '').replace('{n}', String(level()));
+      const nav = navigator as any;
+      try {
+        const blob = await exportPng(false);
+        const f = new File([blob], `${cfg.file}-lights.png`, { type: 'image/png' });
+        if (nav.canShare?.({ files: [f] })) { await nav.share({ files: [f], text: cfg.url ? `${text} ${cfg.url}` : text }); return; }
+      } catch (err) { if ((err as Error)?.name === 'AbortError') return; }
+      const q = new URLSearchParams({ text }); if (cfg.url) q.set('url', cfg.url);
+      window.open(`https://x.com/intent/post?${q}`, '_blank', 'noopener');
+      note.textContent = L.shareNote || 'X opens with the text ready. Save the picture and attach it.';
+    });
+    $<HTMLButtonElement>('[data-ul-clear]').addEventListener('click', () => { st = []; landedAuto = false; caption = ''; capIn.value = ''; select(null); say(L.tipStart || ''); });
+
+    ul.on('ul:holder', () => { drawList(); if (!ul.holder) { st = st.filter((x) => !x.k.holder); if (cur?.k.holder) select(null); } if (baseKind === 'house') setBase('house'); else render(); });
+    drawList();
+    // new gifts join the list and the house picture is redrawn: after lighting up, and whenever the tool comes into view
+    const fresh = () => { drawList(); if (baseKind === 'house') setBase('house'); };
+    ul.on('ul:lit', fresh);
+    if ('IntersectionObserver' in window) new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) fresh(); }, { rootMargin: '200px 0px' }).observe(root);
+    // the first picture: the visitor's house, so the tool is never empty
+    setBase(cfg.bases.length ? 'b0' : 'house', cfg.bases[0]?.src);
+    if (document.fonts?.ready) document.fonts.ready.then(() => render());
+
+    // Test hook
+    (root as any).picture = {
+      add: (id: string, x?: number, y?: number) => add(kinds.find((k) => k.id === id)!, x == null ? undefined : { x, y: y! }),
+      get stickers() { return st.map((x) => ({ id: x.k.id, x: x.x, y: x.y, s: x.s })); },
+      level, setBase, exportPng, setCaption: (t: string) => { capIn.value = t; caption = t; render(); },
+    };
+  }
+</script>

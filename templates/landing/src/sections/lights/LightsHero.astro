@@ -1,0 +1,91 @@
+---
+// First screen of the "lights" layout: the owl in a glowing arched window, the name, the ticker, the slogan.
+import { config, asset } from '../../lib/project';
+import { lights, owlImages } from '../../lib/lights';
+const h = lights.hero || {};
+// The owl that follows the cursor (or the finger) over the first screen; config "lights.hero.follow": false turns it off
+const follow = h.follow !== false && owlImages.fly;
+---
+<section id="home" class="lt-hero">
+  <div class="lt-in lt-hero-in">
+    <div class="lt-hero-text" data-ul-in>
+      {config.hero.kicker && <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{config.hero.kicker}</p>}
+      <h1 class="lt-hero-title font-heading">{config.name}</h1>
+      <p class="lt-hero-ticker font-ticker">${config.ticker}</p>
+      <p class="lt-hero-tag">{config.tagline}</p>
+      <p class="lt-hero-lead">{config.hero.text}</p>
+      <div class="lt-actions">
+        <a class="lt-btn lt-btn-big" href="#house" data-ul-perch>{h.cta || 'Light my house'}</a>
+        <a class="lt-btn lt-btn-big lt-btn-ghost" href="#buy">{h.buy || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+      </div>
+    </div>
+    <figure class="lt-hero-art" data-ul-in>
+      <div class="lt-arch">
+        <img src={asset(config.assets.hero)} alt={h.alt || config.name} width="900" height="900" fetchpriority="high" />
+      </div>
+      {h.note && <figcaption class="lt-hero-note">{h.note}</figcaption>}
+    </figure>
+  </div>
+  <div class="lt-street-strip" aria-hidden="true"></div>
+  {follow && <img class="lt-follow" src={follow} alt="" aria-hidden="true" data-ul-follow decoding="async" />}
+</section>
+
+<script>
+  // The owl follows the light. On a computer he lazily flies after the cursor and hovers next to the "Light my house" button
+  // when the cursor is on it; on a phone he flies to where you tap. With nothing to follow he wanders over the sky.
+  // Not shown with reduced motion (CSS) and not drawn while the first screen is off the screen.
+  const owl = document.querySelector<HTMLImageElement>('[data-ul-follow]');
+  const hero = owl?.closest<HTMLElement>('.lt-hero');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (owl && hero && !calm) {
+    const perch = hero.querySelector<HTMLElement>('[data-ul-perch]');
+    const fine = matchMedia('(pointer: fine)').matches;
+    let W = 0, H = 0, ow = 0, oh = 0;
+    const size = () => { W = hero.clientWidth; H = hero.clientHeight; ow = owl.offsetWidth || 120; oh = owl.offsetHeight || 96; };
+    size(); addEventListener('resize', size, { passive: true });
+    owl.addEventListener('load', size);
+    const clampX = (x: number) => Math.min(Math.max(x, ow * 0.6), W - ow * 0.6);
+    const clampY = (y: number) => Math.min(Math.max(y, oh * 0.9), H - oh * 0.7);
+    let x = W * 0.62, y = Math.max(140, H * 0.18), vx = 0, vy = 0, tx = x, ty = y, face = 1, last = performance.now(), quietAt = 0;
+    const aim = (nx: number, ny: number) => { tx = clampX(nx); ty = clampY(ny); quietAt = performance.now(); wake(); };
+    const local = (e: PointerEvent) => { const r = hero.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    const wander = () => { tx = clampX(W * (0.08 + Math.random() * 0.84)); ty = clampY(H * (0.1 + Math.random() * 0.45)); };
+    if (fine) {
+      hero.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+        const t = e.target as HTMLElement;
+        if (perch && (t === perch || perch.contains(t))) {   // hover next to the button, a little above its right end
+          const r = perch.getBoundingClientRect(), h = hero.getBoundingClientRect();
+          return aim(r.right - h.left + ow * 0.45, r.top - h.top - oh * 0.35);
+        }
+        const [px, py] = local(e); aim(px + ow * 0.55, py - oh * 0.6);   // up and to the right of the cursor, never under it
+      }, { passive: true });
+    }
+    hero.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse') return;
+      if ((e.target as HTMLElement).closest('a, button, input, label')) return;
+      const [px, py] = local(e); aim(px, py - oh * 0.4);
+    }, { passive: true });
+
+    let raf = 0, seen = true;
+    const step = (now: number) => {
+      raf = 0;
+      const dt = Math.min(48, now - last) / 16.7; last = now;
+      if (now - quietAt > 5000 && Math.hypot(tx - x, ty - y) < 30) { wander(); quietAt = now - 1500; }   // nothing to follow: pick another spot
+      vx = (vx + (tx - x) * 0.011 * dt) * Math.pow(0.9, dt);
+      vy = (vy + (ty - y) * 0.011 * dt) * Math.pow(0.9, dt);
+      const sp = Math.hypot(vx, vy), max = 7.5;
+      if (sp > max) { vx *= max / sp; vy *= max / sp; }
+      x += vx * dt; y += vy * dt;
+      const dx = tx - x; if (Math.abs(dx) > 60) face = dx > 0 ? -1 : 1;   // the picture looks left; mirror it when he heads right (not on the small swing at the stop)
+      const bob = Math.sin(now / 520) * 5, tilt = Math.max(-14, Math.min(14, vy * 2.2)) * -face;
+      owl.style.transform = `translate3d(${(x - ow / 2).toFixed(1)}px, ${(y - oh / 2 + bob).toFixed(1)}px, 0) rotate(${tilt.toFixed(1)}deg) scaleX(${face})`;
+      if (seen && !document.hidden) raf = requestAnimationFrame(step);
+    };
+    const wake = () => { if (!raf && seen && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(step); } };
+    new IntersectionObserver(([en]) => { seen = en.isIntersecting; wake(); }).observe(hero);
+    document.addEventListener('visibilitychange', wake);
+    hero.classList.add('has-follow');
+    wake();
+  }
+</script>

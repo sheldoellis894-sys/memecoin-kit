@@ -1,0 +1,48 @@
+---
+// The last screen: hold the diya to light it, and the buy link appears. Keyboard: hold Space or Enter. The plain link is always there too.
+import { config, buyUrl } from '../../lib/project';
+import { lights } from '../../lib/lights';
+const b = lights.buy || {};
+const url: string = config.links.launch || buyUrl;
+const ca: string = config.ca || '';
+---
+<section id="buy" class="lt-sec lt-buy-sec">
+  <div class="lt-in lt-buy" data-ul-in>
+    <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{b.kicker || 'Last lamp'}</p>
+    <h2 class="lt-title font-heading">{b.title || 'Light the last lamp'}</h2>
+    <p class="lt-lead">{b.lead}</p>
+    <button type="button" class="lt-big-diya" data-ul-diya aria-describedby="ul-diya-hint">
+      <span class="lt-big-diya-ring" aria-hidden="true"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" pathLength="100" /></svg></span>
+      <span class="lt-big-diya-lamp" aria-hidden="true"><i></i></span>
+      <span class="lt-sr">{b.hold || 'Hold to light'}</span>
+    </button>
+    <p id="ul-diya-hint" class="lt-note" data-ul-diya-hint data-done={b.done || "Lit. The owl saw it."}>{b.hold || 'Hold the lamp to light it'}</p>
+    <div class="lt-buy-open" data-ul-buy-open>
+      <a class="lt-btn lt-btn-big" href={url} target={url.startsWith('#') ? undefined : '_blank'} rel="noopener noreferrer">{b.cta || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+      {ca ? <p class="lt-note"><code class="lt-ca-code">{ca}</code></p> : <p class="lt-note">{b.noCa || 'No contract address yet. Any address before launch is fake.'}</p>}
+    </div>
+  </div>
+</section>
+
+<script>
+  const diya = document.querySelector<HTMLButtonElement>('[data-ul-diya]');
+  if (diya) {
+    const sec = diya.closest('.lt-buy-sec')!;
+    const hint = sec.querySelector<HTMLElement>('[data-ul-diya-hint]')!;
+    const ring = diya.querySelector<SVGCircleElement>('circle')!;
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const NEED = calm ? 1 : 900;
+    let t0 = 0, raf = 0, done = false;
+    const set = (k: number) => { ring.style.strokeDashoffset = String(100 - k * 100); diya.style.setProperty('--k', k.toFixed(3)); };
+    const tick = () => { const k = Math.min(1, (performance.now() - t0) / NEED); set(k); if (k >= 1) light(); else raf = requestAnimationFrame(tick); };
+    const light = () => { if (done) return; done = true; cancelAnimationFrame(raf); set(1); sec.classList.add('is-lit'); hint.textContent = hint.dataset.done || ''; (window as any).ul?.fire('ul:buy-lit'); };
+    const start = () => { if (done) return; t0 = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); };
+    const stop = () => { if (done) return; cancelAnimationFrame(raf); set(0); };
+    diya.addEventListener('pointerdown', (e) => { diya.setPointerCapture?.(e.pointerId); start(); });
+    diya.addEventListener('pointerup', stop); diya.addEventListener('pointercancel', stop); diya.addEventListener('pointerleave', stop);
+    diya.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); start(); } });
+    diya.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') stop(); });
+    diya.addEventListener('contextmenu', (e) => e.preventDefault());
+    set(0);
+  }
+</script>

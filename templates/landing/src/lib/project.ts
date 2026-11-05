@@ -27,7 +27,7 @@ export type Config = {
   ca: string;
   theme: string;
   layout: string;
-  links: { x?: string; telegram?: string; pumpfun?: string; dexscreener?: string };
+  links: { x?: string; telegram?: string; pumpfun?: string; dexscreener?: string; /** Launchpad page other than pump.fun (layout "lights": guru.fun) */ launch?: string };
   assets: { logo: string; favicon?: string; hero: string; og?: string; heroVideo?: string };
   hero: { kicker?: string; text: string };
   about: { kicker?: string; title: string; text: string[]; image?: string };

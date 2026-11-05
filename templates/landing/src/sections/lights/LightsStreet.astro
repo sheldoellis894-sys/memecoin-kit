@@ -1,0 +1,149 @@
+---
+// The street: houses visitors put on show, brightest first, with the house of the night on top.
+// Data: GET /api/street (api/street.js). Until real houses arrive (or when the store is not connected)
+// the street shows sample houses from config.street.samples, marked as samples.
+import { config } from '../../lib/project';
+import { streetCfg, owlImages, nightCtx } from '../../lib/lights';
+import LtHead from './LtHead.astro';
+const c = streetCfg;
+const l: Record<string, string> = c.labels || {};
+const data = JSON.stringify({
+  owl: owlImages, ticker: config.ticker, endpoint: c.enabled === false ? '' : c.endpoint || '/api/street', samples: c.samples || [], labels: l, min: c.minReal ?? 3, night: nightCtx,
+});
+---
+<section id="street" class="lt-sec lt-street-sec" data-ul-street={data}>
+  <div class="lt-in">
+    <LtHead kicker={c.kicker} title={c.title} lead={c.lead} />
+    <div class="lt-star" data-ul-star hidden data-ul-in>
+      <div class="lt-star-art" data-ul-star-art></div>
+      <div class="lt-star-text">
+        <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{l.star || 'House of the night'}</p>
+        <h3 class="font-heading" data-ul-star-name></h3>
+        <p data-ul-star-line></p>
+      </div>
+    </div>
+    <div class="lt-street-tabs" role="tablist" aria-label={l.sortLabel || 'Sort the street'}>
+      <button type="button" role="tab" aria-selected="true" data-sort="light">{l.byLight || 'Brightest'}</button>
+      <button type="button" role="tab" aria-selected="false" data-sort="best">{l.byRun || 'Longest run'}</button>
+      <button type="button" role="tab" aria-selected="false" data-sort="new">{l.byNew || 'Just lit'}</button>
+    </div>
+    <ul class="lt-street" data-ul-row aria-live="polite"></ul>
+    <div class="lt-actions lt-actions-center" data-ul-more-box hidden><button type="button" class="lt-btn lt-btn-ghost" data-ul-more>{l.more || 'Show more houses'}</button></div>
+    <p class="lt-note lt-street-note" data-ul-street-note>{l.loading || 'Walking down the street…'}</p>
+    <div class="lt-actions lt-actions-center"><a class="lt-btn" href="#house">{l.cta || 'Put my house here'}</a></div>
+  </div>
+  <dialog class="lt-view" data-ul-view aria-label={l.viewLabel || 'A house on the street'}>
+    <div class="lt-view-in">
+      <div data-ul-view-art></div>
+      <p class="font-heading lt-view-name" data-ul-view-name></p>
+      <p data-ul-view-line></p>
+      <form method="dialog"><button class="lt-btn lt-btn-small">{l.close || 'Back to the street'}</button></form>
+    </div>
+  </dialog>
+</section>
+
+<script>
+  import * as K from '../../lib/lights-kit.js';
+  const root = document.querySelector<HTMLElement>('[data-ul-street]');
+  const ul: any = (window as any).ul;
+  if (root && ul) {
+    const cfg = JSON.parse(root.dataset.ulStreet!);
+    const L: Record<string, string> = cfg.labels;
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
+    const row = $<HTMLElement>('[data-ul-row]');
+    const note = $<HTMLElement>('[data-ul-street-note]');
+    type H = { family?: string; name: string; code: string; nights: number; gifts: number; best: number; landings: number; streak: number; light: number; dark?: boolean; updated?: string; sample?: boolean; seed?: number; placed?: Record<string, string> };
+    let houses: H[] = [];
+    let sort = 'light';
+    let n = 0;
+    // houses are drawn a page at a time: each one is a full picture, and a phone slows down with sixty of them
+    const PAGE = 12;
+    let shown = PAGE;
+    const moreBox = $<HTMLElement>('[data-ul-more-box]');
+    const owl = (h: any, streak: number) => {
+      if (streak >= K.NIGHTS) return { ...K.owlPlace(h, K.NIGHTS, true), href: cfg.owl.landed || K.owlPlaceholder('landed') };
+      return null;
+    };
+    const svgOf = (x: H, size?: number) => {
+      const got = x.seed ? { seed: x.seed, family: x.family || 'mumbai', wish: (x as any).wish || '', placed: x.placed || {}, free: [], paint: '' } : K.decodeHouse(x.code);
+      if (!got) return '';
+      const h = K.houseOfP(got);
+      return K.houseSvg(h, got.placed, { free: got.free, ctx: { ticker: cfg.ticker, ...cfg.night }, level: x.dark ? 1 : Math.max(1, Math.min(K.NIGHTS, x.streak)), owl: owl(h, x.dark ? 0 : x.streak), id: `uls${n++}`, size });
+    };
+    const lineOf = (x: H) => x.dark
+      ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', x as any)
+      : fill(x.streak >= K.NIGHTS ? L.lineLanded || 'Night {streak} in a row · the owl is on the roof' : L.line || 'Night {streak} in a row · {gifts} owl visits', x as any);
+    const draw = () => {
+      const list = [...houses].sort((a, b) => sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light);
+      row.innerHTML = '';
+      moreBox.hidden = list.length <= shown;
+      list.slice(0, shown).forEach((x, i) => {
+        const li = document.createElement('li');
+        li.className = 'lt-door'; li.classList.toggle('is-dark', Boolean(x.dark));
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'lt-door-btn'; b.dataset.i = String(houses.indexOf(x));
+        b.innerHTML = `<span class="lt-door-art">${svgOf(x)}</span><span class="lt-door-name font-heading"></span><span class="lt-door-line"></span><span class="lt-door-light">${Math.round(Number(x.light) || 0)}%</span>`;
+        b.querySelector('.lt-door-name')!.textContent = x.name + (x.sample ? ` · ${L.sample || 'sample'}` : '');
+        b.querySelector('.lt-door-line')!.textContent = lineOf(x);
+        b.style.setProperty('--i', String(i));
+        li.appendChild(b); row.appendChild(li);
+      });
+    };
+    const star = (x: H | null) => {
+      const box = $<HTMLElement>('[data-ul-star]');
+      box.hidden = !x; if (!x) return;
+      $<HTMLElement>('[data-ul-star-art]').innerHTML = svgOf(x);
+      $<HTMLElement>('[data-ul-star-name]').textContent = x.name;
+      $<HTMLElement>('[data-ul-star-line]').textContent = fill(L.starLine || '{light}% bright · night {streak} in a row. The owl looks here first.', x as any);
+    };
+    const samples = (): H[] => cfg.samples.map((s: any) => {
+      const fam = K.FAMILY_IDS.includes(s.style) ? s.style : 'mumbai';
+      const wish = K.WISH_IDS.includes(s.wish) ? s.wish : '';
+      const placed = K.autoDecorate(s.seed, s.items ?? 6, false, fam, wish);
+      return { ...s, family: fam, seed: s.seed, placed, code: '', gifts: s.gifts ?? s.nights, best: s.best ?? s.streak, landings: s.landings ?? 0, sample: true,
+        wish, light: K.lightOf(K.houseOf(s.seed, fam, { wish }), placed, Math.min(K.NIGHTS, s.streak)), updated: '' };
+    });
+    // fresh = right after the visitor posted: past the 30-second cache, so their house is there at once
+    const load = async (fresh = false) => {
+      let real: H[] = [], top: H | null = null, live = false;
+      if (cfg.endpoint) {
+        try {
+          const url = fresh ? `${cfg.endpoint}${cfg.endpoint.includes('?') ? '&' : '?'}t=${Date.now()}` : cfg.endpoint;
+          const res = await fetch(url, { headers: { accept: 'application/json' }, cache: fresh ? 'no-store' : 'default' });
+          const out = await res.json(); live = Boolean(out.live);
+          // only houses this site can draw (a house from an older version of the site is left out)
+          real = (Array.isArray(out.houses) ? out.houses : []).filter((x: H) => x && typeof x.code === 'string' && K.decodeHouse(x.code));
+          top = out.star && K.decodeHouse(out.star.code) ? out.star : null;
+        } catch { /* the street is shown with samples */ }
+      }
+      shown = PAGE;
+      houses = real.length >= cfg.min ? real : [...real, ...samples()];
+      star(top || (real.length ? null : houses.slice().sort((a, b) => b.light - a.light)[0] || null));
+      note.textContent = real.length
+        ? fill(real.length === 1 ? L.countOne || 'One house on the street so far.' : L.count || '{n} houses on the street.', { n: real.length })
+        : live ? L.empty || 'No real houses yet. Yours can be the first.' : L.offline || 'These are sample houses. Real ones appear once the street opens.';
+      draw();
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((b) => b.addEventListener('click', () => {
+      sort = b.dataset.sort!; shown = PAGE; root.querySelectorAll('[data-sort]').forEach((x) => x.setAttribute('aria-selected', String(x === b))); draw();
+    }));
+    $<HTMLButtonElement>('[data-ul-more]').addEventListener('click', () => { shown += PAGE; draw(); });
+    const dlg = $<HTMLDialogElement>('[data-ul-view]');
+    row.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-i]'); if (!b) return;
+      const x = houses[Number(b.dataset.i)];
+      $<HTMLElement>('[data-ul-view-art]').innerHTML = svgOf(x);
+      $<HTMLElement>('[data-ul-view-name]').textContent = x.name;
+      $<HTMLElement>('[data-ul-view-line]').textContent = `${lineOf(x)} · ${fill(L.best || 'best run {best}', x as any)} · ${x.light}%`;
+      if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    });
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    ul.on('ul:street', (d: any) => load(Boolean(d?.refresh)));
+    // the street loads once it comes near the screen
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); load(); } }, { rootMargin: '600px 0px' });
+      io.observe(root);
+    } else load();
+    (root as any).street = { load, get houses() { return houses; } };
+  }
+</script>

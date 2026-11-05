@@ -1,0 +1,22 @@
+---
+// The plan in three evenings: config.roadmap [{ phase, title, items[] }].
+import { config } from '../../lib/project';
+import { lights } from '../../lib/lights';
+import LtHead from './LtHead.astro';
+const p = lights.plan || {};
+const phases: { phase: string; title: string; items: string[] }[] = config.roadmap || [];
+---
+<section id="plan" class="lt-sec">
+  <div class="lt-in">
+    <LtHead kicker={p.kicker} title={p.title} lead={p.lead} />
+    <ol class="lt-plan">
+      {phases.map((ph, i) => (
+        <li class="lt-plan-card" style={`--i:${i}`} data-ul-in>
+          <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{ph.phase}</p>
+          <h3 class="font-heading">{ph.title}</h3>
+          <ul>{ph.items.map((it) => <li>{it}</li>)}</ul>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

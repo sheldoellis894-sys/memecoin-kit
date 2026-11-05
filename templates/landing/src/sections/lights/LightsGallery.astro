@@ -1,0 +1,56 @@
+---
+// Pictures of the owl in arched windows of a night house; a tap opens the picture large.
+import { config, asset } from '../../lib/project';
+import { lights } from '../../lib/lights';
+import LtHead from './LtHead.astro';
+const g = lights.gallery || {};
+const items: { src: string; alt: string; note?: string }[] = config.gallery || [];
+---
+{items.length > 0 && (
+<section id="gallery" class="lt-sec">
+  <div class="lt-in">
+    <LtHead kicker={g.kicker} title={g.title} lead={g.lead} />
+    <ul class="lt-gallery">
+      {items.map((it, i) => (
+        <li style={`--i:${i}`} data-ul-in>
+          <button type="button" class="lt-window" data-ul-pic-open={i} aria-label={`${g.open || 'Open'}: ${it.alt}`}>
+            <img src={asset(it.src)} alt={it.alt} width="640" height="640" loading="lazy" decoding="async" />
+          </button>
+          {it.note && <p class="lt-window-note">{it.note}</p>}
+        </li>
+      ))}
+    </ul>
+  </div>
+  <dialog class="lt-view lt-view-pic" data-ul-lightbox aria-label={g.title || 'Picture'}>
+    <div class="lt-view-in">
+      <img data-ul-lightbox-img alt="" width="1080" height="1080" />
+      <p data-ul-lightbox-note></p>
+      <div class="lt-actions lt-actions-center">
+        <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-lb="-1">{g.prev || 'Back'}</button>
+        <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-lb="1">{g.next || 'Next'}</button>
+        <form method="dialog"><button class="lt-btn lt-btn-small">{g.close || 'Close'}</button></form>
+      </div>
+    </div>
+  </dialog>
+</section>
+)}
+
+<script>
+  const dlg = document.querySelector<HTMLDialogElement>('[data-ul-lightbox]');
+  if (dlg) {
+    const btns = [...document.querySelectorAll<HTMLButtonElement>('[data-ul-pic-open]')];
+    const img = dlg.querySelector<HTMLImageElement>('[data-ul-lightbox-img]')!;
+    const note = dlg.querySelector<HTMLElement>('[data-ul-lightbox-note]')!;
+    let at = 0;
+    const show = (i: number) => {
+      at = (i + btns.length) % btns.length;
+      const src = btns[at].querySelector('img')!;
+      img.src = src.currentSrc || src.src; img.alt = src.alt;
+      note.textContent = btns[at].parentElement!.querySelector('.lt-window-note')?.textContent || src.alt;
+    };
+    btns.forEach((b, i) => b.addEventListener('click', () => { show(i); if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); }));
+    dlg.querySelectorAll<HTMLButtonElement>('[data-ul-lb]').forEach((b) => b.addEventListener('click', () => show(at + Number(b.dataset.ulLb))));
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(at + 1); if (e.key === 'ArrowLeft') show(at - 1); });
+  }
+</script>

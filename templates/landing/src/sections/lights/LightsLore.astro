@@ -1,0 +1,28 @@
+---
+// The lore in three cards and the rules of the seven nights.
+import { lights } from '../../lib/lights';
+import LtHead from './LtHead.astro';
+const l = lights.lore || {};
+const cards: { title: string; text: string }[] = l.cards || [];
+const rules: string[] = l.rules || [];
+---
+<section id="lore" class="lt-sec">
+  <div class="lt-in">
+    <LtHead kicker={l.kicker} title={l.title} lead={l.lead} />
+    <ol class="lt-cards">
+      {cards.map((c, i) => (
+        <li class="lt-card" style={`--i:${i}`} data-ul-in>
+          <span class="lt-card-no font-heading">{i + 1}</span>
+          <h3 class="font-heading">{c.title}</h3>
+          <p>{c.text}</p>
+        </li>
+      ))}
+    </ol>
+    {rules.length > 0 && (
+      <div class="lt-rules-strip" data-ul-in>
+        <p class="lt-rules-title font-heading">{l.rulesTitle || 'The seven nights'}</p>
+        <ul>{rules.map((r, i) => <li><span class="lt-night-dot" style={`--i:${i}`} aria-hidden="true"></span>{r}</li>)}</ul>
+      </div>
+    )}
+  </div>
+</section>

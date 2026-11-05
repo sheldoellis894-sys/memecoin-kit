@@ -1,0 +1,4 @@
+{
+  "name": "lights",
+  "sections": ["lightsShell", "lightsHero", "lightsLore", "lightsHouse", "lightsStreet", "lightsPicture", "lightsGallery", "lightsToken", "lightsSteps", "lightsPlan", "lightsRules", "lightsBuy", "lightsFooter"]
+}

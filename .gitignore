@@ -15,3 +15,7 @@ Thumbs.db
 .DS_Store
 # Archives — never commit
 *.zip
+
+# Site packs for client hosting (scripts/pack-site.mjs) and local data of server functions
+templates/landing/release/
+templates/landing/data/

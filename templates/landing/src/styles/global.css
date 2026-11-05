@@ -1,4 +1,8 @@
 @import "tailwindcss";
+/* Layout "lights" keeps its styles in a file of its own (all scoped to .flavor-lights) */
+@import "./lights.css";
+/* Indian truck-art painting over "lights" (only for themes with "decor": "truck") */
+@import "./decor-truck.css";
 
 /* Tailwind colors and fonts point to CSS variables set from the theme JSON (see Base.astro).
    Change the theme — the whole site changes, no code edits. */

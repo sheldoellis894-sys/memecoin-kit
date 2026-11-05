@@ -1,0 +1,21 @@
+{
+  "name": "diya",
+  "flavor": "lights",
+  "colors": {
+    "bg": "#0B0F2E",
+    "surface": "#161B4A",
+    "text": "#FFF6E5",
+    "muted": "#B9B6D9",
+    "primary": "#FF9F1C",
+    "onPrimary": "#141026",
+    "secondary": "#E0218A",
+    "accent": "#FFC94A"
+  },
+  "fonts": {
+    "heading": "Yatra One",
+    "body": "Baloo 2",
+    "googleFonts": "family=Yatra+One&family=Baloo+2:wght@500;600;700;800",
+    "ticker": "heading"
+  },
+  "radius": { "button": "999px", "card": "26px" }
+}
