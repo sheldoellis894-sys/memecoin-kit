@@ -5,7 +5,7 @@
 // Save as a picture, as a round avatar, or share on X. Everything happens in the browser; nothing is uploaded.
 // Wording comes from config.picture. Test hook: element.picture (see the end of the script).
 import { config, asset } from '../../lib/project';
-import { pictureCfg, owlImages, itemNames, nightCtx } from '../../lib/lights';
+import { pictureCfg, houseCfg, owlImages, itemNames, nightCtx } from '../../lib/lights';
 import { ITEM_IDS, ITEMS } from '../../lib/lights-kit.js';
 import LtHead from './LtHead.astro';
 const c = pictureCfg;
@@ -14,7 +14,7 @@ const bases: { src: string; label: string }[] = (c.bases || []).map((b: any) => 
 const extra: { id: string; src: string; label: string }[] = (c.stickers || []).map((s: any, i: number) => ({ id: s.id || `x${i}`, src: asset(s.src), label: s.label || '' }));
 const captions: string[] = c.captions || [];
 const data = JSON.stringify({
-  owl: owlImages, items: itemNames, holderItems: ITEM_IDS.filter((i) => (ITEMS as any)[i].holder), extra, bases, night: nightCtx,
+  owl: owlImages, items: itemNames, categories: (houseCfg as any).categories || {}, holderItems: ITEM_IDS.filter((i) => (ITEMS as any)[i].holder), extra, bases, night: nightCtx,
   captions, labels: l, watermark: c.watermark || '', shareText: c.shareText || '', url: config.url || '',
   ticker: config.ticker, file: config.ticker.toLowerCase(), houseKey: `ul-house-${config.ticker.toLowerCase()}`, full: c.fullAt || 100,
 });
@@ -47,8 +47,9 @@ const data = JSON.stringify({
 
         <div class="lt-box">
           <p class="lt-label">{l.lights || '2. The lights'}</p>
+          <div class="lt-tabs" data-ul-ptabs role="tablist" aria-label={l.lights || 'The lights'}></div>
           <div class="lt-inv lt-inv-pic" data-ul-stickers></div>
-          <p class="lt-note">{l.fromAlbum || 'These are the decorations from your album. Light your house every night to collect more.'}</p>
+          <p class="lt-note">{l.fromAlbum || 'Every decoration of the house game is here. Golden ones are for holders.'}</p>
         </div>
 
         <div class="lt-box" data-ul-edit hidden>
@@ -117,21 +118,30 @@ const data = JSON.stringify({
     };
 
     // ---- what can be hung ------------------------------------------------------------------
-    // the decorations of the visitor's album (everything the owl ever brought), plus the start ones
-    const itemKind = (id: string) => ({ id, src: K.svgUrl(K.itemSvg(id, 240, { ticker: cfg.ticker })), light: (K.ITEMS as any)[id].light, base: 220, holder: Boolean((K.ITEMS as any)[id].holder), label: cfg.items[id]?.name || id });
-    const albumIds = () => { const seen = K.readProgress(ul.store.get(cfg.houseKey)).seen || {}; return K.ITEM_IDS.filter((id: string) => (seen[id] || (K.START_ITEMS as any)[id]) && (K.ITEMS as any)[id].type !== 'paint' && !(K.ITEMS as any)[id].kinds.includes('win')); };
-    const kinds: Kind[] = [
-      ...albumIds().map(itemKind),
-      { id: 'owl-fly', src: cfg.owl.fly || K.owlPlaceholder('fly'), light: 0, base: 300, owl: 'fly', label: L.owlFly || 'Flying owl' },
-      { id: 'owl-landed', src: cfg.owl.landed || K.owlPlaceholder('landed'), light: 0, base: 340, owl: 'landed', label: L.owlLanded || 'Owl in sunglasses' },
-      ...cfg.extra.map((x: any) => ({ id: x.id, src: x.src, light: 0, base: 260, label: x.label })),
+    // every decoration of the house game (paint aside: it only colours house walls), plus the owl stickers;
+    // the golden holder ones only with the holder preview. Grouped in tabs like the house inventory.
+    const itemKind = (id: string) => ({ id, src: K.svgUrl(K.itemSvg(id, 240, { ticker: cfg.ticker })), light: (K.ITEMS as any)[id].light, base: 220, holder: Boolean((K.ITEMS as any)[id].holder), label: cfg.items[id]?.name || id, cat: (K.ITEMS as any)[id].cat });
+    const allIds = K.ITEM_IDS.filter((id: string) => (K.ITEMS as any)[id].type !== 'paint');
+    const kinds: (Kind & { cat?: string })[] = [
+      { id: 'owl-fly', src: cfg.owl.fly || K.owlPlaceholder('fly'), light: 0, base: 300, owl: 'fly', label: L.owlFly || 'Flying owl', cat: 'owl' },
+      { id: 'owl-landed', src: cfg.owl.landed || K.owlPlaceholder('landed'), light: 0, base: 340, owl: 'landed', label: L.owlLanded || 'Owl in sunglasses', cat: 'owl' },
+      ...cfg.extra.map((x: any) => ({ id: x.id, src: x.src, light: 0, base: 260, label: x.label, cat: 'owl' })),
+      ...allIds.map(itemKind),
     ];
     const list = $<HTMLElement>('[data-ul-stickers]');
+    const ptabs = $<HTMLElement>('[data-ul-ptabs]');
+    let ptab = 'owl';
+    const catName = (c: string) => (c === 'owl' ? L.tabOwl || 'Owl' : cfg.categories?.[c] || c.charAt(0).toUpperCase() + c.slice(1));
     const drawList = () => {
-      // the album grows while the visitor plays: new decorations join the list
-      for (const id of albumIds()) if (!kinds.some((k) => k.id === id)) kinds.splice(kinds.findIndex((k) => k.owl), 0, itemKind(id));
+      const cats = ['owl', ...K.CATEGORIES.filter((c: string) => kinds.some((k) => k.cat === c))];
+      ptabs.innerHTML = '';
+      for (const c of cats) {
+        const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.ptab = c;
+        b.setAttribute('aria-selected', String(ptab === c)); b.textContent = catName(c); ptabs.appendChild(b);
+      }
       list.innerHTML = '';
       for (const k of kinds) {
+        if (k.cat !== ptab) continue;
         const b = document.createElement('button');
         b.type = 'button'; b.className = 'lt-item'; b.dataset.kind = k.id;
         b.classList.toggle('is-locked', Boolean(k.holder && !ul.holder));
@@ -252,6 +262,7 @@ const data = JSON.stringify({
       if (k.light) await owlCheck();
       return x;
     };
+    ptabs.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>('[data-ptab]'); if (!b) return; ptab = b.dataset.ptab!; drawList(); });
     list.addEventListener('click', async (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-kind]'); if (!b) return;
       const k = kinds.find((x) => x.id === b.dataset.kind)!;
@@ -391,17 +402,12 @@ const data = JSON.stringify({
     };
     $<HTMLButtonElement>('[data-ul-save]').addEventListener('click', () => save(false));
     $<HTMLButtonElement>('[data-ul-avatar]').addEventListener('click', () => save(true));
-    $<HTMLButtonElement>('[data-ul-pshare]').addEventListener('click', async () => {
+    // Share on X: X opens at once (inside the click, so no popup blocker stops it) and the picture is saved to attach
+    $<HTMLButtonElement>('[data-ul-pshare]').addEventListener('click', () => {
       const text = (cfg.shareText || '').replace('{n}', String(level()));
-      const nav = navigator as any;
-      try {
-        const blob = await exportPng(false);
-        const f = new File([blob], `${cfg.file}-lights.png`, { type: 'image/png' });
-        if (nav.canShare?.({ files: [f] })) { await nav.share({ files: [f], text: cfg.url ? `${text} ${cfg.url}` : text }); return; }
-      } catch (err) { if ((err as Error)?.name === 'AbortError') return; }
-      const q = new URLSearchParams({ text }); if (cfg.url) q.set('url', cfg.url);
+      const q = new URLSearchParams({ text }); q.set('url', cfg.url || location.origin + location.pathname);
       window.open(`https://x.com/intent/post?${q}`, '_blank', 'noopener');
-      note.textContent = L.shareNote || 'X opens with the text ready. Save the picture and attach it.';
+      save(false).then((b) => { if (b) note.textContent = L.shareNote || 'X opens with the text ready. The picture is saved: attach it to the post.'; });
     });
     $<HTMLButtonElement>('[data-ul-clear]').addEventListener('click', () => { st = []; landedAuto = false; caption = ''; capIn.value = ''; select(null); say(L.tipStart || ''); });
 

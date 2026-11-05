@@ -150,6 +150,11 @@ export const ITEM_IDS = Object.keys(ITEMS);
  * at all (looking it up would call its own toString). */
 export const itemOf = (id) => (typeof id === 'string' ? ITEMS[id] : undefined);
 export const START_ITEMS = { diya: 2, string: 1 };
+/** Open from the first visit: every common decoration (not the golden holder ones). They never run out (OPEN_STOCK each);
+ * the owl brings only rare, epic and legendary ones. */
+export const OPEN_STOCK = 99;
+export const OPEN_ITEMS = ITEM_IDS.filter((i) => ITEMS[i].rarity === 'common' && !ITEMS[i].holder);
+export const isOpen = (i) => typeof i === 'string' && OPEN_ITEMS.includes(i);
 
 // ---------------------------------------------------------------- drawing helpers
 const flame = (x, y, k = 1) => `<path d="M${f1(x)} ${f1(y - 16 * k)}c${f1(5 * k)} ${f1(7 * k)} ${f1(8 * k)} ${f1(11 * k)} ${f1(8 * k)} ${f1(15 * k)}a${f1(8 * k)} ${f1(8 * k)} 0 0 1-${f1(16 * k)} 0c0-${f1(4 * k)} ${f1(3 * k)}-${f1(8 * k)} ${f1(8 * k)}-${f1(15 * k)}z" fill="#FFB52E"/><path d="M${f1(x)} ${f1(y - 9 * k)}c${f1(2.6 * k)} ${f1(4 * k)} ${f1(4 * k)} ${f1(6 * k)} ${f1(4 * k)} ${f1(8 * k)}a${f1(4 * k)} ${f1(4 * k)} 0 0 1-${f1(8 * k)} 0c0-${f1(2 * k)} ${f1(1.4 * k)}-${f1(4 * k)} ${f1(4 * k)}-${f1(8 * k)}z" fill="#FFF3B0"/>`;

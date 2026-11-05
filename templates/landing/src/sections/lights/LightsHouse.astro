@@ -56,6 +56,7 @@ const iv: Record<string, string> = c.invite || {};
             <h3 class="font-heading">{su.styleTitle || 'Which street is yours?'}</h3>
             <p class="lt-note" data-ul-found>{su.styleNote || 'The owl flies all over the world. Pick the street where your house stands.'}</p>
             <div class="lt-styles" data-ul-styles></div>
+            <button type="button" class="lt-btn lt-btn-ghost lt-btn-small lt-reroll" data-ul-setup-reroll>{su.reroll || 'Show me another house'}</button>
           </div>
           <p class="lt-note" data-ul-setup-msg aria-live="polite"></p>
           <div class="lt-actions lt-actions-tight">
@@ -85,7 +86,7 @@ const iv: Record<string, string> = c.invite || {};
         <button type="button" class="lt-btn lt-btn-big lt-light-btn" data-ul-light>{l.light || 'Light up tonight'}</button>
         {owlImages.sleep && (houseCfg as any).hide !== false && <p class="lt-found-hint" data-ul-found-hint>{l.foundHint || 'Every day the owl naps somewhere on this page. Find him and he leaves a gift.'}</p>}
 
-        <div class="lt-box">
+        <div class="lt-box lt-inv-box" data-ul-invbox>
           <p class="lt-label">{l.inventory || 'What you have'} <span data-ul-inv-count></span></p>
           <div class="lt-tabs" data-ul-tabs role="tablist" aria-label={l.inventory || 'What you have'}></div>
           <div class="lt-inv" data-ul-inv></div>
@@ -126,6 +127,7 @@ const iv: Record<string, string> = c.invite || {};
           <button type="button" class="lt-btn" data-ul-card>{l.card || 'Save the card'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-share>{l.share || 'Share on X'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-peek aria-pressed="false">{l.peek || 'Peek at night 7'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-reroll>{l.reroll || 'Another house'}</button>
         </div>
         <p class="lt-note" data-ul-peek-note hidden>{l.peekNote || 'This is how night seven looks. Your own nights are not changed.'}</p>
 
@@ -357,7 +359,9 @@ const iv: Record<string, string> = c.invite || {};
     const drawInv = () => {
       const free = K.freeItems(withLent());
       const owned = withLent().inv;
-      const ids = K.ITEM_IDS.filter((id: string) => owned[id] && (!isHolderItem(id) || ul.holder));
+      // the owl's gifts first, then the common decorations that are open to everybody
+      const ids = K.ITEM_IDS.filter((id: string) => (owned[id] || K.isOpen(id)) && (!isHolderItem(id) || ul.holder))
+        .sort((a: string, b: string) => Number(K.isOpen(a)) - Number(K.isOpen(b)));
       const cats = K.CATEGORIES.filter((c: string) => ids.some((id: string) => (K.ITEMS as any)[id].cat === c));
       if (tab !== 'all' && !cats.includes(tab)) tab = 'all';
       tabs.innerHTML = '';
@@ -375,12 +379,12 @@ const iv: Record<string, string> = c.invite || {};
         b.type = 'button'; b.className = `lt-item is-${it.rarity}`; b.dataset.item = id;
         b.setAttribute('aria-pressed', String(sel === id || p.paint === id));
         b.classList.toggle('is-empty', !free[id] && p.paint !== id);
-        b.innerHTML = `<img src="${thumb(id)}" alt="" width="56" height="56"><span class="lt-item-name"></span><b class="lt-item-n">${free[id] || 0}</b>`;
+        b.innerHTML = `<img src="${thumb(id)}" alt="" width="56" height="56"><span class="lt-item-name"></span>${K.isOpen(id) ? '' : `<b class="lt-item-n">${free[id] || 0}</b>`}`;
         b.querySelector('.lt-item-name')!.textContent = itemName(id);
         inv.appendChild(b);
       }
       if (!inv.children.length) inv.innerHTML = `<p class="lt-note">${L.invEmpty || ''}</p>`;
-      const total = Object.values(free).reduce((a: number, b: any) => a + b, 0);
+      const total = Object.entries(free).reduce((a: number, [i, b]: [string, any]) => a + (K.isOpen(i) ? 0 : b), 0);
       $<HTMLElement>('[data-ul-inv-count]').textContent = total ? `· ${total}` : '';
     };
     tabs.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]'); if (!b) return; tab = b.dataset.tab!; drawInv(); });
@@ -402,6 +406,21 @@ const iv: Record<string, string> = c.invite || {};
       say(sel ? fill(it.kinds.includes('wall') ? L.whereFree || '{item}: tap anywhere on the picture.' : it.free ? L.whereTo || '{item}: tap a glowing spot, or anywhere on the picture.' : L.whereSlot || '{item}: tap a glowing spot.', { item: itemName(id) }) : L.tipStart || '');
       refresh();
     });
+
+    // ---- phones: the decorations and the editing box go right under the picture -----------------
+    // so picking a decoration and putting it on the house happen on one screen, without scrolling up and down.
+    // On a computer they stay in the panel next to the picture. Placeholders keep their places for the way back.
+    {
+      const phone = matchMedia('(max-width: 939px)');
+      const stageCol = root.querySelector<HTMLElement>('.lt-stage')!;
+      const moved = [root.querySelector<HTMLElement>('[data-ul-invbox]')!, root.querySelector<HTMLElement>('[data-ul-edit]')!];
+      const marks = moved.map((el) => { const m = document.createComment('dock'); el.before(m); return m; });
+      const dock = () => {
+        moved.forEach((el, i) => { if (phone.matches) stageCol.appendChild(el); else marks[i].after(el); });
+        root.classList.toggle('is-docked', phone.matches);
+      };
+      dock(); phone.addEventListener('change', dock);
+    }
 
     // ---- decorations put anywhere: drag, size, turn, words --------------------------------------
     let editN = 0, dragged = false;
@@ -684,17 +703,16 @@ const iv: Record<string, string> = c.invite || {};
     };
     const cardBtn = $<HTMLButtonElement>('[data-ul-card]');
     cardBtn.addEventListener('click', () => { cardBtn.disabled = true; card().then(() => $<HTMLElement>('[data-ul-tray]').scrollIntoView({ block: 'nearest', behavior: ul.calm ? 'auto' : 'smooth' })).catch(() => say(L.cardFail || 'The card did not come out. Try again.')).finally(() => { cardBtn.disabled = false; }); });
-    const share = async () => {
+    // Share on X: X opens at once with the words and the link (opened inside the click, so no popup blocker stops it),
+    // and the card is saved to the device at the same time, to attach to the post.
+    const share = () => {
       const s = view();
       const text = fill(cfg.shareText || '', { n: Math.min(s.streak || 1, K.NIGHTS), no: h.no, ticker: cfg.ticker });
-      const nav = navigator as any;
-      if (!lastFile) await card().catch(() => {});
-      if (lastFile && nav.canShare?.({ files: [lastFile] })) {
-        try { await nav.share({ files: [lastFile], text: cfg.url ? `${text} ${cfg.url}` : text }); return; } catch (err) { if ((err as Error)?.name === 'AbortError') return; }
-      }
-      const q = new URLSearchParams({ text }); if (cfg.url) q.set('url', cfg.url);
+      const q = new URLSearchParams({ text }); q.set('url', cfg.url || location.origin + location.pathname);
       window.open(`https://x.com/intent/post?${q}`, '_blank', 'noopener');
       $<HTMLElement>('[data-ul-share-note]').hidden = false;
+      const save = () => $<HTMLAnchorElement>('[data-ul-download]').click();
+      if (lastFile) save(); else card().then(save).catch(() => {});
     };
     $<HTMLButtonElement>('[data-ul-share]').addEventListener('click', share);
     $<HTMLButtonElement>('[data-ul-share2]').addEventListener('click', share);
@@ -729,7 +747,19 @@ const iv: Record<string, string> = c.invite || {};
         return { ok: false, error: 'offline' };
       }
     };
-    form.addEventListener('submit', (e) => { e.preventDefault(); post(String(new FormData(form).get('name') || '')); });
+    form.addEventListener('submit', (e) => { e.preventDefault(); postLit(String(new FormData(form).get('name') || '')); });
+    // the street section posts through here too: a house that is dark tonight is lit first (the owl comes as usual),
+    // then it goes to the street. Returns the words to show next to the button that was pressed.
+    async function postLit(name: string) {
+      if (setupOn) return { ok: false, text: L.postSetup || 'Answer the three questions about your house first.' };
+      if (!pinnedDay) today = K.dayKey();
+      const s = K.statusOf(p, today);
+      if (!p.nights || s.streak < 1 || s.due) { const clean = name.trim().replace(/\s+/g, ' '); if (!/^[A-Za-z0-9 ._'-]{2,18}$/.test(clean)) { const t = L.nameRule || 'Use 2 to 18 Latin letters, numbers, spaces, dots or dashes.'; postNote.textContent = t; return { ok: false, text: t }; } light(); }
+      const r = await post(name);
+      return { ...r, text: postNote.textContent || '' };
+    }
+    ul.postHouse = postLit;
+    ul.houseName = () => ul.store.get(STREET_KEY) || p.name || '';
 
     // ---- house code ----------------------------------------------------------------------------
     const codeNote = $<HTMLElement>('[data-ul-code-note]');
@@ -846,6 +876,17 @@ const iv: Record<string, string> = c.invite || {};
       p.family = b.dataset.style!;
       styleBox.querySelectorAll('[data-style]').forEach((x) => x.setAttribute('aria-pressed', String((x as HTMLElement).dataset.style === p.family)));
       rebuild();
+    });
+    // Another house: a new random house on the same street (a new seed). The nights, the album and the name stay;
+    // decorations on spots of the old house come back to the box, the ones put anywhere stay where they are.
+    $<HTMLButtonElement>('[data-ul-setup-reroll]').addEventListener('click', () => { p = { ...p, seed: K.newSeed(), placed: {} }; drawStyles(); rebuild(); });
+    $<HTMLButtonElement>('[data-ul-reroll]').addEventListener('click', () => {
+      if (peek) return say(L.peekLocked || 'Turn off the preview to decorate.');
+      const back = Object.keys(p.placed).length;
+      p = { ...p, seed: K.newSeed(), placed: {} }; sel = ''; closeEdit(false); h = houseFor(p); save();
+      say(back ? L.rerolledBack || 'A new house on your street. The decorations from the windows and the roof are back in your box.' : L.rerolled || 'A new house on your street. Not this one? Press again.');
+      refresh();
+      const onStreet = ul.store.get(STREET_KEY); if (onStreet) post(onStreet);
     });
     // where the visitor is: the server tells the country and city (Vercel, Cloudflare or nginx), the browser tells the time zone
     const locate = async () => {

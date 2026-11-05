@@ -18,8 +18,8 @@ export const NIGHTS = 7;           // nights in a row before the owl lands
 export const newSeed = () => (Math.floor(Math.random() * 0xffffffff) >>> 0) || 1;
 
 // ---------------------------------------------------------------- decorations (lights-items.js)
-import { ITEMS, ITEM_IDS, itemOf, START_ITEMS, RARITIES, RARITY_IDS, CATEGORIES, drawItem, drawFree, itemSvg, cleanSign, isLine, GLOW_DEF, sag } from './lights-items.js';
-export { ITEMS, ITEM_IDS, itemOf, START_ITEMS, RARITIES, RARITY_IDS, CATEGORIES, drawItem, drawFree, itemSvg, cleanSign, isLine };
+import { ITEMS, ITEM_IDS, itemOf, START_ITEMS, OPEN_ITEMS, OPEN_STOCK, isOpen, RARITIES, RARITY_IDS, CATEGORIES, drawItem, drawFree, itemSvg, cleanSign, isLine, GLOW_DEF, sag } from './lights-items.js';
+export { ITEMS, ITEM_IDS, itemOf, START_ITEMS, OPEN_ITEMS, OPEN_STOCK, isOpen, RARITIES, RARITY_IDS, CATEGORIES, drawItem, drawFree, itemSvg, cleanSign, isLine };
 export const FREE_MAX = 80;          // decorations put anywhere on one house
 const glow = (x, y, r, g) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#ul-glow)" opacity="${(0.55 + 0.45 * g).toFixed(2)}"/>`;
 export const svgUrl = (svg) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -210,7 +210,7 @@ export const daysBetween = (a, b) => dayNo(b) - dayNo(a);
  * neighbour (an invite: { seed, family, wish, name }), setup (true once the questions are answered or skipped).
  */
 export function freshProgress(seed = newSeed(), family = familyFor(seed), more = {}) {
-  return { v: 1, seed, family: FAMILY_IDS.includes(family) ? family : 'mumbai', wish: '', name: '', city: '', country: '', born: '', neighbour: null, setup: false, loan: null, ...more, placed: {}, free: [], paint: '', inv: { ...START_ITEMS }, seen: { ...START_ITEMS }, streak: 0, last: '', nights: 0, gifts: 0, best: 0, landings: 0, log: [] };
+  return { v: 1, seed, family: FAMILY_IDS.includes(family) ? family : 'mumbai', wish: '', name: '', city: '', country: '', born: '', neighbour: null, setup: false, loan: null, ...more, placed: {}, free: [], paint: '', inv: { ...START_ITEMS }, seen: { ...START_ITEMS, ...Object.fromEntries(OPEN_ITEMS.map((i) => [i, 1])) }, streak: 0, last: '', nights: 0, gifts: 0, best: 0, landings: 0, log: [] };
 }
 
 /** Reads stored progress, repairing what it can; a broken value gives a new house. */
@@ -234,6 +234,7 @@ export function readProgress(raw) {
   out.paint = itemOf(out.paint)?.type === 'paint' ? out.paint : '';
   out.seen = Object.fromEntries(Object.entries(out.seen || {}).filter(([i, n]) => ITEMS[i] && Number.isInteger(n) && n > 0));
   for (const [i, n] of Object.entries(out.inv || {})) if (ITEMS[i] && !out.seen[i] && n > 0) out.seen[i] = n;
+  for (const i of OPEN_ITEMS) if (!out.seen[i]) out.seen[i] = 1;   // the common decorations are open to everybody
   out.placed = Object.fromEntries(Object.entries(out.placed || {}).filter(([s, i]) => itemOf(i) && h.slots.some((x) => x.id === s && itemOf(i).kinds.includes(x.kind))));
   out.inv = Object.fromEntries(Object.entries(out.inv || {}).filter(([i, n]) => ITEMS[i] && Number.isInteger(n) && n > 0));
   for (const k of ['streak', 'nights', 'gifts', 'best', 'landings']) out[k] = Number.isInteger(out[k]) && out[k] > 0 ? out[k] : 0;
@@ -283,7 +284,7 @@ export function freeItems(p) {
   for (const it of Object.values(p.placed)) used[it] = (used[it] || 0) + 1;
   for (const f of p.free || []) used[f.i] = (used[f.i] || 0) + 1;
   if (p.paint) used[p.paint] = (used[p.paint] || 0) + 1;
-  return Object.fromEntries(ITEM_IDS.map((i) => [i, Math.max(0, (p.inv[i] || 0) - (used[i] || 0))]));
+  return Object.fromEntries(ITEM_IDS.map((i) => [i, Math.max(0, (isOpen(i) ? OPEN_STOCK : p.inv[i] || 0) - (used[i] || 0))]));
 }
 
 /** What each wish makes the owl bring more often (twice the chance): groups of decorations. */
@@ -294,8 +295,9 @@ export const WISH_GIFTS = { gold: ['lamps', 'signs'], luck: ['lanterns', 'sticke
  */
 export function giftFor(rand, holder = false, wish = '', night = 7) {
   const fav = WISH_GIFTS[wish] || [];
-  const rar = Object.entries(RARITIES).filter(([r]) => r !== 'legendary' || night >= 5);
-  let x = rand() * rar.reduce((t, [, w]) => t + w, 0), rarity = 'common';
+  // the common decorations are open to everybody from the start, so the owl brings rare, epic and legendary ones
+  const rar = Object.entries(RARITIES).filter(([r]) => r !== 'common' && (r !== 'legendary' || night >= 5));
+  let x = rand() * rar.reduce((t, [, w]) => t + w, 0), rarity = 'rare';
   for (const [r, w] of rar) { x -= w; if (x < 0) { rarity = r; break; } }
   const pool = ITEM_IDS.filter((i) => ITEMS[i].rarity === rarity && (holder || !ITEMS[i].holder)).map((i) => [i, fav.includes(ITEMS[i].cat) ? 2 : 1]);
   if (!pool.length) return 'diya';
@@ -328,7 +330,7 @@ export function lightTonight(p0, today = dayKey(), rand = Math.random, holder = 
   if (landedNow) p.landings += 1;
   // a borrowed item comes back
   let returned = '';
-  if (p0.loan && itemOf(p0.loan.item)) { returned = p0.loan.item; p.inv[returned] = (p.inv[returned] || 0) + 1; p.loan = null; }
+  if (p0.loan && itemOf(p0.loan.item)) { returned = p0.loan.item; if (!isOpen(returned)) p.inv[returned] = (p.inv[returned] || 0) + 1; p.loan = null; }
   // tonight's event
   let event = null, bonus = {}, loan = '';
   if (ctx) {
@@ -340,7 +342,7 @@ export function lightTonight(p0, today = dayKey(), rand = Math.random, holder = 
       else if (event.bonus) bonus = { ...event.bonus };
       if (event.double) bonus[gift] = (bonus[gift] || 0) + 1;
       for (const [id, n] of Object.entries(bonus)) add(id, n);
-      if (event.loan) { loan = free.bulb > 0 ? 'bulb' : 'string'; p.inv[loan] -= 1; p.loan = { item: loan }; }
+      if (event.loan) { loan = free.bulb > 0 ? 'bulb' : 'string'; if (!isOpen(loan)) p.inv[loan] = (p.inv[loan] || 0) - 1; p.loan = { item: loan }; }
     }
   }
   p.log = [...p.log, { date: today, gift, ...(gifts.length > 1 ? { gifts } : {}), night: p.streak, ...(event ? { event: event.id } : {}), ...(Object.keys(bonus).length ? { bonus } : {}), ...(loan ? { loan } : {}), ...(returned ? { returned } : {}) }].slice(-40);

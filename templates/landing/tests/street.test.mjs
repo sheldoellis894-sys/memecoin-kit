@@ -46,7 +46,8 @@ p = K.freshProgress(4242); const h = K.houseOf(4242);
 const sill = h.slots.find((x) => x.kind === 'sill').id, line = h.slots.find((x) => x.kind === 'line').id;
 assert.equal(K.placeItem(p, line, 'diya'), null, 'a diya does not go on a line');
 p = K.placeItem(p, sill, 'diya'); assert.equal(p.placed[sill], 'diya');
-p = K.placeItem(p, line, 'string'); assert.equal(K.placeItem(p, h.slots.find((x) => x.kind === 'door').id, 'string'), null, 'only one string is owned');
+p = K.placeItem(p, line, 'string'); assert.ok(K.placeItem(p, h.slots.find((x) => x.kind === 'door').id, 'string'), 'the open fairy lights never run out');
+assert.equal(K.placeItem({ ...p, inv: { ...p.inv, 'string-heart': 1 } }, h.slots.find((x) => x.kind === 'door').id, 'string-heart') && K.placeItem(K.placeItem({ ...p, inv: { ...p.inv, 'string-heart': 1 } }, h.slots.find((x) => x.kind === 'door').id, 'string-heart'), line, 'string-heart'), null, 'only one rare heart string is owned');
 assert.equal(K.placeItem(p, h.slots.filter((x) => x.kind === 'sill')[1].id, 'jhoomar'), null, 'holder items need the preview');
 p = K.placeItem(p, sill, ''); assert.equal(p.placed[sill], undefined);
 const code = K.encodeHouse(4242, { [line]: 'string' });
@@ -65,7 +66,9 @@ for (const f of K.FAMILY_IDS) for (let seed = 1; seed < 400; seed += 37) {
 }
 assert.equal(K.decodeHouse(K.encodeHouse(4242, {}, 'castle')), null, 'unknown style');
 assert.notDeepEqual(K.houseOf(4242, 'jaisalmer').windows.length, 0);
-assert.deepEqual(K.FAMILY_IDS, ['mumbai', 'haveli', 'jaisalmer', 'kolkata', 'goa'], 'only Indian streets');
+assert.deepEqual(K.FAMILY_IDS, ['mumbai', 'haveli', 'jaisalmer', 'kolkata', 'goa', 'varanasi', 'delhi', 'chennai', 'kerala'], 'only Indian streets');
+// the four new streets come after the first five, so the houses already built on the first five do not change
+for (const f of ['varanasi', 'delhi', 'chennai', 'kerala']) for (let sd = 1; sd < 400; sd += 7) { const hh = K.houseOf(sd, f); assert.ok(hh.slots.length >= 4 && hh.top > 40, f); assert.ok(K.houseSvg(hh, K.autoDecorate(sd, 10, false, f), { level: 7 }).length > 1000, f); }
 assert.ok(K.FAMILY_IDS.includes(K.familyFor(99))); assert.equal(K.decodeHouse(K.encodeHouse(5, {}, 'panel')), null, 'old styles are gone');
 let p2 = K.freshProgress(5, 'kolkata'); assert.equal(K.readProgress(JSON.stringify(p2)).family, 'kolkata'); assert.equal(K.readProgress(JSON.stringify({ ...p2, family: 'castle' })).family, 'mumbai');
 // the wish paints the house but never moves its windows or slots
@@ -78,9 +81,15 @@ assert.equal(K.decodeHouse(K.encodeHouse(4242, {}, 'mumbai', 'money')), null, 'u
 let goldLamps = 0, plainLamps = 0; let sq = 1; const rr = () => ((sq = (sq * 16807) % 2147483647) / 2147483647);
 for (let i = 0; i < 6000; i++) { if (K.ITEMS[K.giftFor(rr, false, 'gold')].cat === 'lamps') goldLamps++; if (K.ITEMS[K.giftFor(rr, false, '')].cat === 'lamps') plainLamps++; }
 assert.ok(goldLamps > plainLamps * 1.3, `gold wish brings more lamps (${goldLamps} vs ${plainLamps})`);
-// rarity: about 70 / 22 / 7 / 1, no legendary before night five, no holder items without the holder preview
+// rarity: the common ones are open from the start, so the owl brings rare / epic / legendary about 22 / 7 / 1,
+// no legendary before night five, no holder items without the holder preview
 const rc = {}; for (let i = 0; i < 20000; i++) { const it = K.ITEMS[K.giftFor(rr, false, '', 7)]; rc[it.rarity] = (rc[it.rarity] || 0) + 1; assert.ok(!it.holder); }
-assert.ok(rc.common > 12500 && rc.common < 15500 && rc.rare > 3800 && rc.epic > 1000 && rc.legendary > 80 && rc.legendary < 400, JSON.stringify(rc));
+assert.ok(!rc.common && rc.rare > 13500 && rc.rare < 16000 && rc.epic > 3900 && rc.epic < 5400 && rc.legendary > 450 && rc.legendary < 900, JSON.stringify(rc));
+// every common decoration is open to a new house and never runs out; rare ones still come only from the owl
+{ const fp = K.freshProgress(11, 'goa'); const fr = K.freeItems(fp);
+  for (const i of K.OPEN_ITEMS) { assert.equal(fr[i], K.OPEN_STOCK, i); assert.ok(fp.seen[i], i); }
+  assert.ok(K.OPEN_ITEMS.length >= 40, `open commons (${K.OPEN_ITEMS.length})`); assert.equal(fr['diya-brass'], 0);
+  assert.ok(K.readProgress(JSON.stringify({ ...fp, seen: {} })).seen.diya, 'an old house gets the open ones too'); }
 for (let i = 0; i < 3000; i++) assert.notEqual(K.ITEMS[K.giftFor(rr, false, '', 3)].rarity, 'legendary');
 assert.ok(K.ITEM_IDS.length >= 110, `about 120 decorations (${K.ITEM_IDS.length})`);
 for (const id of K.ITEM_IDS) assert.ok(K.itemSvg(id, 60, { ticker: 'ULLU' }).length > 200, id);
@@ -117,11 +126,12 @@ assert.equal(fm.event, 'fullmoon'); assert.equal(fm.bonus[fm.gift], 1, 'full moo
 // the monkey borrows a free bulb and brings it back on the next lit night
 pe = { ...K.freshProgress(31, 'mumbai'), inv: { diya: 2, string: 1, bulb: 1 } };
 const mk = K.lightTonight(pe, '2026-11-03', () => 0.99, false, ctxOf('2026-11-03', { allowed: ['monkey'] }));
-assert.equal(mk.event, 'monkey'); assert.equal(mk.loan, 'bulb'); assert.equal(mk.p.inv.bulb, mk.gifts.filter((x) => x === 'bulb').length); assert.deepEqual(mk.p.loan, { item: 'bulb' });
+// (the bulb is an open decoration now: the monkey borrows one for the story, the house keeps all of its open ones)
+assert.equal(mk.event, 'monkey'); assert.equal(mk.loan, 'bulb'); assert.equal(mk.p.inv.bulb, 1); assert.equal(K.freeItems(mk.p).bulb, K.OPEN_STOCK); assert.deepEqual(mk.p.loan, { item: 'bulb' });
 const rt = K.lightTonight(mk.p, '2026-11-05', () => 0.99, false, ctxOf('2026-11-05', { allowed: ['quiet'] }));
 assert.equal(rt.returned, 'bulb'); assert.equal(rt.p.loan, null); assert.equal(K.readProgress(JSON.stringify(mk.p)).loan.item, 'bulb');
 const noLoan = K.lightTonight({ ...K.freshProgress(31, 'mumbai'), inv: { diya: 1 } }, '2026-11-03', () => 0.99, false, ctxOf('2026-11-03', { allowed: ['monkey', 'quiet'] }));
-assert.notEqual(noLoan.event, 'monkey', 'nothing to borrow, no monkey');
+assert.equal(noLoan.p.inv.diya, 1, 'the monkey takes nothing a house owns');
 // family events stay on their streets, and every event with a picture draws
 assert.equal(K.lightTonight(K.freshProgress(31, 'kolkata'), '2026-11-03', Math.random, false, ctxOf('2026-11-03', { allowed: ['camel', 'quiet'] })).event, 'quiet', 'no camels in Kolkata');
 for (const sc of K.SCENE_IDS) for (const lv of [1, 4, 7]) assert.ok(K.houseSvg(K.houseOf(5, 'kolkata'), {}, { level: lv, scene: sc }).endsWith('</svg>'), sc);
@@ -129,7 +139,9 @@ for (const sc of K.SCENE_IDS) for (const lv of [1, 4, 7]) assert.ok(K.houseSvg(K
 let pn = K.freshProgress(77, 'kolkata'); const counts = [];
 for (let d = 1; d <= 9; d++) { const r = K.lightTonight(pn, `2026-12-${String(d).padStart(2, '0')}`, Math.random); counts.push(r.gifts.length); pn = r.p; }
 assert.deepEqual(counts, [1, 2, 3, 4, 5, 6, 7, 3, 3]);
-assert.equal(Object.values(pn.seen).reduce((a, b) => a + b, 0), 34 + 3, 'album counts every gift and the start items');
+{ const open = new Set(K.OPEN_ITEMS); const fresh = K.freshProgress(77, 'kolkata').seen;
+  assert.equal(Object.entries(pn.seen).reduce((a, [i, n]) => a + n - (fresh[i] || 0), 0), 34, 'album counts every gift');
+  assert.ok(Object.keys(pn.seen).filter((i) => !open.has(i)).every((i) => K.ITEMS[i].rarity !== 'common'), 'gifts are rare and up'); }
 console.log('2b ok: seven-night story, events, holidays, the monkey, gifts and rarity');
 
 // ---- 2c. put anywhere, paint, custom signs, the code carries them

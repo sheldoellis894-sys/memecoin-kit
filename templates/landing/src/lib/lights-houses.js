@@ -70,6 +70,34 @@ export const FAMILIES = {
     finish: ['plain', 'frame'], balcony: 0, balconyKind: 'none', roofCol: ['#B5452B', '#A0522D', '#8E3B2F'],
     extras: { plants: 0.7, dish: 0.25, laundry: 0.3, wires: 0.3 }, neighbours: 'gable',
   },
+  varanasi: {
+    label: 'Varanasi ghat house', floors: [3, 4], bays: [2, 3], bayW: [78, 92], floorH: [70, 80],
+    walls: ['#F2A65A', '#E9C46A', '#F4A6B8', '#8ECAE6', '#FFB4A2', '#E07A5F', '#F6BD60'],
+    roofs: ['terrace', 'chhatri', 'parapet'], wins: ['arch', 'jali', 'tall'], grounds: ['door', 'shop', 'chai'],
+    finish: ['peel', 'peel', 'plain'], balcony: 0.5, balconyKind: 'stone',
+    extras: { wires: 0.6, laundry: 0.6, plants: 0.4, tank: 0.4, antenna: 0.3 }, neighbours: 'flat',
+  },
+  delhi: {
+    label: 'Old Delhi house', floors: [3, 4], bays: [2, 3], bayW: [80, 94], floorH: [74, 84],
+    walls: ['#C97B63', '#E3B5A4', '#B5838D', '#E5989B', '#F2CC8F', '#D4A373', '#A3B18A'],
+    roofs: ['parapet', 'rail', 'terrace'], wins: ['arch', 'jali', 'bay'], grounds: ['shop', 'shop', 'door'],
+    finish: ['peel', 'frame'], balcony: 0.7, balconyKind: 'iron',
+    extras: { wires: 0.98, ac: 0.7, dish: 0.5, tank: 0.5, laundry: 0.3, antenna: 0.3 }, neighbours: 'flat',
+  },
+  chennai: {
+    label: 'Chennai house', floors: [2, 2], bays: [3, 4], bayW: [86, 100], floorH: [88, 98],
+    walls: ['#5EC8F2', '#FF7AA2', '#9BE564', '#FFB703', '#B892FF', '#F28F3B', '#2EC4B6'],
+    roofs: ['tin', 'parapet', 'rail'], wins: ['grid', 'square', 'shutter'], grounds: ['arcade', 'shop', 'door'],
+    finish: ['plain', 'tiles'], balcony: 0.4, balconyKind: 'grill',
+    extras: { wires: 0.7, ac: 0.6, tank: 0.6, dish: 0.5, plants: 0.5 }, neighbours: 'flat',
+  },
+  kerala: {
+    label: 'Kerala house', floors: [2, 2], bays: [3, 4], bayW: [88, 102], floorH: [90, 100],
+    walls: ['#F4F1EA', '#E8DCC4', '#C9E4CA', '#F7D9A8', '#B8D8D8', '#F2C14E'],
+    roofs: ['hip', 'gable', 'hip'], wins: ['shutter', 'lattice', 'grid'], grounds: ['porch', 'door'],
+    finish: ['plain', 'frame'], balcony: 0.4, balconyKind: 'iron', roofCol: ['#9C3D20', '#7A2E1A', '#B5452B'], shutter: '#5B3A1E',
+    extras: { plants: 0.95, laundry: 0.2, wires: 0.3, dish: 0.2 }, neighbours: 'gable',
+  },
 };
 export const FAMILY_IDS = Object.keys(FAMILIES);
 

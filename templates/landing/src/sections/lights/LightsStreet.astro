@@ -30,7 +30,14 @@ const data = JSON.stringify({
     <ul class="lt-street" data-ul-row aria-live="polite"></ul>
     <div class="lt-actions lt-actions-center" data-ul-more-box hidden><button type="button" class="lt-btn lt-btn-ghost" data-ul-more>{l.more || 'Show more houses'}</button></div>
     <p class="lt-note lt-street-note" data-ul-street-note>{l.loading || 'Walking down the street…'}</p>
-    <div class="lt-actions lt-actions-center"><a class="lt-btn" href="#house">{l.cta || 'Put my house here'}</a></div>
+    <form class="lt-street-post" data-ul-street-post>
+      <p class="lt-label">{l.postTitle || 'Put your house on the street'}</p>
+      <div class="lt-row">
+        <input class="lt-input" name="name" maxlength="18" autocomplete="off" placeholder={l.postName || 'A name for your house'} aria-label={l.postName || 'A name for your house'} />
+        <button class="lt-btn" type="submit" data-ul-street-go>{l.cta || 'Put my house here'}</button>
+      </div>
+      <p class="lt-note" data-ul-street-post-note aria-live="polite">{l.postHint || 'Latin letters and numbers. A dark house is lit for tonight first.'}</p>
+    </form>
   </div>
   <dialog class="lt-view" data-ul-view aria-label={l.viewLabel || 'A house on the street'}>
     <div class="lt-view-in">
@@ -75,15 +82,17 @@ const data = JSON.stringify({
       ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', x as any)
       : fill(x.streak >= K.NIGHTS ? L.lineLanded || 'Night {streak} in a row · the owl is on the roof' : L.line || 'Night {streak} in a row · {gifts} owl visits', x as any);
     const draw = () => {
-      const list = [...houses].sort((a, b) => sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light);
+      // real houses always come before the examples
+      const list = [...houses].sort((a, b) => Number(Boolean(a.sample)) - Number(Boolean(b.sample)) || (sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light));
       row.innerHTML = '';
       moreBox.hidden = list.length <= shown;
       list.slice(0, shown).forEach((x, i) => {
         const li = document.createElement('li');
         li.className = 'lt-door'; li.classList.toggle('is-dark', Boolean(x.dark));
         const b = document.createElement('button'); b.type = 'button'; b.className = 'lt-door-btn'; b.dataset.i = String(houses.indexOf(x));
-        b.innerHTML = `<span class="lt-door-art">${svgOf(x)}</span><span class="lt-door-name font-heading"></span><span class="lt-door-line"></span><span class="lt-door-light">${Math.round(Number(x.light) || 0)}%</span>`;
-        b.querySelector('.lt-door-name')!.textContent = x.name + (x.sample ? ` · ${L.sample || 'sample'}` : '');
+        b.innerHTML = `<span class="lt-door-art">${svgOf(x)}</span><span class="lt-door-name font-heading"></span><span class="lt-door-line"></span><span class="lt-door-light">${Math.round(Number(x.light) || 0)}%</span>${x.sample ? '<span class="lt-door-sample"></span>' : ''}`;
+        b.querySelector('.lt-door-name')!.textContent = x.name;
+        if (x.sample) b.querySelector('.lt-door-sample')!.textContent = L.sample || 'Example';
         b.querySelector('.lt-door-line')!.textContent = lineOf(x);
         b.style.setProperty('--i', String(i));
         li.appendChild(b); row.appendChild(li);
@@ -118,10 +127,13 @@ const data = JSON.stringify({
       }
       shown = PAGE;
       houses = real.length >= cfg.min ? real : [...real, ...samples()];
-      star(top || (real.length ? null : houses.slice().sort((a, b) => b.light - a.light)[0] || null));
-      note.textContent = real.length
+      // the house of the night is always a real house: an example never wins
+      star(top);
+      const some = real.length < cfg.min;
+      note.textContent = [real.length
         ? fill(real.length === 1 ? L.countOne || 'One house on the street so far.' : L.count || '{n} houses on the street.', { n: real.length })
-        : live ? L.empty || 'No real houses yet. Yours can be the first.' : L.offline || 'These are sample houses. Real ones appear once the street opens.';
+        : live ? L.empty || 'No real houses yet. Yours can be the first.' : L.offline || 'The street is not open yet.',
+        some ? L.samplesNote || 'Houses marked Example are here so the street is not empty. Real houses take their place.' : ''].filter(Boolean).join(' ');
       draw();
     };
     root.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((b) => b.addEventListener('click', () => {
@@ -139,6 +151,24 @@ const data = JSON.stringify({
     });
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
     ul.on('ul:street', (d: any) => load(Boolean(d?.refresh)));
+
+    // putting the house on the street right here: the house section lights a dark house first, then posts it
+    const pform = $<HTMLFormElement>('[data-ul-street-post]');
+    const pnote = $<HTMLElement>('[data-ul-street-post-note]');
+    const pname = pform.elements.namedItem('name') as HTMLInputElement;
+    const fillName = () => { if (!pname.value && ul.houseName) pname.value = ul.houseName() || ''; };
+    fillName(); ul.on('ul:night', fillName);
+    pform.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!ul.postHouse) { pnote.textContent = L.postNoHouse || 'Build your house first: it is a little higher on this page.'; return; }
+      const go = $<HTMLButtonElement>('[data-ul-street-go]'); go.disabled = true;
+      pnote.textContent = L.posting || 'Carrying the house to the street…';
+      try {
+        const r = await ul.postHouse(pname.value);
+        pnote.textContent = r.ok ? L.postedHere || 'Your house is on the street. It is first in the row above.' : r.text;
+        if (r.ok) row.scrollIntoView({ block: 'start', behavior: ul.calm ? 'auto' : 'smooth' });
+      } finally { go.disabled = false; }
+    });
     // the street loads once it comes near the screen
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); load(); } }, { rootMargin: '600px 0px' });
