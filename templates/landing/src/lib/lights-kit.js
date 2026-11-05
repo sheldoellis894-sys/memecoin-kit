@@ -35,7 +35,18 @@ export function lightOf(h, placed, level, free = []) {
 }
 
 /**
- * SVG of a whole house at night.
+ * The time of day on the visitor's clock: 'day' from 7:00 to 17:00, 'dusk' (evening) from 17:00 to 19:00,
+ * 'night' from 19:00 to 7:00. ?time=day|dusk|night in the address shows one of them (for demos and checks).
+ */
+export const TIMES = ['day', 'dusk', 'night'];
+export function timeOfDay(d = new Date()) {
+  try { const q = new URLSearchParams(globalThis.location?.search || '').get('time'); if (TIMES.includes(q)) return q; } catch { /* no address */ }
+  const hr = d.getHours() + d.getMinutes() / 60;
+  return hr >= 7 && hr < 17 ? 'day' : hr >= 17 && hr < 19 ? 'dusk' : 'night';
+}
+
+/**
+ * SVG of a whole house: by day, in the evening or at night (opts.time or ctx.time; night by default).
  * opts.level    — 0…7: nights in a row; more nights = more lit windows, a stronger glow, a livelier street.
  * opts.owl      — { href, x, y, size, flip } or null: a picture of the owl in the sky or on the roof.
  * opts.slotsFor — an item id: the empty slots that may take it are outlined.
@@ -49,7 +60,10 @@ export function lightOf(h, placed, level, free = []) {
  */
 export function houseSvg(h, placed = {}, opts = {}) {
   const level = Math.max(0, Math.min(NIGHTS, opts.level ?? 1));
-  const g = 0.25 + 0.75 * (level / NIGHTS);
+  const time = TIMES.includes(opts.time) ? opts.time : TIMES.includes(opts.ctx?.time) ? opts.ctx.time : 'night';
+  const day = time === 'day', dusk = time === 'dusk';
+  // by day the lights are on but barely seen, in the evening they start to glow
+  const g = (0.25 + 0.75 * (level / NIGHTS)) * (day ? 0.25 : dusk ? 0.7 : 1);
   const id = opts.id || 'ul';
   const fix = (str) => (id === 'ul' ? str : str.replaceAll('url(#ul-glow)', `url(#${id}-glow)`));
   const litCount = level === 0 ? 0 : Math.max(1, Math.round((h.windows.length * level) / NIGHTS));
@@ -60,11 +74,12 @@ export function houseSvg(h, placed = {}, opts = {}) {
   const B = -400, BW = VIEW + 800;   // full-bleed rectangles, so a padded view has no empty edges
   // the night: a dark veil over the street; the front parts (balconies, roofs) get the same veil through a filter,
   // so lit windows can sit between the walls and the balconies
-  const night = 0.52 - 0.32 * (level / NIGHTS);
+  const night = (0.52 - 0.32 * (level / NIGHTS)) * (day ? 0 : dusk ? 0.45 : 1);
   // the colours of the night: ctx.sky = [top, middle, bottom] and ctx.veil (the dark over the street) from the theme; the default is the "diya" navy
   const ctx = opts.ctx || {};
   const hex6 = (v) => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
-  const sky = Array.isArray(ctx.sky) && ctx.sky.length === 3 && ctx.sky.every(hex6) ? ctx.sky : ['#0B1030', '#1A2257', '#2C2A6B'];
+  const nightSky = Array.isArray(ctx.sky) && ctx.sky.length === 3 && ctx.sky.every(hex6) ? ctx.sky : ['#0B1030', '#1A2257', '#2C2A6B'];
+  const sky = day ? ['#4FA9EE', '#8FD0FF', '#D6F0FF'] : dusk ? ['#2B2366', '#B84D7E', '#FFAA5C'] : nightSky;
   const veil = hex6(ctx.veil) ? ctx.veil : '#0A0F33';
   const vr = parseInt(veil.slice(1, 3), 16), vg = parseInt(veil.slice(3, 5), 16), vb = parseInt(veil.slice(5, 7), 16);
   const ch = (v) => ((v / 255) * night).toFixed(3);
@@ -75,12 +90,18 @@ export function houseSvg(h, placed = {}, opts = {}) {
   s += `<radialGradient id="${id}-halo" gradientUnits="userSpaceOnUse" cx="${VIEW / 2}" cy="${Math.round(VIEW * 0.62)}" r="${Math.round(VIEW * 0.6)}"><stop offset="0" stop-color="#FFB52E" stop-opacity="${(0.06 + 0.34 * g).toFixed(2)}"/><stop offset="1" stop-color="#FFB52E" stop-opacity="0"/></radialGradient>`;
   s += `<filter id="${id}-night" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncR type="linear" slope="${(1 - night).toFixed(3)}" intercept="${ch(vr)}"/><feFuncG type="linear" slope="${(1 - night).toFixed(3)}" intercept="${ch(vg)}"/><feFuncB type="linear" slope="${(1 - night).toFixed(3)}" intercept="${ch(vb)}"/></feComponentTransfer></filter></defs>`;
   s += `<rect x="${B}" y="${B}" width="${BW}" height="${BW}" fill="${sky[0]}"/><rect x="${B}" y="0" width="${BW}" height="${VIEW}" fill="url(#${id}-sky)"/>`;
-  s += h.stars.map(([sx, sy, sr]) => `<circle cx="${sx}" cy="${sy}" r="${sr}" fill="#fff" opacity=".8"/>`).join('');
-  s += moonSvg(h.moon[0], h.moon[1], 22, opts.moonPhase ?? moonPhase());
+  if (day) {
+    // the sun where the moon is at night, and a few soft clouds
+    s += `<circle cx="${h.moon[0]}" cy="${h.moon[1]}" r="38" fill="#FFE27A" opacity=".45"/><circle cx="${h.moon[0]}" cy="${h.moon[1]}" r="26" fill="#FFD23F" stroke="#F2A93B" stroke-width="3"/>`;
+    for (const [cx, cy, k] of [[110, 92, 1], [430, 70, 0.8], [300, 130, 0.6]]) s += `<g opacity=".9" fill="#FFFFFF"><ellipse cx="${cx}" cy="${cy}" rx="${46 * k}" ry="${16 * k}"/><ellipse cx="${cx - 18 * k}" cy="${cy - 10 * k}" rx="${22 * k}" ry="${16 * k}"/><ellipse cx="${cx + 16 * k}" cy="${cy - 12 * k}" rx="${26 * k}" ry="${18 * k}"/></g>`;
+  } else {
+    s += h.stars.filter((_, i) => !dusk || i % 3 === 0).map(([sx, sy, sr]) => `<circle cx="${sx}" cy="${sy}" r="${sr}" fill="#fff" opacity="${dusk ? '.55' : '.8'}"/>`).join('');
+    s += moonSvg(h.moon[0], h.moon[1], 22, opts.moonPhase ?? moonPhase());
+  }
   s += `<rect x="${B}" y="${B}" width="${BW}" height="${BW}" fill="url(#${id}-halo)"/>`;
   s += scene.sky + parts.back + parts.body;
   s += `<rect x="${B}" y="${B}" width="${BW}" height="${BW}" fill="${veil}" opacity="${night.toFixed(2)}"/>`;
-  for (const wd of h.windows) if (lit.has(wd.id)) s += fix(glow(wd.x, wd.y + wd.h / 2, f1(Math.max(wd.w, 40) * 0.95), g)) + windowGlass(h, wd, '#FFD36B', true);
+  for (const wd of h.windows) if (lit.has(wd.id) && !day) s += fix(glow(wd.x, wd.y + wd.h / 2, f1(Math.max(wd.w, 40) * 0.95), g)) + windowGlass(h, wd, '#FFD36B', true);
   s += `<g filter="url(#${id}-night)">${parts.front}${scene.front}</g>`;
   for (const sl of h.slots) { const it = placed[sl.id]; if (it && itemOf(it)) s += fix(drawItem(it, sl, g, ctx)); }
   for (const f of opts.free || []) s += fix(drawFree(f, g, ctx));

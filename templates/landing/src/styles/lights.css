@@ -277,6 +277,7 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-street-post .lt-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .lt-street-post .lt-input { flex: 1 1 200px; min-width: 0; }
 .lt-street-post .lt-note { margin: 10px 0 0; }
+.lt-street-off { margin-top: 10px; }
 @media (min-width: 640px) { .lt-street { grid-auto-columns: minmax(220px, 34%); } }
 @media (min-width: 1000px) { .lt-street { margin: 0; padding-inline: 0; grid-auto-flow: row; grid-template-columns: repeat(4, 1fr); overflow: visible; } }
 .lt-view-in svg { display: block; width: 100%; height: auto; border-radius: 16px; }
@@ -536,3 +537,15 @@ html:not(.ul-motion) .lt-sleepy { transition: none; }
 /* the frame's handles may stick out of the picture: the picture keeps its rounded corners, the box lets the handles out */
 .lt-house-sec .lt-stage-box { overflow: visible; }
 .lt-house-sec .lt-stage-svg { border-radius: inherit; overflow: hidden; }
+
+/* ---- On a computer the house editor and the picture tool are a quarter smaller (picture and decoration tiles) ---- */
+@media (min-width: 940px) {
+  .lt-house, .lt-pic { max-width: 900px; margin-inline: auto; }
+  .lt-house-sec .lt-inv, .lt-pic-sec .lt-inv-pic { grid-template-columns: repeat(auto-fill, minmax(63px, 1fr)); gap: 6px; }
+  .lt-house-sec .lt-item, .lt-pic-sec .lt-item { padding: 6px 3px 5px; border-radius: 11px; }
+  .lt-house-sec .lt-item img, .lt-pic-sec .lt-item img { width: 39px; height: 39px; }
+  .lt-house-sec .lt-item-name, .lt-pic-sec .lt-item-name { font-size: .68rem; }
+  .lt-house-sec .lt-styles, .lt-pic-sec .lt-bases { gap: 6px; }
+  .lt-house-sec .lt-style { font-size: .72rem; }
+  .lt-pic-sec .lt-base { font-size: .72rem; }
+}

@@ -401,7 +401,7 @@ const data = JSON.stringify({
         const own = (i: string) => ul.holder || !cfg.holderItems.includes(i);
         const h = K.houseOfP({ ...p, paint: p.paint && own(p.paint) ? p.paint : '' }), stt = K.statusOf(p);
         const placed = Object.fromEntries(Object.entries(p.placed).filter(([, i]) => own(i as string)));
-        src = K.svgUrl(K.houseSvg(h, placed, { level: stt.first ? 1 : stt.level, id: 'ulp', size: S, free: (p.free || []).filter((f: any) => own(f.i)), ctx: { ticker: cfg.ticker, ...cfg.night } }));
+        src = K.svgUrl(K.houseSvg(h, placed, { level: stt.first ? 1 : stt.level, id: 'ulp', size: S, free: (p.free || []).filter((f: any) => own(f.i)), ctx: { ticker: cfg.ticker, ...cfg.night, time: K.timeOfDay() } }));
       }
       try { base = await load(src); } catch { base = null; say(L.baseFail || 'This picture did not open. Try another one.'); }
       render();

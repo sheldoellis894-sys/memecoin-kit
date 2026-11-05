@@ -2,6 +2,8 @@
 // GET  → { live, houses, star, count } — the houses visitors put on the street, brightest first; star = house of the night.
 // POST { id, name, code, nights, gifts, best, landings, streak } → { ok, house } — puts the visitor's house on the street,
 //      or updates it (one house per visitor id). The id is a random string kept in the visitor's browser.
+// POST { id, remove: true } → { ok, removed } — takes the visitor's own house off the street (only the browser that
+//      put it there has the id).
 //
 // What is kept: one JSON file `${PROJECT}/street.json`. Works on Vercel and on any server with Node (see api/_agent/store.js):
 //   BLOB_READ_WRITE_TOKEN — on Vercel: added when a Blob store is connected to the project
@@ -127,6 +129,23 @@ export async function handle(request, env = process.env, deps = {}) {
 
   // who: a random id from the browser, kept only as a hash
   if (typeof b.id !== 'string' || !/^[a-z0-9]{16,32}$/.test(b.id)) return json({ ok: false, error: 'bad' }, 400);
+  const key = createHash('sha256').update(`${env.STREET_SALT || 'street'}:${env.PROJECT}:${b.id}`).digest('hex').slice(0, 32);
+  // taking the own house off the street
+  if (b.remove === true) {
+    const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
+    if (limited(ip, now)) return json({ ok: false, error: 'busy' }, 429);
+    try {
+      return await serial(pathOf(env.PROJECT), async () => {
+        const { houses } = await readStreet(env, store);
+        const next = houses.filter((x) => x.key !== key);
+        if (next.length === houses.length) return json({ ok: true, removed: false });
+        const file = { houses: next, updated: new Date(now).toISOString() };
+        await store.write(env, pathOf(env.PROJECT), JSON.stringify(file));
+        written.set(store, { path: pathOf(env.PROJECT), updated: file.updated, j: file });
+        return json({ ok: true, removed: true });
+      });
+    } catch { return json({ ok: false, error: 'storage' }, 503); }
+  }
   // the name on the door
   const name = cleanName(b.name);
   const block = blockList(env);
@@ -146,7 +165,6 @@ export async function handle(request, env = process.env, deps = {}) {
   const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
   if (limited(ip, now)) return json({ ok: false, error: 'busy' }, 429);
 
-  const key = createHash('sha256').update(`${env.STREET_SALT || 'street'}:${env.PROJECT}:${b.id}`).digest('hex').slice(0, 32);
   const h = houseOfP(got);
   const level = Math.min(NIGHTS, streak);
   // the code is written again by the server, so the street keeps only what the site draws

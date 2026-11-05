@@ -241,7 +241,7 @@ const iv: Record<string, string> = c.invite || {};
     let peek = false;
     const save = () => ul.store.set(KEY, JSON.stringify(p));
     if (!stored) save();
-    const owlSrc: Record<string, string> = { fly: cfg.owl.fly || K.owlPlaceholder('fly'), landed: cfg.owl.landed || K.owlPlaceholder('landed') };
+    const owlSrc: Record<string, string> = { fly: cfg.owl.fly || K.owlPlaceholder('fly'), landed: cfg.owl.landed || K.owlPlaceholder('landed'), sleep: cfg.owl.sleep || '' };
     const itemName = (id: string) => cfg.items[id]?.name || id;
     const isHolderItem = (id: string) => cfg.holderItems.includes(id);
     // In the holder preview the golden decorations are lent to the house; they are not stored as owned.
@@ -253,7 +253,7 @@ const iv: Record<string, string> = c.invite || {};
     const ownFree = () => (p.free || []).filter((f: any) => !isHolderItem(f.i));
     const shownFree = () => (ul.holder ? p.free || [] : ownFree());
     const ownPaint = () => (p.paint && !isHolderItem(p.paint) ? p.paint : '');
-    const drawCtx = { ticker: cfg.ticker, ...cfg.night };
+    const drawCtx: Record<string, any> = { ticker: cfg.ticker, ...cfg.night, time: K.timeOfDay() };
 
     const view = () => {
       const s = K.statusOf(p, today);
@@ -262,6 +262,8 @@ const iv: Record<string, string> = c.invite || {};
     };
     const levelShown = (s: any) => (s.first && s.due ? 0 : s.level);
     const owlFor = (s: any) => {
+      // by day the owl sleeps on the roof (unless he has landed for night seven); he flies only in the evening and at night
+      if (drawCtx.time === 'day' && !s.landed && owlSrc.sleep) { const pp = K.owlPlace(h, K.NIGHTS, true); return { ...pp, size: 120, pose: 'sleep', href: owlSrc.sleep }; }
       const pos = s.landed ? K.owlPlace(h, K.NIGHTS, true) : K.owlPlace(h, s.litTonight ? s.streak : Math.max(1, s.streak), false);
       return { ...pos, href: owlSrc[pos.pose] };
     };
@@ -275,7 +277,9 @@ const iv: Record<string, string> = c.invite || {};
     // a line slot on a balcony (id b1-line, b2-line…) is the balcony rail, not the roof edge
     const slotLabel = (sl: any) => { const k = sl.kind === 'line' && /^b\d/.test(sl.id) ? 'balcony' : sl.kind; return cfg.slotNames[k] || SLOT_NAMES[k] || k; };
 
+    const timeName = (t: string) => (t === 'day' ? L.timeDay || 'Day' : t === 'dusk' ? L.timeDusk || 'Evening' : L.timeNight || 'Night');
     const drawHouse = () => {
+      drawCtx.time = K.timeOfDay();
       const s = view();
       const setupLevel = setupOn ? 2 : levelShown(s);
       const scene = setupOn || peek ? '' : K.sceneOf(K.tonightOf(p, today)?.event || '');
@@ -311,7 +315,7 @@ const iv: Record<string, string> = c.invite || {};
         slotsBox.appendChild(b);
       }
       drawFrame();
-      $<HTMLElement>('[data-ul-no]').textContent = `No. ${h.no} · ${styleName(h.family)}`;
+      $<HTMLElement>('[data-ul-no]').textContent = `No. ${h.no} · ${styleName(h.family)} · ${timeName(drawCtx.time)}`;
       $<HTMLElement>('[data-ul-plate]').textContent = plateText();
     };
 
@@ -813,6 +817,19 @@ const iv: Record<string, string> = c.invite || {};
       return { ...r, text: postNote.textContent || '' };
     }
     ul.postHouse = postLit;
+    // taking the own house off the street (the server knows it by this browser's id)
+    ul.onStreet = () => Boolean(ul.store.get(STREET_KEY));
+    ul.removeHouse = async () => {
+      if (!cfg.endpoint) return { ok: false, text: cfg.streetErrors.off || 'The street is closed for now.' };
+      try {
+        const res = await fetch(cfg.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: visitorId(), remove: true }) });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok || !out.ok) return { ok: false, text: cfg.streetErrors[out.error] || cfg.streetErrors.failed || 'The street did not answer. Try later.' };
+        ul.store.set(STREET_KEY, '');
+        ul.fire('ul:street', { refresh: true });
+        return { ok: true, text: L.removedStreet || 'Your house is off the street. It stays here with you, and you can put it back any time.' };
+      } catch { return { ok: false, text: cfg.streetErrors.offline || 'The street is not reachable from here.' }; }
+    };
     ul.houseName = () => ul.store.get(STREET_KEY) || p.name || '';
 
     // ---- house code ----------------------------------------------------------------------------
@@ -840,6 +857,8 @@ const iv: Record<string, string> = c.invite || {};
     // ---- keeping up with the clock and the holder preview --------------------------------------
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !pinnedDay) { const t = K.dayKey(); if (t !== today) { today = t; refresh(); } } });
     ul.on('ul:holder', () => { if (sel && isHolderItem(sel) && !ul.holder) sel = ''; refresh(); });
+    // day, evening and night follow the visitor's clock: the house changes when the hour comes
+    setInterval(() => { if (!document.hidden && !gesture && K.timeOfDay() !== drawCtx.time) refresh(); }, 60000);
 
     // ---- the first visit: three questions build the house -------------------------------------
     // Name on the door, the wish (colours and gifts), the street (style; suggested from the city or the time zone).

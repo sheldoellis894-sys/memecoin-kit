@@ -36,6 +36,7 @@ const data = JSON.stringify({
         <input class="lt-input" name="name" maxlength="18" autocomplete="off" placeholder={l.postName || 'A name for your house'} aria-label={l.postName || 'A name for your house'} />
         <button class="lt-btn" type="submit" data-ul-street-go>{l.cta || 'Put my house here'}</button>
       </div>
+      <button type="button" class="lt-btn lt-btn-small lt-btn-ghost lt-street-off" data-ul-street-off hidden>{l.takeOff || 'Take my house off the street'}</button>
       <p class="lt-note" data-ul-street-post-note aria-live="polite">{l.postHint || 'Latin letters and numbers. A dark house is lit for tonight first.'}</p>
     </form>
   </div>
@@ -76,7 +77,7 @@ const data = JSON.stringify({
       const got = x.seed ? { seed: x.seed, family: x.family || 'mumbai', wish: (x as any).wish || '', placed: x.placed || {}, free: [], paint: '' } : K.decodeHouse(x.code);
       if (!got) return '';
       const h = K.houseOfP(got);
-      return K.houseSvg(h, got.placed, { free: got.free, ctx: { ticker: cfg.ticker, ...cfg.night }, level: x.dark ? 1 : Math.max(1, Math.min(K.NIGHTS, x.streak)), owl: owl(h, x.dark ? 0 : x.streak), id: `uls${n++}`, size });
+      return K.houseSvg(h, got.placed, { free: got.free, ctx: { ticker: cfg.ticker, ...cfg.night, time: K.timeOfDay() }, level: x.dark ? 1 : Math.max(1, Math.min(K.NIGHTS, x.streak)), owl: owl(h, x.dark ? 0 : x.streak), id: `uls${n++}`, size });
     };
     const lineOf = (x: H) => x.dark
       ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', x as any)
@@ -158,6 +159,13 @@ const data = JSON.stringify({
     const pname = pform.elements.namedItem('name') as HTMLInputElement;
     const fillName = () => { if (!pname.value && ul.houseName) pname.value = ul.houseName() || ''; };
     fillName(); ul.on('ul:night', fillName);
+    const offBtn = $<HTMLButtonElement>('[data-ul-street-off]');
+    const markOn = () => { offBtn.hidden = !(ul.onStreet && ul.onStreet()); };
+    markOn(); ul.on('ul:street', markOn);
+    offBtn.addEventListener('click', async () => {
+      offBtn.disabled = true;
+      try { const r = await ul.removeHouse(); pnote.textContent = r.text; markOn(); } finally { offBtn.disabled = false; }
+    });
     pform.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!ul.postHouse) { pnote.textContent = L.postNoHouse || 'Build your house first: it is a little higher on this page.'; return; }

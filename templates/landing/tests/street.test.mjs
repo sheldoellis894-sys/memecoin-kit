@@ -250,6 +250,14 @@ assert.ok(res.out.ok); assert.equal(JSON.parse(store.state.text).houses.length, 
 // the same seed in another style is another house
 res = await call('POST', { ...good, id: 'ffffffffffffffff1111', name: 'Desert', code: K.encodeHouse(777, K.autoDecorate(777, 6, false, 'jaisalmer'), 'jaisalmer') }, { store }, ENV, '4.4.4.4');
 assert.ok(res.out.ok); assert.equal(res.out.house.family, 'jaisalmer'); assert.equal(JSON.parse(store.state.text).houses.length, 3);
+// taking the own house off the street: only by the id that put it there
+{ const before = JSON.parse(store.state.text).houses.length;
+  let rm = await call('POST', { id: 'zzzzzzzzzzzzzzzz9999', remove: true }, { store }, ENV, '7.7.7.1');
+  assert.ok(rm.out.ok && rm.out.removed === false); assert.equal(JSON.parse(store.state.text).houses.length, before, 'another id removes nothing');
+  rm = await call('POST', { id: good.id, remove: true }, { store }, ENV, '7.7.7.2');
+  assert.ok(rm.out.ok && rm.out.removed === true); assert.equal(JSON.parse(store.state.text).houses.length, before - 1, 'own house is gone');
+  assert.ok(!JSON.parse(store.state.text).houses.some((x) => x.name === 'Raju'));
+  assert.equal((await call('POST', { id: 'bad', remove: true }, { store }, ENV, '7.7.7.3')).status, 400); }
 console.log('3 ok: post, read, update, one house per visitor');
 
 // ---- 4. what is refused
