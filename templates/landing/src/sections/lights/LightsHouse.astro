@@ -627,7 +627,7 @@ const iv: Record<string, string> = c.invite || {};
         const li = document.createElement('li');
         const d = new Date(`${e.date}T12:00:00`);
         li.innerHTML = '<b></b><span></span><p></p>';
-        li.querySelector('b')!.textContent = `${d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} · ${fill(L.diaryNight || 'Night {n}', { n: e.night })}`;
+        li.querySelector('b')!.textContent = `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · ${fill(L.diaryNight || 'Night {n}', { n: e.night })}`;
         li.querySelector('span')!.textContent = [e.gift ? fill(L.diaryGift || 'Gift: {item}', { item: itemName(e.gift) }) : '', e.bonus ? itemsText(e.bonus) : ''].filter(Boolean).join(' · ');
         li.querySelector('p')!.textContent = eventText(e);
         list.appendChild(li);
@@ -789,6 +789,9 @@ const iv: Record<string, string> = c.invite || {};
       const clean = name.trim().replace(/\s+/g, ' ');
       if (!/^[A-Za-z0-9 ._'-]{2,18}$/.test(clean)) { postNote.textContent = L.nameRule || 'Use 2 to 18 Latin letters, numbers, spaces, dots or dashes.'; return { ok: false, error: 'name' }; }
       if (!cfg.endpoint) { postNote.textContent = cfg.streetErrors.off || 'The street is closed for now.'; return { ok: false, error: 'off' }; }
+      // the same word rules as the server (src/lib/lights-filter.js), said at once
+      if (K.isBadText(clean)) { postNote.textContent = cfg.streetErrors.words || 'This name is not allowed on the street. Pick another one'; return { ok: false, error: 'words' }; }
+      if (ownFree().some((f: any) => f.t && K.isBadText(f.t, { ticker: cfg.ticker }))) { postNote.textContent = cfg.streetErrors.sign || 'One of your signs has a word the street does not allow.'; return { ok: false, error: 'sign' }; }
       const s = K.statusOf(p, today);
       if (!p.nights || s.streak < 1) { postNote.textContent = L.postDark || 'Light up tonight first: a dark house cannot go on the street.'; return { ok: false, error: 'dark' }; }
       postNote.textContent = L.posting || 'Carrying the house to the street…';
@@ -812,7 +815,7 @@ const iv: Record<string, string> = c.invite || {};
       if (setupOn) return { ok: false, text: L.postSetup || 'Answer the three questions about your house first.' };
       if (!pinnedDay) today = K.dayKey();
       const s = K.statusOf(p, today);
-      if (!p.nights || s.streak < 1 || s.due) { const clean = name.trim().replace(/\s+/g, ' '); if (!/^[A-Za-z0-9 ._'-]{2,18}$/.test(clean)) { const t = L.nameRule || 'Use 2 to 18 Latin letters, numbers, spaces, dots or dashes.'; postNote.textContent = t; return { ok: false, text: t }; } light(); }
+      if (!p.nights || s.streak < 1 || s.due) { const clean = name.trim().replace(/\s+/g, ' '); if (!/^[A-Za-z0-9 ._'-]{2,18}$/.test(clean)) { const t = L.nameRule || 'Use 2 to 18 Latin letters, numbers, spaces, dots or dashes.'; postNote.textContent = t; return { ok: false, text: t }; } if (K.isBadText(clean)) { const t = cfg.streetErrors.words || 'This name is not allowed on the street. Pick another one'; postNote.textContent = t; return { ok: false, text: t }; } light(); }
       const r = await post(name);
       return { ...r, text: postNote.textContent || '' };
     }
@@ -881,7 +884,7 @@ const iv: Record<string, string> = c.invite || {};
     function plateText() {
       if (setupOn) return '';
       const bits = [p.name ? fill(L.plateOwner || "{name}'s house", { name: p.name }) : ''];
-      if (p.born) { const d = new Date(p.born); if (!isNaN(+d)) bits.push(fill(L.plateBuilt || 'built {date}', { date: d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) })); }
+      if (p.born) { const d = new Date(p.born); if (!isNaN(+d)) bits.push(fill(L.plateBuilt || 'built {date}', { date: d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) })); }
       if (p.city) bits.push(p.city);
       if (p.neighbour) bits.push(fill(L.plateNext || 'next door: {name}', { name: p.neighbour.name || fill(L.plateNextNo || 'house No. {no}', { no: friend?.no || '' }) }));
       return bits.filter(Boolean).join(' · ');

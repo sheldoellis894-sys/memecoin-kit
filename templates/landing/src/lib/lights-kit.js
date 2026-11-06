@@ -11,6 +11,8 @@
 import { VIEW, rng, f1, houseOf, houseParts, windowGlass, FAMILIES, FAMILY_IDS, familyFor, WISHES, WISH_IDS, moonPhase, moonSvg } from './lights-houses.js';
 import { pickEvent, holidayOf, EVENTS, EVENT_IDS, SCENE_IDS } from './lights-nights.js';
 import { streetScene } from './lights-scenes.js';
+import { isBadText } from './lights-filter.js';
+export { isBadText };
 export { pickEvent, holidayOf, EVENTS, EVENT_IDS, SCENE_IDS };
 export { VIEW, rng, houseOf, FAMILIES, FAMILY_IDS, familyFor, WISHES, WISH_IDS, moonPhase };
 export const NIGHTS = 7;           // nights in a row before the owl lands
@@ -216,7 +218,9 @@ export function decodeInvite(code) {
   let j; try { j = JSON.parse(unb64(code)); } catch { return null; }
   if (!j || j.v !== 1 || !Number.isInteger(j.s) || j.s <= 0 || j.s > 0xffffffff || !FAMILY_IDS.includes(j.f)) return null;
   if (j.w !== undefined && !WISH_IDS.includes(j.w)) return null;
-  return { seed: j.s, family: j.f, wish: j.w || '', name: j.n ? cleanName(j.n) : '' };
+  // a rude name from someone else's link is not shown: the page says "your friend" instead
+  const name = j.n ? cleanName(j.n) : '';
+  return { seed: j.s, family: j.f, wish: j.w || '', name: name && !isBadText(name) ? name : '' };
 }
 
 // ---------------------------------------------------------------- the nights

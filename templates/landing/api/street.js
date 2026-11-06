@@ -10,7 +10,8 @@
 //                           (new stores add BLOB_STORE_ID instead; the Blob package then signs in with Vercel OIDC)
 //   STORE=file, DATA_DIR  — on an own server: the folder for the file (the client's hosting)
 //   STREET_SALT           — optional: any long random string; visitor ids are stored only as hashes with it
-//   STREET_BLOCK          — optional: words that may not be in a name, comma separated
+//   STREET_BLOCK          — optional: more words that may not be in a name or on a sign, comma separated
+//                           (swearing, slurs, hate, links, promo and mocked holy names are blocked anyway: src/lib/lights-filter.js)
 //
 // Honest limits: there is no login, so the nights are what the browser says they are. The server checks that the
 // numbers agree with each other, draws the house from its code itself and computes its light itself, so a visitor
@@ -18,9 +19,9 @@
 // It answers only for projects listed in STREETS (env PROJECT).
 import { createHash } from 'node:crypto';
 import { storeFor, storeKind, serial } from './_agent/store.js';
-import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, NIGHTS } from '../src/lib/lights-kit.js';
+import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGHTS } from '../src/lib/lights-kit.js';
 
-export const STREETS = { ullu: { keep: 120 } };
+export const STREETS = { ullu: { keep: 120, ticker: 'ULLU' } };
 const SHOW = 60;                         // houses sent to the page
 const PER_IP = 6;                        // posts a day from one address (kept in memory: a soft limit)
 const PER_MINUTE = 40;                   // posts a minute for the whole street
@@ -82,6 +83,8 @@ const lightNow = (h, now) => (isDark(h, now) ? h.lightDark : h.light);
 /** Words from STREET_BLOCK found in a text (a name or a sign), compared without case. */
 const blockList = (env) => String(env.STREET_BLOCK || '').split(',').map((w) => w.trim().toLowerCase()).filter(Boolean);
 const blocked = (text, block) => { const t = String(text || '').toLowerCase(); return block.some((w) => t.includes(w)); };
+/** A house that may not stand on the street: a bad name, or a bad word on one of its own signs. */
+const rude = (name, got, conf, block) => isBadText(name, { extra: block }) || got.free.some((f) => f.t && isBadText(f.t, { ticker: conf.ticker, extra: block }));
 
 /** What a page may see of a house: never the key. dark = not lit for two days, so it shows as it is now: at level 1. */
 function publicOf(h, now) {
@@ -106,7 +109,9 @@ export async function handle(request, env = process.env, deps = {}) {
     if (!live) return json({ live, houses: [], star: null, count: 0 });
     try {
       // a house whose code the site cannot draw any more (an old style, a removed item) is left out
-      const houses = (await readStreet(env, store)).houses.filter((h) => decodeHouse(h.code, { holderOk: false }));
+      // and a house with words the street does not allow (also one put there before the rules got stricter)
+      const block = blockList(env);
+      const houses = (await readStreet(env, store)).houses.filter((h) => { const g = decodeHouse(h.code, { holderOk: false }); return g && !rude(h.name, g, conf, block); });
       const sorted = [...houses].sort((a, b) => lightNow(b, now) - lightNow(a, now) || (a.updated < b.updated ? 1 : -1));
       const star = starOf(houses, now);
       return json({ live, count: houses.length, star: star ? publicOf(star, now) : null, houses: sorted.slice(0, SHOW).map((h) => publicOf(h, now)) }, 200,
@@ -149,7 +154,8 @@ export async function handle(request, env = process.env, deps = {}) {
   // the name on the door
   const name = cleanName(b.name);
   const block = blockList(env);
-  if (!name || blocked(name, block)) return json({ ok: false, error: 'name' }, 400);
+  if (!name) return json({ ok: false, error: 'name' }, 400);
+  if (blocked(name, block) || isBadText(name, { extra: block })) return json({ ok: false, error: 'words' }, 400);
   // the house: drawn from its code by the server; golden holder decorations are not taken (there is no wallet check)
   const got = decodeHouse(b.code, { holderOk: false });
   if (!got) return json({ ok: false, error: 'code' }, 400);
@@ -160,7 +166,7 @@ export async function handle(request, env = process.env, deps = {}) {
   if (streak > best || best > nights || gifts > nights || landings > Math.floor(nights / NIGHTS) || (best < NIGHTS && landings > 0) || streak < 1)
     return json({ ok: false, error: 'numbers' }, 400);
   // the words on own signs follow the same rule as names
-  if (got.free.some((f) => f.t && blocked(f.t, block))) return json({ ok: false, error: 'sign' }, 400);
+  if (got.free.some((f) => f.t && (blocked(f.t, block) || isBadText(f.t, { ticker: conf.ticker, extra: block })))) return json({ ok: false, error: 'sign' }, 400);
 
   const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
   if (limited(ip, now)) return json({ ok: false, error: 'busy' }, 429);

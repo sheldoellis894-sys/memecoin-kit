@@ -264,7 +264,14 @@ console.log('3 ok: post, read, update, one house per visitor');
 const bad = async (body, error, status = 400) => { const x = await call('POST', body, { store }, ENV, '9.9.9.' + Math.floor(Math.random() * 200)); assert.equal(x.status, status, JSON.stringify(x.out)); assert.equal(x.out.error, error); };
 await bad({ ...good, name: 'a' }, 'name');
 await bad({ ...good, name: 'buy at x.com' }, 'name');
-await bad({ ...good, name: 'no rug here' }, 'name');
+await bad({ ...good, name: 'no rug here' }, 'words');
+// swearing, slurs, links, promo and mocked holy names (src/lib/lights-filter.js); holy names alone and look-alikes are fine
+for (const n of ['f u c k', 'sh1t house', 'Chutiya', 'blyat', 'ULLU Official', 'DM me', 'Allah pig', 'Krishna dog', 'Jesus sucks']) await bad({ ...good, name: n }, 'words');
+for (const [i, n] of ['Krishna', 'Mohammed', 'Class Act', 'Push It', 'Peacock'].entries()) {
+  const ok = await call('POST', { ...good, id: `goodname${i}`.padEnd(16, 'x'), name: n, code: K.encodeHouse(6000 + i, {}) }, { store }, ENV, `7.7.7.${i}`);
+  assert.ok(ok.out.ok, `${n}: ${JSON.stringify(ok.out)}`);
+}
+assert.equal(K.decodeInvite(K.encodeInvite({ seed: 99, family: 'kolkata', name: 'Chutiya' })).name, '', 'a rude friend name is not shown');
 await bad({ ...good, name: '<script>' }, 'name');
 await bad({ ...good, code: 'broken' }, 'code');
 await bad({ ...good, code: K.encodeHouse(777, { [K.houseOf(777).slots.find((x) => x.kind === 'hang').id]: 'jhoomar' }) }, 'code');
@@ -283,6 +290,17 @@ await bad({ ...good, code: JSON.parse('{"toString":1}') }, 'code');
   await bad({ ...good, id: 'signsignsignsign0001', code: slot(4242) }, 'sign');
   const ok = await call('POST', { ...good, id: 'signsignsignsign0002', name: 'Sign', code: K.encodeHouse(4243, {}, 'mumbai', '', { free: [{ n: 1, i: 'sign-custom', x: 300, y: 200, s: 1, r: 0, t: 'GM FRENS' }] }) }, { store }, ENV, '8.8.1.1');
   assert.ok(ok.out.ok, JSON.stringify(ok.out));
+  for (const [i, t] of ['FUCK', 'BUY $BONK', 'PUMP DOT FUN'].entries()) await bad({ ...good, id: `signsignsignsign01${i}`, code: K.encodeHouse(4300 + i, {}, 'mumbai', '', { free: [{ n: 1, i: 'sign-custom', x: 300, y: 200, s: 1, r: 0, t }] }) }, 'sign');
+  const own = await call('POST', { ...good, id: 'signsignsignsign0003', name: 'Own', code: K.encodeHouse(4244, {}, 'mumbai', '', { free: [{ n: 1, i: 'sign-custom', x: 300, y: 200, s: 1, r: 0, t: '$ULLU' }] }) }, { store }, ENV, '8.8.1.2');
+  assert.ok(own.out.ok, 'own ticker is fine: ' + JSON.stringify(own.out));
+}
+// a house with a rude name that got on the street before (older rules) is not shown, and never becomes the house of the night
+{
+  const j = JSON.parse(store.state.text);
+  j.houses.push({ ...j.houses[0], key: 'rude'.padEnd(32, '0'), seed: 5556, name: 'Chutiya', light: 100 });
+  store.state.text = JSON.stringify(j);
+  const g = await call('GET', null, { store });
+  assert.ok(g.out.houses.length > 0 && !g.out.houses.some((x) => x.name === 'Chutiya')); assert.notEqual(g.out.star?.name, 'Chutiya');
 }
 // a post that is too big is refused, also without a content-length header
 assert.equal((await handle(new Request('https://x/api/street', { method: 'POST', body: JSON.stringify({ ...good, pad: 'x'.repeat(10000) }) }), ENV, { store, now })).status, 413);
