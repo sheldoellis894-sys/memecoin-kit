@@ -2,7 +2,7 @@
 // The second tool of the "lights" layout: "Light up any picture". The visitor takes their own picture
 // (or their house, or one of the project pictures), the night falls on it, and they hang lights over it.
 // Every light makes the picture brighter; at 100% the owl lands on the picture, wearing sunglasses.
-// Save as a picture, as a round avatar, or share on X. Everything happens in the browser; nothing is uploaded.
+// Save as a picture or share on X. Everything happens in the browser; nothing is uploaded.
 // Wording comes from config.picture. Test hook: element.picture (see the end of the script).
 import { config, asset } from '../../lib/project';
 import { pictureCfg, houseCfg, owlImages, itemNames, nightCtx } from '../../lib/lights';
@@ -88,7 +88,6 @@ const data = JSON.stringify({
 
         <div class="lt-actions lt-actions-tight">
           <button type="button" class="lt-btn" data-ul-save>{l.save || 'Save the picture'}</button>
-          <button type="button" class="lt-btn lt-btn-ghost" data-ul-avatar>{l.avatar || 'Round avatar'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-pshare>{l.share || 'Share on X'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-clear>{l.clear || 'Start over'}</button>
         </div>
@@ -505,7 +504,6 @@ const data = JSON.stringify({
       }
     };
     $<HTMLButtonElement>('[data-ul-save]').addEventListener('click', () => save(false));
-    $<HTMLButtonElement>('[data-ul-avatar]').addEventListener('click', () => save(true));
     // Share on X: X opens at once (inside the click, so no popup blocker stops it) and the picture is saved to attach
     $<HTMLButtonElement>('[data-ul-pshare]').addEventListener('click', () => {
       const text = (cfg.shareText || '').replace('{n}', String(level()));

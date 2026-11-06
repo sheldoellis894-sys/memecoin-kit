@@ -31,55 +31,57 @@ const follow = h.follow !== false && owlImages.fly;
 </section>
 
 <script>
-  // The owl follows the light. On a computer he lazily flies after the cursor and hovers next to the "Light my house" button
-  // when the cursor is on it; on a phone he flies to where you tap. With nothing to follow he wanders over the sky.
-  // Not shown with reduced motion (CSS) and not drawn while the first screen is off the screen.
+  // The owl follows the light. On a computer he flies after the cursor over the whole page (he lives on the screen, not
+  // in the first block, so he never drops out when the page scrolls) and hovers next to the "Light my house" button when
+  // the cursor is on it. On a phone there is no cursor: he stays in the first screen and flies to where you tap.
+  // With nothing to follow he wanders: on a computer over the top part of the screen, on a phone over the picture.
+  // Not shown with reduced motion (CSS).
   const owl = document.querySelector<HTMLImageElement>('[data-ul-follow]');
   const hero = owl?.closest<HTMLElement>('.lt-hero');
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (owl && hero && !calm) {
     const perch = hero.querySelector<HTMLElement>('[data-ul-perch]');
+    const art = hero.querySelector<HTMLElement>('.lt-hero-art');
     const fine = matchMedia('(pointer: fine)').matches;
+    // on a computer the owl is a fixed layer over the page; on a phone he stays inside the first screen
+    if (fine) { document.body.appendChild(owl); owl.classList.add('is-page'); }
+    const box = () => (fine ? { left: 0, top: 0, width: innerWidth, height: innerHeight } : hero.getBoundingClientRect());
     let W = 0, H = 0, ow = 0, oh = 0;
-    const size = () => { W = hero.clientWidth; H = hero.clientHeight; ow = owl.offsetWidth || 120; oh = owl.offsetHeight || 96; };
+    const size = () => { const b = box(); W = b.width; H = b.height; ow = owl.offsetWidth || 120; oh = owl.offsetHeight || 96; };
     size(); addEventListener('resize', size, { passive: true });
     owl.addEventListener('load', size);
     const clampX = (x: number) => Math.min(Math.max(x, ow * 0.6), W - ow * 0.6);
-    const clampY = (y: number) => Math.min(Math.max(y, oh * 0.9), H - oh * 0.7);
+    const clampY = (y: number) => Math.min(Math.max(y, fine ? 70 + oh * 0.6 : oh * 0.9), H - oh * 0.7);
+    // where a point of the screen is in the owl's own box
+    const local = (cx: number, cy: number) => { const b = box(); return [cx - b.left, cy - b.top]; };
     let x = W * 0.62, y = Math.max(140, H * 0.18), vx = 0, vy = 0, tx = x, ty = y, face = 1, last = performance.now(), quietAt = 0;
-    { const a = hero.querySelector<HTMLElement>('.lt-hero-art'); if (a) { const r = a.getBoundingClientRect(), h = hero.getBoundingClientRect(); x = tx = r.left - h.left + r.width * 0.5; y = ty = r.top - h.top + r.height * 0.1; } }
+    if (art) { const r = art.getBoundingClientRect(); [x, y] = local(r.left + r.width * 0.5, r.top + r.height * 0.1); x = tx = clampX(x); y = ty = clampY(y); }
     const aim = (nx: number, ny: number) => { tx = clampX(nx); ty = clampY(ny); quietAt = performance.now(); wake(); };
-    const local = (e: PointerEvent) => { const r = hero.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-    // with nothing to follow he wanders over the picture and the sky around it, never over the words
-    const art = hero.querySelector<HTMLElement>('.lt-hero-art');
     const wander = () => {
-      if (art) {
+      if (!fine && art) {   // the phone: over the picture and the sky around it, never over the words
         const a = art.getBoundingClientRect(), h = hero.getBoundingClientRect();
         const x0 = a.left - h.left - a.width * 0.12, x1 = a.right - h.left + a.width * 0.12, y0 = a.top - h.top - 10, y1 = a.top - h.top + a.height * 0.5;
         tx = clampX(x0 + Math.random() * (x1 - x0)); ty = clampY(y0 + Math.random() * (y1 - y0)); return;
       }
-      tx = clampX(W * (0.08 + Math.random() * 0.84)); ty = clampY(H * (0.1 + Math.random() * 0.45));
+      tx = clampX(W * (0.08 + Math.random() * 0.84)); ty = clampY(H * (0.12 + Math.random() * 0.4));
     };
     if (fine) {
-      // on the whole page, so the owl keeps following over the top bar and the bands that lie over the first screen;
-      // outside the first screen he just stays where the cursor left him
       addEventListener('pointermove', (e) => {
         if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
-        const h = hero.getBoundingClientRect();
-        if (e.clientY < h.top - 70 || e.clientY > h.bottom + 10 || e.clientX < h.left || e.clientX > h.right) return;
         const t = e.target as HTMLElement;
         if (perch && (t === perch || perch.contains(t))) {   // hover next to the button, a little above its right end
-          const r = perch.getBoundingClientRect();
-          return aim(r.right - h.left + ow * 0.45, r.top - h.top - oh * 0.35);
+          const r = perch.getBoundingClientRect(); const [px, py] = local(r.right, r.top);
+          return aim(px + ow * 0.45, py - oh * 0.35);
         }
-        const [px, py] = local(e); aim(px + ow * 0.55, py - oh * 0.6);   // up and to the right of the cursor, never under it
+        const [px, py] = local(e.clientX, e.clientY); aim(px + ow * 0.55, py - oh * 0.6);   // up and to the right of the cursor, never under it
+      }, { passive: true });
+    } else {
+      hero.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse') return;
+        if ((e.target as HTMLElement).closest('a, button, input, label')) return;
+        const [px, py] = local(e.clientX, e.clientY); aim(px, py - oh * 0.4);
       }, { passive: true });
     }
-    hero.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse') return;
-      if ((e.target as HTMLElement).closest('a, button, input, label')) return;
-      const [px, py] = local(e); aim(px, py - oh * 0.4);
-    }, { passive: true });
 
     let raf = 0, seen = true;
     const step = (now: number) => {
@@ -98,7 +100,8 @@ const follow = h.follow !== false && owlImages.fly;
       if (seen && !document.hidden) raf = requestAnimationFrame(step);
     };
     const wake = () => { if (!raf && seen && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(step); } };
-    new IntersectionObserver(([en]) => { seen = en.isIntersecting; wake(); }).observe(hero);
+    // on a phone the owl is drawn only while the first screen is on the screen; on a computer always
+    if (!fine) new IntersectionObserver(([en]) => { seen = en.isIntersecting; wake(); }).observe(hero);
     document.addEventListener('visibilitychange', wake);
     hero.classList.add('has-follow');
     wake();

@@ -481,6 +481,8 @@ html:not(.ul-motion) .lt-buy-sec.is-lit .lt-big-diya-lamp i { animation: none; }
 .lt-follow { display: none; position: absolute; left: 0; top: 0; z-index: 4; width: clamp(78px, 7.5vw, 118px); height: auto; pointer-events: none; user-select: none; -webkit-user-select: none;
   filter: drop-shadow(0 0 18px color-mix(in srgb, var(--lt-glow) 45%, transparent)); will-change: transform; }
 html.ul-motion .lt-hero.has-follow .lt-follow { display: block; }
+/* on a computer the owl lives on the screen itself, over the page and under the top bar, so he never drops out on scroll */
+html.ul-motion .lt-follow.is-page { display: block; position: fixed; z-index: 40; }
 
 /* ---- Sparkler behind the cursor and a firework on a click (LightsShell) ---- */
 .lt-sparks { position: fixed; inset: 0; z-index: 45; width: 100%; height: 100%; pointer-events: none; }
