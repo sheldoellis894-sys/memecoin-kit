@@ -47,15 +47,29 @@ const follow = h.follow !== false && owlImages.fly;
     const clampX = (x: number) => Math.min(Math.max(x, ow * 0.6), W - ow * 0.6);
     const clampY = (y: number) => Math.min(Math.max(y, oh * 0.9), H - oh * 0.7);
     let x = W * 0.62, y = Math.max(140, H * 0.18), vx = 0, vy = 0, tx = x, ty = y, face = 1, last = performance.now(), quietAt = 0;
+    { const a = hero.querySelector<HTMLElement>('.lt-hero-art'); if (a) { const r = a.getBoundingClientRect(), h = hero.getBoundingClientRect(); x = tx = r.left - h.left + r.width * 0.5; y = ty = r.top - h.top + r.height * 0.1; } }
     const aim = (nx: number, ny: number) => { tx = clampX(nx); ty = clampY(ny); quietAt = performance.now(); wake(); };
     const local = (e: PointerEvent) => { const r = hero.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-    const wander = () => { tx = clampX(W * (0.08 + Math.random() * 0.84)); ty = clampY(H * (0.1 + Math.random() * 0.45)); };
+    // with nothing to follow he wanders over the picture and the sky around it, never over the words
+    const art = hero.querySelector<HTMLElement>('.lt-hero-art');
+    const wander = () => {
+      if (art) {
+        const a = art.getBoundingClientRect(), h = hero.getBoundingClientRect();
+        const x0 = a.left - h.left - a.width * 0.12, x1 = a.right - h.left + a.width * 0.12, y0 = a.top - h.top - 10, y1 = a.top - h.top + a.height * 0.5;
+        tx = clampX(x0 + Math.random() * (x1 - x0)); ty = clampY(y0 + Math.random() * (y1 - y0)); return;
+      }
+      tx = clampX(W * (0.08 + Math.random() * 0.84)); ty = clampY(H * (0.1 + Math.random() * 0.45));
+    };
     if (fine) {
-      hero.addEventListener('pointermove', (e) => {
+      // on the whole page, so the owl keeps following over the top bar and the bands that lie over the first screen;
+      // outside the first screen he just stays where the cursor left him
+      addEventListener('pointermove', (e) => {
         if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+        const h = hero.getBoundingClientRect();
+        if (e.clientY < h.top - 70 || e.clientY > h.bottom + 10 || e.clientX < h.left || e.clientX > h.right) return;
         const t = e.target as HTMLElement;
         if (perch && (t === perch || perch.contains(t))) {   // hover next to the button, a little above its right end
-          const r = perch.getBoundingClientRect(), h = hero.getBoundingClientRect();
+          const r = perch.getBoundingClientRect();
           return aim(r.right - h.left + ow * 0.45, r.top - h.top - oh * 0.35);
         }
         const [px, py] = local(e); aim(px + ow * 0.55, py - oh * 0.6);   // up and to the right of the cursor, never under it
@@ -72,9 +86,10 @@ const follow = h.follow !== false && owlImages.fly;
       raf = 0;
       const dt = Math.min(48, now - last) / 16.7; last = now;
       if (now - quietAt > 5000 && Math.hypot(tx - x, ty - y) < 30) { wander(); quietAt = now - 1500; }   // nothing to follow: pick another spot
-      vx = (vx + (tx - x) * 0.011 * dt) * Math.pow(0.9, dt);
-      vy = (vy + (ty - y) * 0.011 * dt) * Math.pow(0.9, dt);
-      const sp = Math.hypot(vx, vy), max = 7.5;
+      // a soft spring: he lags a little behind the cursor, but a fast swipe does not lose him (the speed cap grows with the distance)
+      vx = (vx + (tx - x) * 0.02 * dt) * Math.pow(0.86, dt);
+      vy = (vy + (ty - y) * 0.02 * dt) * Math.pow(0.86, dt);
+      const sp = Math.hypot(vx, vy), max = Math.max(9, Math.hypot(tx - x, ty - y) * 0.12);
       if (sp > max) { vx *= max / sp; vy *= max / sp; }
       x += vx * dt; y += vy * dt;
       const dx = tx - x; if (Math.abs(dx) > 60) face = dx > 0 ? -1 : 1;   // the picture looks left; mirror it when he heads right (not on the small swing at the stop)

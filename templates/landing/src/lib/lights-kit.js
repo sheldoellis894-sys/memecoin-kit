@@ -119,8 +119,11 @@ export function houseSvg(h, placed = {}, opts = {}) {
   s += scene.over.replaceAll('ulfog', `${id}-fog`);
   if (opts.owl && opts.owl.href) {
     const o = opts.owl;
-    const flip = o.flip ? ` transform="translate(${2 * o.x} 0) scale(-1 1)"` : '';
-    s += `<image href="${o.href}" x="${o.x - o.size / 2}" y="${o.y - o.size}" width="${o.size}" height="${o.size}" preserveAspectRatio="xMidYMax meet"${flip}/>`;
+    // the mirror flip sits on a group of its own: the owl in the sky hovers a little through CSS (class ul-owl-fly), and a
+    // CSS transform would replace a transform attribute on the same element. On the roof or asleep he sits still.
+    const cls = o.pose === 'fly' || !o.pose ? ' class="ul-owl-fly"' : '';
+    const img = `<image${cls} href="${o.href}" x="${o.x - o.size / 2}" y="${o.y - o.size}" width="${o.size}" height="${o.size}" preserveAspectRatio="xMidYMax meet"/>`;
+    s += o.flip ? `<g transform="translate(${2 * o.x} 0) scale(-1 1)">${img}</g>` : img;
   }
   return s + '</svg>';
 }

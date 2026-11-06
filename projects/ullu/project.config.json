@@ -496,7 +496,10 @@
     "fullAt": 100,
     "bases": [
       { "src": "gallery/ullu_g01.jpg", "label": "Night one" },
+      { "src": "gallery/ullu_g02.jpg", "label": "Market" },
       { "src": "gallery/ullu_g03.jpg", "label": "Rain" },
+      { "src": "gallery/ullu_g04.jpg", "label": "Tangled" },
+      { "src": "gallery/ullu_g05.jpg", "label": "Rickshaw" },
       { "src": "gallery/ullu_g06.jpg", "label": "Night seven" }
     ],
     "stickers": [

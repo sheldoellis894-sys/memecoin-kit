@@ -300,12 +300,21 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 
 /* ---- Gallery: arched windows ---- */
 .lt-gallery { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+/* the ribbon: one row that scrolls sideways; the scrollbar is hidden, the row shows a little past the page edges */
+.lt-ribbon.is-ribbon { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; -ms-overflow-style: none; margin: 0 -16px; padding: 10px 16px 6px; -webkit-overflow-scrolling: touch; }
+.lt-ribbon.is-ribbon::-webkit-scrollbar { display: none; }
+.lt-ribbon.is-ribbon .lt-gallery { display: flex; gap: 16px; width: max-content; }
+.lt-ribbon.is-ribbon .lt-gallery > li { flex: 0 0 min(68vw, 250px); }
+.lt-ribbon.is-ribbon .lt-window img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+.lt-ribbon.is-ribbon .lt-window { touch-action: pan-x pan-y; }
 .lt-window { display: block; width: 100%; padding: 0; border: 3px solid var(--t-accent); border-radius: 999px 999px 18px 18px; overflow: hidden; cursor: zoom-in; background: var(--lt-stage); aspect-ratio: 3 / 4;
   box-shadow: 0 0 30px -6px color-mix(in srgb, var(--t-primary) 45%, transparent); transition: transform .2s, box-shadow .2s; }
 .lt-window:hover { transform: translateY(-4px); box-shadow: 0 0 46px 0 color-mix(in srgb, var(--t-primary) 60%, transparent); }
 .lt-window img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .lt-window-note { margin: 8px 4px 0; text-align: center; font-size: .9rem; color: var(--t-muted); }
-@media (min-width: 900px) { .lt-gallery { grid-template-columns: repeat(var(--cols, 4), 1fr); gap: 20px; } }
+@media (min-width: 900px) { .lt-gallery { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .lt-ribbon.is-ribbon { padding: 14px 16px 8px; }
+  .lt-ribbon.is-ribbon .lt-gallery { gap: 22px; } .lt-ribbon.is-ribbon .lt-gallery > li { flex-basis: 300px; } }
 
 /* ---- Token: a house front ---- */
 .lt-facade { position: relative; padding: 20px 16px 18px; border-radius: 26px 26px 18px 18px; background: var(--lt-facade); border: 3px solid var(--lt-ink); color: var(--lt-ink);
@@ -490,6 +499,9 @@ html:not(.ul-motion) .lt-sparks { display: none; }
 html.ul-motion .lt-sleepy.is-on:not(.is-wake) { animation: lt-breathe 3.2s ease-in-out .9s infinite; }
 .lt-sleepy.is-on.is-wake { transition: transform .55s cubic-bezier(.6, -0.4, .7, .2), opacity .55s; transform: translate(-140%, -30px) rotate(-12deg); opacity: 0; }
 @keyframes lt-breathe { 50% { transform: scale(1.035, .985); } }
+/* the owl in the sky over the house hovers up and down a little, in his own box so the flip stays as drawn */
+html.ul-motion .lt-stage .ul-owl-fly { animation: lt-hover 3.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes lt-hover { 50% { transform: translateY(-3%) rotate(-2deg); } }
 html:not(.ul-motion) .lt-sleepy { transition: none; }
 
 /* ---- The secret word: the owl flies across the screen (LightsShell) ---- */
@@ -545,6 +557,9 @@ html:not(.ul-motion) .lt-sleepy { transition: none; }
 .lt-swatches button { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--lt-ink); background: var(--c); box-shadow: 0 0 0 2px rgb(255 255 255 / .25); cursor: pointer; }
 .lt-swatches button.is-none { background: linear-gradient(135deg, transparent 45%, #E8343B 45% 55%, transparent 55%), rgb(255 255 255 / .08); }
 .lt-swatches button[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--t-accent); }
+/* fingers: the font and colour buttons are tall enough to hit (the look stays the same) */
+@media (pointer: coarse) { .lt-fonts button { min-height: 40px; padding: 8px 14px; } .lt-swatches button { width: 38px; height: 38px; } .lt-swatches { gap: 10px; }
+  .lt-tabs button, .lt-cap { min-height: 32px; } }
 .lt-switch-small { margin-top: 12px; }
 /* the frame's handles may stick out of the picture: the picture keeps its rounded corners, the box lets the handles out */
 .lt-house-sec .lt-stage-box { overflow: visible; }
