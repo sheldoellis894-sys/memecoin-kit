@@ -126,7 +126,7 @@ const iv: Record<string, string> = c.invite || {};
         <div class="lt-actions lt-actions-tight">
           <button type="button" class="lt-btn" data-ul-card>{l.card || 'Save the card'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-share>{l.share || 'Share on X'}</button>
-          <button type="button" class="lt-btn lt-btn-ghost" data-ul-peek aria-pressed="false">{l.peek || 'Peek at night 7'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-peek aria-pressed="false" hidden>{l.peek || 'Peek at night 7'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-reroll>{l.reroll || 'Another house'}</button>
         </div>
         <p class="lt-note" data-ul-peek-note hidden>{l.peekNote || 'This is how night seven looks. Your own nights are not changed.'}</p>
@@ -831,16 +831,20 @@ const iv: Record<string, string> = c.invite || {};
       } catch { return { ok: false, text: cfg.streetErrors.offline || 'The street is not reachable from here.' }; }
     };
     ul.houseName = () => ul.store.get(STREET_KEY) || p.name || '';
+    ul.houseNo = () => h.no;
 
     // ---- house code ----------------------------------------------------------------------------
     const codeNote = $<HTMLElement>('[data-ul-code-note]');
     $<HTMLButtonElement>('[data-ul-copy]').addEventListener('click', async () => {
-      const code = K.encodeHouse(p.seed, p.placed, p.family, p.wish, { free: p.free, paint: p.paint });
+      // the moving code: the house code plus this browser's street id (after a dot), so on the new phone the same
+      // house keeps its place on the street instead of being "taken". Keep it to yourself.
+      const code = `${K.encodeHouse(p.seed, p.placed, p.family, p.wish, { free: p.free, paint: p.paint })}.${visitorId()}`;
       try { await navigator.clipboard.writeText(code); codeNote.textContent = L.copied || 'Code copied.'; }
       catch { ($<HTMLInputElement>('[data-ul-code-in]')).value = code; codeNote.textContent = L.copyManual || 'Copy the code from the field.'; }
     });
-    const moveIn = (code: string) => {
-      const got = K.decodeHouse(code.trim());
+    const moveIn = (raw: string) => {
+      const [code, sid] = raw.trim().split('.');
+      const got = K.decodeHouse(code || '');
       if (!got) { codeNote.textContent = L.badCode || 'This code does not open any house.'; return false; }
       if (p.nights > 0 && (got.seed !== p.seed || got.family !== p.family)) { codeNote.textContent = L.codeBusy || 'This browser already has a house with nights on it. Move in on a new phone.'; return false; }
       const inv = { ...p.inv };
@@ -849,6 +853,8 @@ const iv: Record<string, string> = c.invite || {};
       for (const [it, n] of Object.entries(need)) inv[it] = Math.max(inv[it] || 0, n);
       p = { ...p, seed: got.seed, family: got.family, wish: got.wish, setup: true, placed: Object.fromEntries(Object.entries(got.placed).filter(([, i]) => !isHolderItem(i as string))), free: got.free.filter((f: any) => !isHolderItem(f.i)), paint: got.paint && !isHolderItem(got.paint) ? got.paint : '', inv, seen: { ...(p.seen || {}), ...need } };
       h = houseFor(p); save(); sel = '';
+      // the street id from the old phone: this browser now updates the same house on the street
+      if (sid && /^[a-z0-9]{16,32}$/.test(sid)) ul.store.set(ID_KEY, sid);
       codeNote.textContent = fill(L.movedIn || 'Welcome home. House No. {no}.', { no: h.no }); refresh();
       return true;
     };
@@ -938,7 +944,11 @@ const iv: Record<string, string> = c.invite || {};
       else finishSetup();
     });
     backBtn.addEventListener('click', () => goStep(Math.max(1, step - 1)));
-    $<HTMLButtonElement>('[data-ul-setup-skip]').addEventListener('click', finishSetup);
+    // Skip on the first question keeps a name that was already typed (a wrong one is simply left out)
+    $<HTMLButtonElement>('[data-ul-setup-skip]').addEventListener('click', () => {
+      if (step === 1) { const n = K.cleanName(nameIn.value.trim()); if (n) p.name = n; }
+      finishSetup();
+    });
     wishBox.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-wish]'); if (!b) return;
       p.wish = p.wish === b.dataset.wish ? '' : b.dataset.wish!;

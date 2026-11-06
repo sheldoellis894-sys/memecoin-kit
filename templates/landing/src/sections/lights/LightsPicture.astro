@@ -50,7 +50,7 @@ const data = JSON.stringify({
           <label class="lt-range"><span>{l.night || 'Night'}</span><input type="range" min="0" max="100" value="60" data-ul-night /></label>
         </div>
 
-        <div class="lt-box">
+        <div class="lt-box" data-ul-litbox>
           <p class="lt-label">{l.lights || '2. The lights'}</p>
           <div class="lt-tabs" data-ul-ptabs role="tablist" aria-label={l.lights || 'The lights'}></div>
           <div class="lt-inv lt-inv-pic" data-ul-stickers></div>
@@ -313,6 +313,16 @@ const data = JSON.stringify({
       if (k.light) await owlCheck();
       return x;
     };
+    // phones: the lights and the editing box go right under the picture, so picking, placing and resizing happen
+    // on one screen; on a computer they stay in the panel. Placeholders keep their places for the way back.
+    {
+      const phone = matchMedia('(max-width: 939px)');
+      const stage = root.querySelector<HTMLElement>('.lt-pic-stage')!;
+      const moved = [root.querySelector<HTMLElement>('[data-ul-litbox]')!, root.querySelector<HTMLElement>('[data-ul-edit]')!];
+      const marks = moved.map((el) => { const m = document.createComment('dock'); el.before(m); return m; });
+      const dock = () => { moved.forEach((el, i) => { if (phone.matches) stage.appendChild(el); else marks[i].after(el); }); root.classList.toggle('is-docked', phone.matches); };
+      dock(); phone.addEventListener('change', dock);
+    }
     ptabs.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>('[data-ptab]'); if (!b) return; ptab = b.dataset.ptab!; drawList(); });
     list.addEventListener('click', async (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-kind]'); if (!b) return;
