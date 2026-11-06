@@ -72,6 +72,17 @@ html.ul-scrolled .lt-bar { background: var(--lt-sky-top); background: color-mix(
 .lt-nav a.is-on { color: var(--lt-ink); background: var(--t-accent); }
 .lt-chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px 6px 10px; border-radius: 999px; border: 2px solid var(--lt-line); color: var(--t-text);
   text-decoration: none; font-weight: 700; font-size: .88rem; white-space: nowrap; background: rgb(255 255 255 / .04); }
+/* X and Telegram in the bar: round buttons in the line with the house chip */
+.lt-soc { display: flex; gap: 6px; flex: none; }
+.lt-soc-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--lt-line); color: var(--t-text);
+  background: rgb(255 255 255 / .04); text-decoration: none; transition: border-color .2s, background-color .2s, transform .2s; }
+.lt-soc-btn:hover { border-color: var(--t-accent); background: color-mix(in srgb, var(--t-accent) 14%, transparent); transform: translateY(-1px); }
+.lt-soc-x { font: 800 1rem/1 var(--font-body); }
+/* a placeholder until the account exists: dimmed, not a link */
+.lt-soc-btn.is-soon, .lt-footer-links .is-soon { opacity: .55; cursor: default; }
+.lt-soc-btn.is-soon:hover { border-color: var(--lt-line); background: rgb(255 255 255 / .04); transform: none; }
+.lt-footer-links .is-soon:hover { transform: none; filter: none; background: transparent; }
+.lt-footer-links .is-soon small { font-size: .78em; font-weight: 700; opacity: .85; }
 .lt-chip-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--lt-dim); flex: none; transition: background-color .3s, box-shadow .3s; }
 .lt-chip.is-lit .lt-chip-dot { background: var(--lt-glow); box-shadow: 0 0 10px 3px color-mix(in srgb, var(--lt-glow) 70%, transparent); }
 @media (min-width: 1040px) { .lt-nav { display: flex; } .lt-brand { margin-right: 14px; } .lt-nav { margin-right: auto; } .lt-bar { padding: 0 28px; } }

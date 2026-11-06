@@ -6,6 +6,13 @@ import { config, asset } from '../../lib/project';
 import { lights, houseCfg, owlImages } from '../../lib/lights';
 const bar = lights.bar || {};
 const nav: { id: string; label: string }[] = lights.nav || [];
+// X and Telegram in the top bar: round buttons. Links come from project.config.json → "links"; an empty link is shown
+// as a dimmed placeholder ("Soon") until the account exists. config "lights.bar.social": false hides both.
+const soon = bar.soon || 'Soon';
+const social = bar.social === false ? [] : [
+  { id: 'x', url: config.links.x || '', label: bar.xLabel || `${config.name} on X` },
+  { id: 'tg', url: config.links.telegram || '', label: bar.telegramLabel || `${config.name} in Telegram` },
+];
 // Sparkler behind the cursor and a small firework on a click into empty space; config "lights.sparks": false turns it off
 const sparks = lights.sparks !== false;
 // "Find the owl": once a day the sleeping owl hides somewhere on the page; config "house.hide": false turns it off
@@ -26,6 +33,14 @@ const hide = (houseCfg as any).hide !== false && owlImages.sleep
   <nav class="lt-nav" aria-label={bar.navLabel || 'Sections'}>
     {nav.map((n) => <a href={`#${n.id}`} data-ul-nav={n.id}>{n.label}</a>)}
   </nav>
+  {social.length > 0 && <div class="lt-soc">
+    {social.map((l) => {
+      const icon = l.id === 'x' ? <span class="lt-soc-x" aria-hidden="true">X</span> : <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21 4 3.6 11.2c-.8.3-.8 1.4 0 1.7l4.3 1.5 1.6 5c.2.8 1.2 1 1.8.4l2.4-2.3 4.1 3c.7.5 1.6.1 1.8-.7L22.5 5.1c.2-.9-.7-1.5-1.5-1.1ZM9.2 14.1l9-6.5-7.4 7.8-.3 3Z" fill="currentColor"/></svg>;
+      return l.url
+        ? <a class="lt-soc-btn" href={l.url} target="_blank" rel="noopener noreferrer" aria-label={l.label} title={l.label}>{icon}</a>
+        : <span class="lt-soc-btn is-soon" role="img" aria-label={`${l.label}: ${soon}`} title={`${l.label}: ${soon}`}>{icon}</span>;
+    })}
+  </div>}
   <a class="lt-chip" href="#house" data-ul-chip><span class="lt-chip-dot" aria-hidden="true"></span><span data-ul-chip-text>{bar.chip || 'My house'}</span></a>
   <a class="lt-btn lt-btn-small" href="#buy">{bar.buy || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
 </header>
