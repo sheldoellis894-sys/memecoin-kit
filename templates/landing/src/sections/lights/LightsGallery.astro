@@ -12,7 +12,7 @@ const ribbon = items.length > 2;
 const rows = ribbon ? [items, items] : [items];
 ---
 {items.length > 0 && (
-<section id="gallery" class="lt-sec">
+<section id="gallery" class:list={['lt-sec', ribbon && 'has-ribbon']}>
   <div class="lt-in">
     <LtHead kicker={g.kicker} title={g.title} lead={g.lead} />
     <div class:list={['lt-ribbon', ribbon && 'is-ribbon']} data-ul-ribbon={ribbon ? '' : undefined} data-ul-in>

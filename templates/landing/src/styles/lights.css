@@ -301,7 +301,10 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 /* ---- Gallery: arched windows ---- */
 .lt-gallery { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
 /* the ribbon: one row that scrolls sideways; the scrollbar is hidden, the row shows a little past the page edges */
-.lt-ribbon.is-ribbon { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; -ms-overflow-style: none; margin: 0 -16px; padding: 10px 16px 6px; -webkit-overflow-scrolling: touch; }
+/* full width: the ribbon runs from one edge of the screen to the other, out of the page's side margins; the section clips
+   the few pixels that a desktop scrollbar adds to 100vw, so the page never gets a sideways scrollbar */
+.lt-sec.has-ribbon { overflow-x: hidden; overflow-x: clip; }
+.lt-ribbon.is-ribbon { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; -ms-overflow-style: none; width: 100vw; margin-left: calc(50% - 50vw); padding: 10px 0 6px; -webkit-overflow-scrolling: touch; }
 .lt-ribbon.is-ribbon::-webkit-scrollbar { display: none; }
 .lt-ribbon.is-ribbon .lt-gallery { display: flex; gap: 16px; width: max-content; }
 .lt-ribbon.is-ribbon .lt-gallery > li { flex: 0 0 min(78vw, 300px); }
@@ -315,7 +318,7 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-window img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .lt-window-note { margin: 8px 4px 0; text-align: center; font-size: .9rem; color: var(--t-muted); }
 @media (min-width: 900px) { .lt-gallery { grid-template-columns: repeat(4, 1fr); gap: 20px; }
-  .lt-ribbon.is-ribbon { padding: 14px 16px 8px; }
+  .lt-ribbon.is-ribbon { padding: 14px 0 8px; }
   .lt-ribbon.is-ribbon .lt-gallery { gap: 24px; } .lt-ribbon.is-ribbon .lt-gallery > li { flex-basis: 340px; } }
 
 /* ---- Token: a house front ---- */
