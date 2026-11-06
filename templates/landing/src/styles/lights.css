@@ -304,7 +304,9 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-ribbon.is-ribbon { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; -ms-overflow-style: none; margin: 0 -16px; padding: 10px 16px 6px; -webkit-overflow-scrolling: touch; }
 .lt-ribbon.is-ribbon::-webkit-scrollbar { display: none; }
 .lt-ribbon.is-ribbon .lt-gallery { display: flex; gap: 16px; width: max-content; }
-.lt-ribbon.is-ribbon .lt-gallery > li { flex: 0 0 min(68vw, 250px); }
+.lt-ribbon.is-ribbon .lt-gallery > li { flex: 0 0 min(78vw, 300px); }
+/* the pictures are square: a square window shows the whole scene, nothing is cut off at the sides */
+.lt-ribbon.is-ribbon .lt-window { aspect-ratio: 1; }
 .lt-ribbon.is-ribbon .lt-window img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
 .lt-ribbon.is-ribbon .lt-window { touch-action: pan-x pan-y; }
 .lt-window { display: block; width: 100%; padding: 0; border: 3px solid var(--t-accent); border-radius: 999px 999px 18px 18px; overflow: hidden; cursor: zoom-in; background: var(--lt-stage); aspect-ratio: 3 / 4;
@@ -314,7 +316,7 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-window-note { margin: 8px 4px 0; text-align: center; font-size: .9rem; color: var(--t-muted); }
 @media (min-width: 900px) { .lt-gallery { grid-template-columns: repeat(4, 1fr); gap: 20px; }
   .lt-ribbon.is-ribbon { padding: 14px 16px 8px; }
-  .lt-ribbon.is-ribbon .lt-gallery { gap: 22px; } .lt-ribbon.is-ribbon .lt-gallery > li { flex-basis: 300px; } }
+  .lt-ribbon.is-ribbon .lt-gallery { gap: 24px; } .lt-ribbon.is-ribbon .lt-gallery > li { flex-basis: 340px; } }
 
 /* ---- Token: a house front ---- */
 .lt-facade { position: relative; padding: 20px 16px 18px; border-radius: 26px 26px 18px 18px; background: var(--lt-facade); border: 3px solid var(--lt-ink); color: var(--lt-ink);
