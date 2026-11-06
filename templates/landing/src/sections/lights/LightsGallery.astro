@@ -5,12 +5,14 @@ import { lights } from '../../lib/lights';
 import LtHead from './LtHead.astro';
 const g = lights.gallery || {};
 const items: { src: string; alt: string; note?: string }[] = config.gallery || [];
+// windows in a row on a wide screen: 4, or 3 when that fills the rows evenly (6 pictures = 2 rows of 3)
+const cols = items.length % 4 === 0 ? 4 : items.length % 3 === 0 ? 3 : 4;
 ---
 {items.length > 0 && (
 <section id="gallery" class="lt-sec">
   <div class="lt-in">
     <LtHead kicker={g.kicker} title={g.title} lead={g.lead} />
-    <ul class="lt-gallery">
+    <ul class="lt-gallery" style={`--cols:${cols}`}>
       {items.map((it, i) => (
         <li style={`--i:${i}`} data-ul-in>
           <button type="button" class="lt-window" data-ul-pic-open={i} aria-label={`${g.open || 'Open'}: ${it.alt}`}>

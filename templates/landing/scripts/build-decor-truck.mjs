@@ -3,7 +3,7 @@
 // Every rule is scoped to html.decor-truck (theme.json "decor": "truck"), so other themes stay exactly as they are.
 import fs from 'node:fs';
 const OUT = process.argv[2] || new URL('../src/styles/decor-truck.css', import.meta.url);
-const K = '#120A2A', R = '#E8343B', Y = '#FFD21F', G = '#16A34A', B = '#2453D6', P = '#FF4FA3', O = '#FF8A1F', W = '#FFF8E1', L = '#B8E62E';
+const K = '#120A2A', R = '#E8343B', Y = '#FFD21F', G = '#16A34A', B = '#2453D6', P = '#FF4FA3', O = '#FF8A1F', W = '#FFF8E1', L = '#E5A82E';   // L: the number medallions, in the buttons' mustard
 const url = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg.replace(/\s+/g, ' ').trim())}")`;
 const r = (n) => Math.round(n * 100) / 100;
 const ring = (cx, cy, n, rad, f) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; return f(r(cx + Math.cos(a) * rad), r(cy + Math.sin(a) * rad), (a * 180) / Math.PI, i); }).join('');
@@ -101,7 +101,7 @@ html.decor-truck .lt-street-strip { height: 60px; margin-top: 34px; opacity: 1; 
 html.decor-truck .lt-hero + .lt-sec::before { display: none; }
 html.decor-truck .lt-hero + .lt-sec { padding-top: clamp(40px, 6vw, 80px); }
 
-/* ---- Lettering: lime letters with a black outline and a red painted shadow ---- */
+/* ---- Lettering: letters in the button colour with a black outline and a red painted shadow ---- */
 html.decor-truck .lt-hero-title { color: var(--t-primary); letter-spacing: .02em;
   text-shadow: -3px -3px 0 var(--lt-ink), 3px -3px 0 var(--lt-ink), -3px 3px 0 var(--lt-ink), 3px 3px 0 var(--lt-ink), 0 -3px 0 var(--lt-ink), 0 3px 0 var(--lt-ink), -3px 0 0 var(--lt-ink), 3px 0 0 var(--lt-ink),
     6px 6px 0 var(--dt-red), 8px 8px 0 var(--dt-red), 10px 10px 0 var(--lt-ink), 0 0 50px color-mix(in srgb, var(--lt-glow) 45%, transparent); }

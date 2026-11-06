@@ -6,7 +6,7 @@
   "url": "https://theullu.vercel.app",
   "chain": "Solana",
   "ca": "",
-  "theme": "bazaar",
+  "theme": "masala",
   "layout": "lights",
   "links": {
     "x": "",
@@ -60,7 +60,7 @@
     "hero": {
       "cta": "Get my house",
       "buy": "Buy",
-      "alt": "Ullu, a fat owl in a saffron turban, sits on gold coins with a cup of chai and winks",
+      "alt": "Ullu, a fat owl in a saffron turban and a mustard vest, stands on a rooftop with a cup of chai above a glowing street",
       "note": "He does not knock. He looks for the light"
     },
     "lore": {
@@ -495,18 +495,14 @@
     "shareText": "I lit this up {n}% bright. The owl is on his way. $ULLU",
     "fullAt": 100,
     "bases": [
-      {
-        "src": "gallery/ullu_g01.jpg",
-        "label": "Ullu"
-      }
+      { "src": "gallery/ullu_g01.jpg", "label": "Night one" },
+      { "src": "gallery/ullu_g03.jpg", "label": "Rain" },
+      { "src": "gallery/ullu_g06.jpg", "label": "Night seven" }
     ],
     "stickers": [
-      { "id": "owl-main", "src": "stickers/ullu_main.png", "label": "Owl on his coins" },
-      { "id": "owl-smug", "src": "stickers/ullu_smug.png", "label": "Smug owl" },
       { "id": "owl-laughing", "src": "stickers/ullu_laughing.png", "label": "Laughing owl" },
       { "id": "owl-shocked", "src": "stickers/ullu_shocked.png", "label": "Shocked owl" },
       { "id": "owl-crying", "src": "stickers/ullu_crying.png", "label": "Crying owl" },
-      { "id": "owl-winking", "src": "stickers/ullu_winking.png", "label": "Winking owl" },
       { "id": "owl-sleepy", "src": "stickers/ullu_sleep.png", "label": "Sleepy owl" }
     ],
     "captions": [
@@ -721,23 +717,33 @@
   "gallery": [
     {
       "src": "gallery/ullu_g01.jpg",
-      "alt": "Ullu sits on the wires and looks at the one lamp burning on a dark windowsill",
-      "note": "Night one. One lamp is enough to start."
+      "alt": "Ullu leans in through an open window to look at one small lamp on the sill",
+      "note": "Night one. One lamp is enough"
     },
     {
       "src": "gallery/ullu_g02.jpg",
-      "alt": "Ullu flies over a long street where every house is lit and the cats on the roofs look up",
-      "note": "The whole street, waiting."
+      "alt": "Ullu carries a wobbly tower of lamps and lanterns at a night market stall while a cat watches",
+      "note": "He always takes one more"
     },
     {
       "src": "gallery/ullu_g03.jpg",
-      "alt": "Soaked Ullu holds an umbrella over the last burning lamp in the rain",
-      "note": "Rain all night. He saved one lamp."
+      "alt": "Soaked Ullu holds a tiny umbrella over a burning lamp in the monsoon rain",
+      "note": "Rain all night. The lamp stayed dry"
     },
     {
       "src": "gallery/ullu_g04.jpg",
+      "alt": "Ullu is wrapped in glowing fairy lights on a balcony while a monkey pulls the string",
+      "note": "The monkey says he was helping"
+    },
+    {
+      "src": "gallery/ullu_g05.jpg",
+      "alt": "Ullu drives a yellow auto-rickshaw covered in lights through the city at night",
+      "note": "Late for the brightest house"
+    },
+    {
+      "src": "gallery/ullu_g06.jpg",
       "alt": "Ullu in sunglasses lands with a sack of gold on a house covered in lights",
-      "note": "Night seven. Sunglasses required."
+      "note": "Night seven. Sunglasses on"
     }
   ],
   "roadmap": [

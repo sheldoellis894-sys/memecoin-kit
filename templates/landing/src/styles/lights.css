@@ -305,7 +305,7 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-window:hover { transform: translateY(-4px); box-shadow: 0 0 46px 0 color-mix(in srgb, var(--t-primary) 60%, transparent); }
 .lt-window img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .lt-window-note { margin: 8px 4px 0; text-align: center; font-size: .9rem; color: var(--t-muted); }
-@media (min-width: 900px) { .lt-gallery { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+@media (min-width: 900px) { .lt-gallery { grid-template-columns: repeat(var(--cols, 4), 1fr); gap: 20px; } }
 
 /* ---- Token: a house front ---- */
 .lt-facade { position: relative; padding: 20px 16px 18px; border-radius: 26px 26px 18px 18px; background: var(--lt-facade); border: 3px solid var(--lt-ink); color: var(--lt-ink);
