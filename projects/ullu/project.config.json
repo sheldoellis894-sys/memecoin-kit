@@ -101,13 +101,13 @@
     },
     "token": {
       "kicker": "The token",
-      "title": "Every window is a number",
-      "lead": "No presale, no team wallet, no tax. Just the house and the lights.",
+      "title": "Tokenomics",
+      "lead": "No presale, no team wallet, no tax. Just the house and the lights",
       "supply": "Supply",
       "ca": "Contract address",
       "copy": "Copy",
       "copied": "Copied",
-      "noCa": "No address yet. Any address before the launch is fake."
+      "noCa": "No address yet. Any address before the launch is fake"
     },
     "steps": {
       "kicker": "How to buy",
