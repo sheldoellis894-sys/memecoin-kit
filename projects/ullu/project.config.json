@@ -122,7 +122,7 @@
     },
     "rules": {
       "kicker": "Honest rules",
-      "chat": { "name": "Ullu", "online": "online, as always at night", "typing": "typing…", "open": 2, "done": "That's everything. Now go light your house", "doneBtn": "Get my house" },
+      "chat": { "name": "Ullu", "online": "online, as always at night", "typing": "typing…", "open": 0, "helloTitle": "Ask me anything", "hello": "Tap a question below. I'm up all night anyway", "helloMood": "stickers/ullu_laughing.png", "done": "That's everything. Now go light your house", "doneBtn": "Get my house", "reset": "Clear the chat" },
       "title": "What the street does and does not do",
       "lead": "",
       "items": [

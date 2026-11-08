@@ -11,7 +11,7 @@ const r = lights.rules || {};
 const items: { title: string; text: string; ask?: string; mood?: string }[] = r.items || [];
 const chat = items.length > 0 && items.every((it) => it.ask);
 const c = r.chat || {};
-const open = Math.max(0, Math.min(items.length, Number(c.open ?? 2)));
+const open = Math.max(0, Math.min(items.length, Number(c.open ?? 0)));
 const avatar = asset(config.assets.logo);
 ---
 <section id="rules" class="lt-sec">
@@ -21,6 +21,14 @@ const avatar = asset(config.assets.logo);
       <div class="lt-ask" data-ul-ask data-ul-in>
         <div class="lt-ask-top"><img src={avatar} alt="" width="40" height="40" /><span><b>{c.name || config.name}</b><i data-ul-ask-status data-typing={c.typing || 'typing…'}>{c.online || 'online'}</i></span></div>
         <ol class="lt-ask-log" aria-live="polite">
+          {(c.hello || c.helloTitle) && (
+            <li class="lt-ask-hello">
+              <div class="lt-msg is-owl">
+                <img src={c.helloMood ? asset(c.helloMood) : avatar} alt="" width="64" height="64" loading="lazy" decoding="async" />
+                <p>{c.helloTitle && <b class="font-heading">{c.helloTitle}</b>}{c.hello && <span>{c.hello}</span>}</p>
+              </div>
+            </li>
+          )}
           {items.map((it, i) => (
             <li class="lt-ask-pair" data-ul-ask-pair={i} data-open={i < open ? '' : undefined}>
               <p class="lt-msg is-you"><span>{it.ask}</span></p>
@@ -38,6 +46,9 @@ const avatar = asset(config.assets.logo);
           <span>{c.done || "That's everything. Now go light your house"}</span>
           <a class="lt-btn lt-btn-small" href="#house">{c.doneBtn || 'Get my house'}</a>
         </p>
+        <div class="lt-ask-foot" data-ul-ask-foot hidden>
+          <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-ask-reset>{c.reset || 'Clear the chat'}</button>
+        </div>
       </div>
     ) : (
       <dl class="lt-rules">
@@ -58,14 +69,20 @@ const avatar = asset(config.assets.logo);
     const done = box.querySelector<HTMLElement>('[data-ul-ask-done]')!;
     const status = box.querySelector<HTMLElement>('[data-ul-ask-status]')!;
     const online = status.textContent || '';
+    const foot = box.querySelector<HTMLElement>('[data-ul-ask-foot]')!;
+    const log = box.querySelector<HTMLElement>('.lt-ask-log')!;
     const pairs = [...box.querySelectorAll<HTMLElement>('[data-ul-ask-pair]')];
+    // the answers open from the start (config chat.open), to come back to on "Clear the chat"
+    const first = pairs.filter((p) => p.hasAttribute('data-open'));
     box.classList.add('is-live');
+    let timer = 0;
     let busy = false;
     const left = () => pairs.filter((p) => !p.hasAttribute('data-open'));
     const sync = () => {
       chips.querySelectorAll<HTMLElement>('[data-ul-ask-q]').forEach((b) => { b.hidden = pairs[Number(b.dataset.ulAskQ)].hasAttribute('data-open'); });
       const none = left().length === 0;
       chips.hidden = none; done.hidden = !none;
+      foot.hidden = !pairs.some((p) => p.hasAttribute('data-open') && !first.includes(p));
     };
     sync();
     chips.addEventListener('click', (e) => {
@@ -77,7 +94,16 @@ const avatar = asset(config.assets.logo);
       p.setAttribute('data-open', ''); p.classList.add('is-asking');
       status.textContent = status.dataset.typing || ''; status.classList.add('is-typing');
       const answer = () => { p.classList.remove('is-asking'); status.textContent = online; status.classList.remove('is-typing'); busy = false; sync(); };
-      if (calm) answer(); else setTimeout(answer, 700 + Math.min(900, (p.textContent || '').length * 6));
+      if (calm) answer(); else timer = window.setTimeout(answer, 700 + Math.min(900, (p.textContent || '').length * 6));
+    });
+    // "Clear the chat": back to the start, the questions in their first order, the chat scrolled back into view
+    box.querySelector<HTMLButtonElement>('[data-ul-ask-reset]')!.addEventListener('click', () => {
+      clearTimeout(timer); busy = false;
+      pairs.forEach((p) => { p.classList.remove('is-asking'); if (first.includes(p)) p.setAttribute('data-open', ''); else p.removeAttribute('data-open'); log.appendChild(p); });
+      status.textContent = online; status.classList.remove('is-typing');
+      sync();
+      const top = box.getBoundingClientRect().top;
+      if (top < 0) box.scrollIntoView({ block: 'start', behavior: calm ? 'auto' : 'smooth' });
     });
   }
 </script>
