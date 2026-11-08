@@ -122,36 +122,51 @@
     },
     "rules": {
       "kicker": "Honest rules",
+      "chat": { "name": "Ullu", "online": "online, as always at night", "typing": "typing…", "open": 2, "done": "That's everything. Now go light your house", "doneBtn": "Get my house" },
       "title": "What the street does and does not do",
       "lead": "",
       "items": [
         {
           "title": "Your house lives in your browser",
-          "text": "No login, no wallet. Your house is saved in this browser. Clear it and the house is gone. Use the house code to move it"
+          "text": "No login, no wallet. Your house is saved in this browser. Clear it and the house is gone. Use the house code to move it",
+          "ask": "Where is my house saved?",
+          "mood": "stickers/ullu_crying.png"
         },
         {
           "title": "Where you are stays with you",
-          "text": "Your city is used for your street and your cards. It stays in your browser, nowhere else"
+          "text": "Your city is used for your street and your cards. It stays in your browser, nowhere else",
+          "ask": "Do you know where I live?",
+          "mood": "stickers/ullu_laughing.png"
         },
         {
           "title": "The owl is a game",
-          "text": "Everything the owl leaves is a picture on this site. Not a token, not a reward"
+          "text": "Everything the owl leaves is a picture on this site. Not a token, not a reward",
+          "ask": "Is the gold real?",
+          "mood": "stickers/ullu_landed.png"
         },
         {
           "title": "Your own sign is public",
-          "text": "Your sign is public on the street. No links, keep it clean"
+          "text": "Your sign is public on the street. No links, keep it clean",
+          "ask": "Who sees my sign?",
+          "mood": "stickers/ullu_shocked.png"
         },
         {
           "title": "The street shows what you send",
-          "text": "The street gets your house, name and nights. Nothing else. It's for fun, not a ranking of wallets"
+          "text": "The street gets your house, name and nights. Nothing else. It's for fun, not a ranking of wallets",
+          "ask": "What goes to the street?",
+          "mood": "stickers/ullu_fly.png"
         },
         {
           "title": "The holder preview is a preview",
-          "text": "The switch shows what holders could get: golden lights, no watermark. It doesn't check your wallet, and golden lights stay off the street"
+          "text": "The switch shows what holders could get: golden lights, no watermark. It doesn't check your wallet, and golden lights stay off the street",
+          "ask": "Is the holder switch real?",
+          "mood": "stickers/ullu_laughing.png"
         },
         {
           "title": "Your pictures stay with you",
-          "text": "Everything happens in your browser. We never see your pictures"
+          "text": "Everything happens in your browser. We never see your pictures",
+          "ask": "Do you see my pictures?",
+          "mood": "stickers/ullu_sleep.png"
         }
       ]
     },

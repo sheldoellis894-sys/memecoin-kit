@@ -1,17 +1,83 @@
 ---
 // Honest rules of the street and the disclaimer.
-import { config } from '../../lib/project';
+// With questions in the config (lights.rules.items[].ask) the rules are a chat with the owl: the visitor taps a question,
+// the owl "types" and answers, next to each answer a sticker with his mood (items[].mood, a picture from brand/).
+// The first answers are open from the start, and every answer is in the page itself: without scripts, for search engines
+// and screen readers the whole chat is there. Without questions in the config the rules are the plain list as before.
+import { config, asset } from '../../lib/project';
 import { lights } from '../../lib/lights';
 import LtHead from './LtHead.astro';
 const r = lights.rules || {};
-const items: { title: string; text: string }[] = r.items || [];
+const items: { title: string; text: string; ask?: string; mood?: string }[] = r.items || [];
+const chat = items.length > 0 && items.every((it) => it.ask);
+const c = r.chat || {};
+const open = Math.max(0, Math.min(items.length, Number(c.open ?? 2)));
+const avatar = asset(config.assets.logo);
 ---
 <section id="rules" class="lt-sec">
   <div class="lt-in lt-narrow">
     <LtHead kicker={r.kicker} title={r.title} lead={r.lead} />
-    <dl class="lt-rules">
-      {items.map((it) => (<div data-ul-in><dt class="font-heading">{it.title}</dt><dd>{it.text}</dd></div>))}
-    </dl>
+    {chat ? (
+      <div class="lt-ask" data-ul-ask data-ul-in>
+        <div class="lt-ask-top"><img src={avatar} alt="" width="40" height="40" /><span><b>{c.name || config.name}</b><i data-ul-ask-status data-typing={c.typing || 'typing…'}>{c.online || 'online'}</i></span></div>
+        <ol class="lt-ask-log" aria-live="polite">
+          {items.map((it, i) => (
+            <li class="lt-ask-pair" data-ul-ask-pair={i} data-open={i < open ? '' : undefined}>
+              <p class="lt-msg is-you"><span>{it.ask}</span></p>
+              <div class="lt-msg is-owl">
+                <img src={it.mood ? asset(it.mood) : avatar} alt="" width="64" height="64" loading="lazy" decoding="async" />
+                <p><b class="font-heading">{it.title}</b><span>{it.text}</span></p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div class="lt-ask-chips" data-ul-ask-chips hidden>
+          {items.map((it, i) => <button type="button" class="lt-cap" data-ul-ask-q={i}>{it.ask}</button>)}
+        </div>
+        <p class="lt-ask-done" data-ul-ask-done hidden>
+          <span>{c.done || "That's everything. Now go light your house"}</span>
+          <a class="lt-btn lt-btn-small" href="#house">{c.doneBtn || 'Get my house'}</a>
+        </p>
+      </div>
+    ) : (
+      <dl class="lt-rules">
+        {items.map((it) => (<div data-ul-in><dt class="font-heading">{it.title}</dt><dd>{it.text}</dd></div>))}
+      </dl>
+    )}
     {config.disclaimer && <p class="lt-disclaimer">{config.disclaimer}</p>}
   </div>
 </section>
+
+<script>
+  // The chat: questions that are not answered yet wait as buttons. A tap: the question goes up as the visitor's message,
+  // the owl is "typing" for a moment, then his answer appears. With reduced motion the answer comes at once.
+  const box = document.querySelector<HTMLElement>('[data-ul-ask]');
+  if (box) {
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const chips = box.querySelector<HTMLElement>('[data-ul-ask-chips]')!;
+    const done = box.querySelector<HTMLElement>('[data-ul-ask-done]')!;
+    const status = box.querySelector<HTMLElement>('[data-ul-ask-status]')!;
+    const online = status.textContent || '';
+    const pairs = [...box.querySelectorAll<HTMLElement>('[data-ul-ask-pair]')];
+    box.classList.add('is-live');
+    let busy = false;
+    const left = () => pairs.filter((p) => !p.hasAttribute('data-open'));
+    const sync = () => {
+      chips.querySelectorAll<HTMLElement>('[data-ul-ask-q]').forEach((b) => { b.hidden = pairs[Number(b.dataset.ulAskQ)].hasAttribute('data-open'); });
+      const none = left().length === 0;
+      chips.hidden = none; done.hidden = !none;
+    };
+    sync();
+    chips.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-ul-ask-q]'); if (!b || busy) return;
+      const p = pairs[Number(b.dataset.ulAskQ)]; if (!p || p.hasAttribute('data-open')) return;
+      busy = true; b.hidden = true;
+      // move the asked pair to the end of the log, so the chat reads in the order of the taps
+      p.parentElement!.appendChild(p);
+      p.setAttribute('data-open', ''); p.classList.add('is-asking');
+      status.textContent = status.dataset.typing || ''; status.classList.add('is-typing');
+      const answer = () => { p.classList.remove('is-asking'); status.textContent = online; status.classList.remove('is-typing'); busy = false; sync(); };
+      if (calm) answer(); else setTimeout(answer, 700 + Math.min(900, (p.textContent || '').length * 6));
+    });
+  }
+</script>

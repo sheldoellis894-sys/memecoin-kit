@@ -369,6 +369,42 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-rules div { padding: 18px 18px; border-radius: 18px; background: rgb(255 255 255 / .035); border-left: 4px solid var(--t-primary); }
 .lt-rules dt { font-size: 1.35rem; color: var(--lt-cream); margin-bottom: 4px; }
 .lt-rules dd { margin: 0; color: var(--t-muted); }
+/* ---- Rules as a chat with the owl ---- */
+.lt-ask { border-radius: 22px; background: var(--lt-card); border: 2px solid var(--lt-line); overflow: hidden; }
+.lt-ask-top { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--lt-line); background: rgb(0 0 0 / .18); }
+.lt-ask-top img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--t-accent); }
+.lt-ask-top span { display: grid; line-height: 1.2; }
+.lt-ask-top b { color: var(--lt-cream); font-weight: 800; }
+.lt-ask-top i { font-style: normal; font-size: .8rem; color: #5BD67A; }
+.lt-ask-top i.is-typing { color: var(--t-accent); }
+.lt-ask-log { list-style: none; margin: 0; padding: 18px 16px 6px; display: grid; gap: 14px; }
+.lt-ask.is-live .lt-ask-pair:not([data-open]) { display: none; }
+.lt-ask-pair { display: grid; gap: 10px; }
+.lt-msg { margin: 0; display: flex; gap: 10px; align-items: flex-end; }
+.lt-msg p, .lt-msg > span { margin: 0; padding: 11px 15px; border-radius: 18px; max-width: min(560px, 82%); line-height: 1.45; }
+.lt-msg.is-you { justify-content: flex-end; }
+.lt-msg.is-you > span { background: var(--t-primary); color: var(--t-on-primary); font-weight: 700; border-bottom-right-radius: 5px; }
+.lt-msg.is-owl img { width: 64px; height: 64px; object-fit: contain; flex: none; filter: drop-shadow(0 4px 8px rgb(0 0 0 / .45)); }
+.lt-msg.is-owl p { background: rgb(255 255 255 / .07); border: 1px solid var(--lt-line); border-bottom-left-radius: 5px; color: var(--t-text); display: grid; gap: 3px; }
+.lt-msg.is-owl b { color: var(--t-accent); font-size: 1.12rem; font-weight: 400; }
+.lt-msg.is-owl span { color: var(--t-muted); }
+/* while the owl is typing: three dots instead of the answer */
+.lt-ask-pair.is-asking .is-owl p > * { display: none; }
+.lt-ask-pair.is-asking .is-owl p::before { content: ""; width: 42px; height: 10px; background: radial-gradient(circle, var(--t-muted) 3.5px, transparent 4px) 0 50% / 14px 10px repeat-x; animation: lt-dots 1s steps(3) infinite; }
+@keyframes lt-dots { from { clip-path: inset(0 66% 0 0); } to { clip-path: inset(0 -34% 0 0); } }
+html.ul-motion .lt-ask-pair[data-open] { animation: lt-msg-in .35s var(--lt-ease); }
+@keyframes lt-msg-in { from { opacity: 0; transform: translateY(8px); } }
+.lt-ask-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px 18px; }
+.lt-ask-chips[hidden], .lt-ask-chips [hidden] { display: none; }
+.lt-ask-chips .lt-cap { border-color: color-mix(in srgb, var(--t-primary) 60%, transparent); color: var(--lt-cream); }
+.lt-ask-chips .lt-cap:hover { background: color-mix(in srgb, var(--t-primary) 18%, transparent); }
+.lt-ask-done { margin: 0; padding: 6px 16px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; color: var(--t-muted); }
+.lt-ask-done[hidden] { display: none; }
+/* truck art: the chat gets the same painted frame as the cards */
+html.decor-truck .lt-ask { --s: var(--dt-red); position: relative; border: 3px solid var(--lt-ink); border-radius: 16px;
+  box-shadow: inset 0 0 0 7px var(--s), inset 0 0 0 9.5px var(--lt-ink); outline: 2.4px dotted var(--dt-dots); outline-offset: -6.8px; padding: 10px; }
+html.decor-truck .lt-ask-top { border-radius: 10px 10px 0 0; }
+@media (max-width: 520px) { .lt-msg.is-owl img { width: 48px; height: 48px; } .lt-msg p, .lt-msg > span { max-width: 86%; } .lt-ask-log { padding: 14px 10px 4px; } }
 .lt-disclaimer { margin: 22px 0 0; font-size: .88rem; color: var(--t-muted); opacity: .85; }
 
 /* ---- Buy: the last lamp ---- */
