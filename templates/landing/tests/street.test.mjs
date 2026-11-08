@@ -386,4 +386,53 @@ assert.deepEqual(await ask({ 'x-vercel-ip-city': '<img src=x onerror=1>' }), { c
 assert.deepEqual(await ask({}), { country: '', city: '' });
 assert.equal((await geo(new Request('https://x/api/geo'), { PROJECT: 'molty' })).status, 404);
 console.log('8 ok: country and city from any host');
+
+// ---- 9. street numbers and the moderator (api/admin.js)
+{
+  resetLimits();
+  const { handle: admin, resetAdminLimits } = await import(new URL('../api/admin.js', import.meta.url));
+  const store = memoryStore();
+  const AENV = { ...ENV, ADMIN_PASSWORD: 'a-long-moderator-password-123' };
+  const areq = (method, body, pass, ip = '5.5.5.5') => new Request('https://x/api/admin', { method, headers: { 'content-type': 'application/json', authorization: `Bearer ${pass}`, 'x-forwarded-for': ip }, body: body ? JSON.stringify(body) : undefined });
+  const acall = async (method, body, pass = AENV.ADMIN_PASSWORD, env = AENV, ip) => { const r = await admin(areq(method, body, pass, ip), env, { now, store }); return { status: r.status, out: await r.json() }; };
+  const house = (id, seed, name, ip) => call('POST', { id: id.padEnd(16, 'x'), name, code: K.encodeHouse(seed, {}), nights: 3, gifts: 3, best: 3, landings: 0, streak: 3 }, { store }, AENV, ip);
+  // numbers: 1, 2, 3 in the order the houses come; an update keeps the number
+  const h1 = await house('admina', 9101, 'First', '6.6.6.1'), h2 = await house('adminb', 9102, 'Second', '6.6.6.2'), h3 = await house('adminc', 9103, 'Third', '6.6.6.3');
+  assert.deepEqual([h1.out.house.sn, h2.out.house.sn, h3.out.house.sn], [1, 2, 3]);
+  assert.equal((await house('admina', 9101, 'First again', '6.6.6.1')).out.house.sn, 1, 'an update keeps the number');
+  const pub = await call('GET', null, { store }, AENV);
+  assert.deepEqual(pub.out.houses.map((x) => x.sn).sort(), [1, 2, 3]); assert.ok(!JSON.stringify(pub.out).includes('"key"'));
+  // houses from before the numbers get them, oldest first
+  { const j = JSON.parse(store.state.text); const old = { ...j.houses[0], key: 'old'.padEnd(32, '0'), seed: 9199, name: 'Old one', updated: '2026-11-01T00:00:00.000Z' }; delete old.sn; delete j.lastSn; j.houses.push(old); store.state.text = JSON.stringify(j);
+    const g = await acall('GET'); assert.equal(g.out.houses.find((x) => x.name === 'Old one').sn, 4); }
+  // the admin is off without a long password, and wrong passwords are counted
+  assert.equal((await acall('GET', null, 'x', { ...ENV })).status, 404);
+  assert.equal((await acall('GET', null, 'short', { ...ENV, ADMIN_PASSWORD: 'short' })).status, 404);
+  resetAdminLimits();
+  for (let i = 0; i < 5; i++) assert.equal((await acall('GET', null, 'wrong', AENV, '7.7.7.7')).status, 401);
+  assert.equal((await acall('GET', null, AENV.ADMIN_PASSWORD, AENV, '7.7.7.7')).status, 429, 'the sixth try in a minute waits, even with the right password');
+  assert.equal((await acall('GET')).status, 200, 'another address is not blocked');
+  // the list: number, name, signs, no keys
+  const list = await acall('GET');
+  assert.ok(list.out.houses.length === 4 && !JSON.stringify(list.out).includes('"key"'));
+  // remove: off the street, the visitor may come back
+  assert.equal((await acall('POST', { action: 'remove', sn: 2 })).out.ok, true);
+  assert.ok(!(await call('GET', null, { store }, AENV)).out.houses.some((x) => x.sn === 2));
+  const back = await house('adminb', 9102, 'Second back', '6.6.6.2'); assert.ok(back.out.ok); assert.equal(back.out.house.sn, 5, 'a removed house comes back with a new number');
+  // ban: off the street and that browser cannot post again; unban lets it back
+  assert.equal((await acall('POST', { action: 'ban', sn: 3 })).out.ok, true);
+  const tryAgain = await house('adminc', 9103, 'Third again', '6.6.6.3'); assert.equal(tryAgain.status, 403); assert.equal(tryAgain.out.error, 'banned');
+  const l2 = await acall('GET'); assert.deepEqual(l2.out.bans.map((b) => b.sn), [3]); assert.deepEqual(l2.out.log.map((e) => e.action), ['ban', 'remove']);
+  assert.equal((await acall('POST', { action: 'unban', sn: 3 })).out.ok, true);
+  const freed = await house('adminc', 9103, 'Third free', '6.6.6.3'); assert.ok(freed.out.ok); assert.equal(freed.out.house.sn, 6);
+  // bad requests
+  assert.equal((await acall('POST', { action: 'nuke', sn: 1 })).status, 400);
+  assert.equal((await acall('POST', { action: 'remove', sn: '1' })).status, 400);
+  assert.equal((await acall('POST', { action: 'remove', sn: 999 })).status, 404);
+  assert.equal((await admin(new Request('https://x/api/admin', { method: 'GET' }), { ...AENV, PROJECT: 'molty' }, { now, store })).status, 404);
+  // a house hidden by the word filter is shown to the moderator, marked
+  { const j = JSON.parse(store.state.text); j.houses.push({ ...j.houses[0], key: 'rude2'.padEnd(32, '0'), seed: 9300, sn: 77, name: 'Chutiya' }); store.state.text = JSON.stringify(j);
+    const g = await acall('GET'); assert.equal(g.out.houses.find((x) => x.sn === 77).hidden, 'words'); }
+  console.log('9 ok: street numbers, moderator list, remove, ban and unban, wrong passwords');
+}
 console.log('street: all ok');

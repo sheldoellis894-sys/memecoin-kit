@@ -1,0 +1,171 @@
+---
+// The moderator page /admin: every house on the street with its number (#0001), picture, name, signs and nights,
+// and two buttons: "Remove" (off the street) and "Ban" (off the street, and that browser cannot post again).
+// Built only for a project whose server has the street and the admin function (config "server.functions");
+// other projects get no /admin page at all. The password is the server's ADMIN_PASSWORD (api/admin.js); the page
+// keeps it only in this browser tab while it is open. Not linked from the site and closed to search engines.
+import { config, theme, asset } from '../lib/project';
+export function getStaticPaths() {
+  const fns: string[] = config.server?.functions || [];
+  return fns.includes('street') && fns.includes('admin') ? [{ params: { admin: 'admin' } }] : [];
+}
+const c = theme.colors;
+const ticker = config.ticker;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>{config.name} · street admin</title>
+  <link rel="icon" href={asset(config.assets.favicon || config.assets.logo)} />
+  <style set:html={`
+    :root { --bg:${c.bg}; --card:${c.surface}; --text:${c.text}; --muted:${c.muted}; --accent:${c.primary}; --red:#E8343B; --green:#3DBE6B; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    header { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 16px; background: var(--card); border-bottom: 1px solid #ffffff1f; }
+    header h1 { margin: 0 auto 0 0; font-size: 1.1rem; }
+    header input { flex: 1 1 220px; max-width: 320px; }
+    input, button, select { font: inherit; color: inherit; }
+    input, select { font-size: 16px; background: #0000004d; border: 1px solid #ffffff33; border-radius: 10px; padding: 8px 10px; }
+    button { cursor: pointer; border-radius: 10px; border: 1px solid #ffffff33; background: #ffffff12; padding: 7px 12px; font-weight: 700; }
+    button:disabled { opacity: .5; cursor: default; }
+    button.is-red { background: var(--red); border-color: var(--red); color: #fff; }
+    button.is-sure { background: #fff; color: #000; }
+    main { padding: 16px; max-width: 1280px; margin: 0 auto; }
+    .login { max-width: 360px; margin: 12vh auto; display: grid; gap: 10px; }
+    .note { color: var(--muted); font-size: .9rem; }
+    .err { color: var(--red); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+    .house { background: var(--card); border: 1px solid #ffffff1f; border-radius: 14px; overflow: hidden; display: grid; }
+    .house.is-hidden { border-color: var(--red); }
+    .house .art { aspect-ratio: 1; background: #0006; }
+    .house .art svg { width: 100%; height: 100%; display: block; }
+    .house .info { padding: 10px 12px; display: grid; gap: 4px; }
+    .house .sn { font-weight: 800; color: var(--accent); }
+    .house .name { font-weight: 700; font-size: 1.05rem; word-break: break-word; }
+    .house .signs { font-size: .85rem; } .house .signs b { color: var(--accent); }
+    .tag { display: inline-block; font-size: .75rem; padding: 1px 7px; border-radius: 99px; background: #ffffff1a; margin-right: 4px; }
+    .tag.is-red { background: var(--red); color: #fff; }
+    .house .acts { display: flex; gap: 8px; padding: 0 12px 12px; }
+    section { margin-top: 28px; } h2 { font-size: 1rem; margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; } td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ffffff14; }
+    @media (max-width: 640px) {
+      header { position: static; } header h1 { flex-basis: 100%; } header input { max-width: none; flex-basis: 100%; }
+      main { padding: 12px; } .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .house .info { padding: 8px 10px; font-size: 13px; } .house .name { font-size: .95rem; }
+      .house .acts { padding: 0 10px 10px; gap: 6px; } .house .acts button { flex: 1; padding: 8px 4px; }
+      table { font-size: .8rem; } td, th { padding: 6px 4px; }
+    }
+  `} />
+</head>
+<body>
+  <div data-adm data-adm-ticker={ticker}>
+    <form class="login" data-adm-login>
+      <h1>{config.name} · street admin</h1>
+      <input type="password" autocomplete="current-password" placeholder="Admin password" data-adm-pass required />
+      <button class="is-red" type="submit">Open</button>
+      <p class="note err" data-adm-loginerr></p>
+      <p class="note">The password is the ADMIN_PASSWORD setting of the server. It is kept only in this tab.</p>
+    </form>
+    <div data-adm-app hidden>
+      <header>
+        <h1>{config.name} · street admin</h1>
+        <input type="search" placeholder="Find: #12, a name, a sign" data-adm-find />
+        <select data-adm-show><option value="all">All houses</option><option value="hidden">Hidden by the filter</option><option value="lit">Lit now</option></select>
+        <button type="button" data-adm-reload>Reload</button>
+        <button type="button" data-adm-logout>Log out</button>
+      </header>
+      <main>
+        <p class="note" data-adm-count></p>
+        <div class="grid" data-adm-grid></div>
+        <section><h2>Banned</h2><table><tbody data-adm-bans></tbody></table></section>
+        <section><h2>Log</h2><table><tbody data-adm-log></tbody></table></section>
+      </main>
+    </div>
+  </div>
+  <script>
+    import * as K from '../lib/lights-kit.js';
+    const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
+    const KEY = 'ul-admin-pass';
+    const ticker = $('[data-adm]').dataset.admTicker || '';
+    let pass = ''; try { pass = sessionStorage.getItem(KEY) || ''; } catch { /* private mode */ }
+    let data: any = null;
+    const sn4 = (n: number) => `#${String(n).padStart(4, '0')}`;
+    const esc = (t: string) => String(t ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!);
+    const when = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? '' : d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); };
+    const api = async (method: string, body?: any) => {
+      const res = await fetch('/api/admin', { method, headers: { authorization: `Bearer ${pass}`, 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+      const out = await res.json().catch(() => ({}));
+      return { status: res.status, out };
+    };
+    const showLogin = (msg = '') => { $('[data-adm-login]').hidden = false; $('[data-adm-app]').hidden = true; $('[data-adm-loginerr]').textContent = msg; };
+    const ERR: Record<string, string> = { password: 'Wrong password.', wait: 'Too many tries. Wait a minute.', not_found: 'The admin is off: set ADMIN_PASSWORD (16+ characters) on the server.', off: 'The street has no storage.', storage: 'The storage did not answer. Try again.' };
+    async function load() {
+      const r = await api('GET');
+      if (r.status !== 200) { if (r.out.error === 'password') { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} } showLogin(ERR[r.out.error] || `Error ${r.status}`); return; }
+      data = r.out; $('[data-adm-loginerr]').textContent = ''; $<HTMLInputElement>('[data-adm-pass]').value = ''; $('[data-adm-login]').hidden = true; $('[data-adm-app]').hidden = false; draw();
+    }
+    function art(h: any) {
+      const got = K.decodeHouse(h.code, { holderOk: false }); if (!got) return '';
+      const hh = K.houseOfP(got);
+      return K.houseSvg(hh, got.placed, { free: got.free, level: h.dark ? 1 : Math.max(1, Math.min(K.NIGHTS, h.streak)), id: `adm${h.sn}`, ctx: { ticker, time: 'night' } });
+    }
+    function draw() {
+      const q = ($<HTMLInputElement>('[data-adm-find]').value || '').trim().toLowerCase().replace(/^#0*/, '#');
+      const show = $<HTMLSelectElement>('[data-adm-show]').value;
+      const list = data.houses.filter((h: any) => {
+        if (show === 'hidden' && !h.hidden) return false;
+        if (show === 'lit' && h.dark) return false;
+        if (!q) return true;
+        if (q.startsWith('#')) return String(h.sn) === q.slice(1);
+        return h.name.toLowerCase().includes(q) || h.signs.some((t: string) => t.toLowerCase().includes(q));
+      });
+      $('[data-adm-count]').textContent = `${data.houses.length} houses on the street · ${data.houses.filter((h: any) => h.hidden).length} hidden by the word filter · showing ${list.length}`;
+      $('[data-adm-grid]').innerHTML = list.map((h: any) => `
+        <article class="house${h.hidden ? ' is-hidden' : ''}" data-sn="${h.sn}">
+          <div class="art">${art(h)}</div>
+          <div class="info">
+            <span class="sn">${sn4(h.sn)}</span>
+            <span class="name">${esc(h.name)}</span>
+            ${h.signs.length ? `<span class="signs">Signs: ${h.signs.map((t: string) => `<b>${esc(t)}</b>`).join(', ')}</span>` : ''}
+            <span class="note">${h.nights} nights · streak ${h.streak} · best ${h.best} · ${h.light}% · ${esc(h.family)}</span>
+            <span class="note">Last lit ${when(h.updated)}</span>
+            <span>${h.dark ? '<i class="tag">dark</i>' : '<i class="tag">lit</i>'}${h.hidden ? `<i class="tag is-red">hidden: ${h.hidden === 'words' ? 'bad words' : 'old code'}</i>` : ''}</span>
+          </div>
+          <div class="acts"><button type="button" data-act="remove">Remove</button><button type="button" class="is-red" data-act="ban">Ban</button></div>
+        </article>`).join('') || '<p class="note">No houses.</p>';
+      $('[data-adm-bans]').innerHTML = data.bans.length ? data.bans.map((b: any) => `<tr><td>${sn4(b.sn)}</td><td>${esc(b.name)}</td><td>${when(b.at)}</td><td><button type="button" data-unban="${b.sn}">Unban</button></td></tr>`).join('') : '<tr><td class="note">Nobody is banned.</td></tr>';
+      $('[data-adm-log]').innerHTML = data.log.length ? data.log.map((e: any) => `<tr><td>${when(e.at)}</td><td>${esc(e.action)}</td><td>${sn4(e.sn)}</td><td>${esc(e.name)}</td><td class="note">${esc(e.ip || '')}</td></tr>`).join('') : '<tr><td class="note">Nothing yet.</td></tr>';
+    }
+    // a button asks once more before it acts: the first tap turns it into "Sure?"
+    async function act(btn: HTMLButtonElement, body: any) {
+      if (!btn.classList.contains('is-sure')) { document.querySelectorAll('.is-sure').forEach((b) => { b.classList.remove('is-sure'); (b as HTMLButtonElement).textContent = (b as HTMLElement).dataset.label || ''; }); btn.dataset.label = btn.textContent || ''; btn.textContent = 'Sure?'; btn.classList.add('is-sure'); return; }
+      btn.disabled = true;
+      const r = await api('POST', body);
+      if (r.status !== 200) alert(ERR[r.out.error] || `Error: ${r.out.error || r.status}`);
+      await load();
+    }
+    $('[data-adm-grid]').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]'); if (!b) return;
+      const sn = Number(b.closest<HTMLElement>('[data-sn]')!.dataset.sn);
+      act(b, { action: b.dataset.act, sn });
+    });
+    $('[data-adm-bans]').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-unban]'); if (!b) return;
+      act(b, { action: 'unban', sn: Number(b.dataset.unban) });
+    });
+    $('[data-adm-find]').addEventListener('input', () => data && draw());
+    $('[data-adm-show]').addEventListener('change', () => data && draw());
+    $('[data-adm-reload]').addEventListener('click', load);
+    $('[data-adm-logout]').addEventListener('click', () => { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} showLogin(); });
+    $('[data-adm-login]').addEventListener('submit', (e) => {
+      e.preventDefault(); pass = $<HTMLInputElement>('[data-adm-pass]').value;
+      try { sessionStorage.setItem(KEY, pass); } catch {}
+      load();
+    });
+    if (pass) load();
+  </script>
+</body>
+</html>

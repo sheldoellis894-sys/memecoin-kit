@@ -4,6 +4,9 @@
 //      or updates it (one house per visitor id). The id is a random string kept in the visitor's browser.
 // POST { id, remove: true } → { ok, removed } — takes the visitor's own house off the street (only the browser that
 //      put it there has the id).
+// Every house gets a serial number (sn: 1, 2, 3 …) the first time it goes on the street; it is shown on the street as #0001
+// and stays with the house while it is there. Numbers are never given twice. The moderator removes or bans houses by it
+// in api/admin.js; a banned visitor cannot put a house on the street again.
 //
 // What is kept: one JSON file `${PROJECT}/street.json`. Works on Vercel and on any server with Node (see api/_agent/store.js):
 //   BLOB_READ_WRITE_TOKEN — on Vercel: added when a Blob store is connected to the project
@@ -66,15 +69,29 @@ function limited(ip, now) {
 // in a row would undo each other. So the last file this instance wrote is kept in memory, and the newer of the two is used.
 const written = new WeakMap();   // store → { path, updated, j }
 
-async function readStreet(env, store) {
+/** The street file: houses, the last serial number given, bans and the moderation log (api/admin.js). */
+export async function readStreet(env, store) {
   const path = pathOf(env.PROJECT);
   const raw = await store.read(env, path);
   let j = raw ? JSON.parse(raw) : null;
   const mine = storeKind(env) === 'blob' ? written.get(store) : null;
   if (mine && mine.path === path && (!j || String(j.updated || '') < mine.updated)) j = mine.j;
-  if (!j) return { houses: [] };
-  return { houses: Array.isArray(j?.houses) ? j.houses.filter((h) => h && typeof h.key === 'string' && typeof h.code === 'string') : [] };
+  const houses = Array.isArray(j?.houses) ? j.houses.filter((h) => h && typeof h.key === 'string' && typeof h.code === 'string') : [];
+  const bans = Array.isArray(j?.bans) ? j.bans.filter((b) => b && typeof b.key === 'string') : [];
+  const log = Array.isArray(j?.log) ? j.log.filter((e) => e && typeof e === 'object') : [];
+  // houses from before the numbers get theirs now, oldest first; numbers already given are never given again
+  let last = Math.max(Number.isInteger(j?.lastSn) ? j.lastSn : 0, ...houses.map((h) => (Number.isInteger(h.sn) ? h.sn : 0)), ...bans.map((b) => (Number.isInteger(b.sn) ? b.sn : 0)));
+  for (const h of [...houses].sort((a, b) => (a.updated < b.updated ? -1 : 1))) if (!Number.isInteger(h.sn)) h.sn = ++last;
+  return { houses, bans, log, lastSn: last };
 }
+
+/** Writes the street file (houses, numbers, bans, log) and remembers it for the CDN case above. */
+export async function writeStreet(env, store, st, updated) {
+  const file = { houses: st.houses, lastSn: st.lastSn, bans: st.bans, log: st.log.slice(-300), updated };
+  await store.write(env, pathOf(env.PROJECT), JSON.stringify(file));
+  written.set(store, { path: pathOf(env.PROJECT), updated, j: file });
+}
+export { pathOf, isDark, publicOf, blockList, rude, json };
 
 /** How bright a house is shown now: a house not lit for two days shows at level 1. */
 const isDark = (h, now) => now - Date.parse(h.updated) > DARK_HOURS * 3600000;
@@ -89,7 +106,7 @@ const rude = (name, got, conf, block) => isBadText(name, { extra: block }) || go
 /** What a page may see of a house: never the key. dark = not lit for two days, so it shows as it is now: at level 1. */
 function publicOf(h, now) {
   const dark = isDark(h, now);
-  return { name: h.name, code: h.code, family: h.family || 'mumbai', wish: h.wish || '', no: h.no, nights: h.nights, gifts: h.gifts, best: h.best, landings: h.landings,
+  return { name: h.name, code: h.code, family: h.family || 'mumbai', wish: h.wish || '', no: h.no, sn: h.sn, nights: h.nights, gifts: h.gifts, best: h.best, landings: h.landings,
     streak: dark ? 0 : h.streak, light: dark ? h.lightDark : h.light, dark, updated: h.updated };
 }
 
@@ -141,12 +158,10 @@ export async function handle(request, env = process.env, deps = {}) {
     if (limited(ip, now)) return json({ ok: false, error: 'busy' }, 429);
     try {
       return await serial(pathOf(env.PROJECT), async () => {
-        const { houses } = await readStreet(env, store);
-        const next = houses.filter((x) => x.key !== key);
-        if (next.length === houses.length) return json({ ok: true, removed: false });
-        const file = { houses: next, updated: new Date(now).toISOString() };
-        await store.write(env, pathOf(env.PROJECT), JSON.stringify(file));
-        written.set(store, { path: pathOf(env.PROJECT), updated: file.updated, j: file });
+        const st = await readStreet(env, store);
+        const next = st.houses.filter((x) => x.key !== key);
+        if (next.length === st.houses.length) return json({ ok: true, removed: false });
+        await writeStreet(env, store, { ...st, houses: next }, new Date(now).toISOString());
         return json({ ok: true, removed: true });
       });
     } catch { return json({ ok: false, error: 'storage' }, 503); }
@@ -180,16 +195,21 @@ export async function handle(request, env = process.env, deps = {}) {
 
   try {
     return await serial(pathOf(env.PROJECT), async () => {
-    const { houses } = await readStreet(env, store);
+    const st = await readStreet(env, store);
+    const { houses } = st;
+    // a visitor the moderator banned does not get on the street again
+    if (st.bans.some((x) => x.key === key)) return json({ ok: false, error: 'banned' }, 403);
     // one house per visitor. Codes are public, so a copy must not push the real house off the street: a house (seed and
     // style) that another visitor keeps lit is not taken. Once it has gone dark (two days), a moved house may take its place.
     const same = (x) => x.key !== key && x.seed === entry.seed && (x.family || 'mumbai') === entry.family;
     if (houses.some((x) => same(x) && !isDark(x, now))) return json({ ok: false, error: 'taken' }, 409);
     const others = houses.filter((x) => x.key !== key && !same(x));
+    // the house keeps its number while it is on the street (an update, a move); a new house gets the next one
+    const mine = houses.find((x) => x.key === key);
+    let lastSn = st.lastSn;
+    entry.sn = mine && Number.isInteger(mine.sn) ? mine.sn : ++lastSn;
     const next = [entry, ...others].sort((a, b2) => (a.updated < b2.updated ? 1 : -1)).slice(0, conf.keep);
-    const file = { houses: next, updated: entry.updated };
-    await store.write(env, pathOf(env.PROJECT), JSON.stringify(file));
-    written.set(store, { path: pathOf(env.PROJECT), updated: entry.updated, j: file });
+    await writeStreet(env, store, { ...st, houses: next, lastSn }, entry.updated);
     return json({ ok: true, house: publicOf(entry, now) });
     });
   } catch {

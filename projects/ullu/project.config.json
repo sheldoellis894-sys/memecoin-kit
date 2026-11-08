@@ -592,6 +592,7 @@
       "numbers": "The nights do not add up. Light up tonight and try again.",
       "dark": "Light up tonight first: a dark house cannot go on the street.",
       "busy": "Too many houses at once. Try again in a minute.",
+      "banned": "This browser can no longer put houses on the street",
       "off": "The street is not open yet.",
       "storage": "The street is resting. Try again later.",
       "failed": "The street did not take the house. Try again later.",
@@ -804,7 +805,8 @@
   "server": {
     "functions": [
       "street",
-      "geo"
+      "geo",
+      "admin"
     ]
   }
 }

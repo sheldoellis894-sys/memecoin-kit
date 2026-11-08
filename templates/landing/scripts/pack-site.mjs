@@ -74,6 +74,10 @@ fs.writeFileSync(path.join(out, '.env.example'), [
     '# private network (nginx, Docker). 1 = always trust it (a proxy on another public address), 0 = never',
     'TRUST_PROXY=',
   ] : []),
+  ...(functions.includes('admin') ? [
+    '# the moderator page /admin: one password, at least 16 characters (without it the page is off). Keep it secret',
+    'ADMIN_PASSWORD=',
+  ] : []),
   '',
 ].join('\n'));
 
@@ -116,6 +120,8 @@ ${functions.length ? `
 The data folder (\`DATA_DIR\`) must be writable by the user that runs the server and must be kept between updates and backed up.
 Set \`STREET_SALT\` to a long random string once and never change it.
 Leave \`TRUST_PROXY\` empty when nginx (below) or Docker sits in front: the visitor's address is then read from X-Forwarded-For. Set it to 1 only if the proxy runs on another public address.
+` : ''}${functions.includes('admin') ? `
+The moderator page is \`https://${domain}/admin\`. It works only when \`ADMIN_PASSWORD\` (16 characters or more) is set; there the moderator removes houses from the street or bans their browser.
 ` : ''}
 ## Keep it running (systemd)
 

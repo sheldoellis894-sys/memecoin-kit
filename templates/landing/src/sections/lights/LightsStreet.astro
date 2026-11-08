@@ -93,6 +93,9 @@ const data = JSON.stringify({
         const b = document.createElement('button'); b.type = 'button'; b.className = 'lt-door-btn'; b.dataset.i = String(houses.indexOf(x));
         b.innerHTML = `<span class="lt-door-art">${svgOf(x)}</span><span class="lt-door-name font-heading"></span><span class="lt-door-line"></span><span class="lt-door-light">${Math.round(Number(x.light) || 0)}%</span>${x.sample ? '<span class="lt-door-sample"></span>' : ''}`;
         b.querySelector('.lt-door-name')!.textContent = x.name;
+        // the street number of a real house (#0007): the moderator finds a house by it
+        const sn = (x as any).sn;
+        if (!x.sample && Number.isInteger(sn)) { const t = document.createElement('span'); t.className = 'lt-door-sn'; t.textContent = `#${String(sn).padStart(4, '0')}`; b.querySelector('.lt-door-name')!.after(t); }
         if (x.sample) b.querySelector('.lt-door-sample')!.textContent = L.sample || 'Example';
         // the visitor's own house on the street: the name it was put there with and its number
         const mine = !x.sample && ul.houseName && ul.onStreet?.() && x.name === ul.houseName() && (x as any).no === ul.houseNo?.();
@@ -149,7 +152,7 @@ const data = JSON.stringify({
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-i]'); if (!b) return;
       const x = houses[Number(b.dataset.i)];
       $<HTMLElement>('[data-ul-view-art]').innerHTML = svgOf(x);
-      $<HTMLElement>('[data-ul-view-name]').textContent = x.name;
+      $<HTMLElement>('[data-ul-view-name]').textContent = Number.isInteger((x as any).sn) && !x.sample ? `${x.name} · #${String((x as any).sn).padStart(4, '0')}` : x.name;
       $<HTMLElement>('[data-ul-view-line]').textContent = `${lineOf(x)} · ${fill(L.best || 'best run {best}', x as any)} · ${x.light}%`;
       if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
     });

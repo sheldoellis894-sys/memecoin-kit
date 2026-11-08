@@ -402,6 +402,8 @@ html.ul-motion .lt-ask-pair[data-open] { animation: lt-msg-in .35s var(--lt-ease
 .lt-ask-done[hidden] { display: none; }
 .lt-ask-foot { display: flex; justify-content: center; padding: 4px 16px 18px; border-top: 1px solid var(--lt-line); margin-top: 4px; padding-top: 14px; }
 .lt-ask-foot[hidden] { display: none; }
+/* the street number of a house (#0007), under its name */
+.lt-door-sn { display: block; padding: 0 4px; font-size: .75rem; font-weight: 800; letter-spacing: .06em; color: var(--t-muted); opacity: .8; }
 /* truck art: the chat gets the same painted frame as the cards */
 html.decor-truck .lt-ask { --s: var(--dt-red); position: relative; border: 3px solid var(--lt-ink); border-radius: 16px;
   box-shadow: inset 0 0 0 7px var(--s), inset 0 0 0 9.5px var(--lt-ink); outline: 2.4px dotted var(--dt-dots); outline-offset: -6.8px; padding: 10px; }
