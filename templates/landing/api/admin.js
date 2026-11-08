@@ -6,7 +6,9 @@
 //                    also the houses the word filter hides; the bans; the last moderation actions
 // POST { action: 'remove', sn }  → takes house #sn off the street (the visitor may put a house there again)
 // POST { action: 'ban', sn }     → takes it off and bans its browser: that visitor cannot put a house on the street again
-// POST { action: 'unban', sn }   → lifts the ban that was given with house #sn
+// POST { action: 'unban', sn }   → lifts the ban that was given with house #sn and puts that house back on the street with
+//                                  its number (unless its owner has another house there now, or another visitor's lit house
+//                                  has the same picture). An undo for a ban given by mistake
 //
 // Wrong passwords: 5 a minute from one address, then the address waits (kept in memory: a soft limit, as on the street).
 // Every action goes into the log with the time and the moderator's address. It answers only for projects in STREETS.
@@ -80,12 +82,19 @@ export async function handle(request, env = process.env, deps = {}) {
         const ban = st.bans.find((x) => x.sn === sn);
         if (!ban) return json({ error: 'no_ban' }, 404, noindex);
         st.bans = st.bans.filter((x) => x !== ban);
+        // the house comes back as it was when it was banned (bans given before this kept no house)
+        const h = ban.house;
+        const free = h && typeof h === 'object' && h.key === ban.key && !st.houses.some((x) => x.key === h.key
+          || (x.seed === h.seed && (x.family || 'mumbai') === (h.family || 'mumbai') && !isDark(x, now)));
+        if (free) st.houses = [h, ...st.houses].sort((a, b2) => (a.updated < b2.updated ? 1 : -1)).slice(0, conf.keep);
         st.log.push({ at, action, sn, name: ban.name, ip });
+        await writeStreet(env, store, st, at);
+        return json({ ok: true, restored: Boolean(free) && st.houses.includes(h) }, 200, noindex);
       } else {
         const h = st.houses.find((x) => x.sn === sn);
         if (!h) return json({ error: 'no_house' }, 404, noindex);
         st.houses = st.houses.filter((x) => x !== h);
-        if (action === 'ban' && !st.bans.some((x) => x.key === h.key)) st.bans.push({ key: h.key, sn, name: h.name, at });
+        if (action === 'ban' && !st.bans.some((x) => x.key === h.key)) st.bans.push({ key: h.key, sn, name: h.name, at, house: h });
         st.log.push({ at, action, sn, name: h.name, ip });
       }
       await writeStreet(env, store, st, at);

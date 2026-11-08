@@ -422,9 +422,20 @@ console.log('8 ok: country and city from any host');
   // ban: off the street and that browser cannot post again; unban lets it back
   assert.equal((await acall('POST', { action: 'ban', sn: 3 })).out.ok, true);
   const tryAgain = await house('adminc', 9103, 'Third again', '6.6.6.3'); assert.equal(tryAgain.status, 403); assert.equal(tryAgain.out.error, 'banned');
-  const l2 = await acall('GET'); assert.deepEqual(l2.out.bans.map((b) => b.sn), [3]); assert.deepEqual(l2.out.log.map((e) => e.action), ['ban', 'remove']);
-  assert.equal((await acall('POST', { action: 'unban', sn: 3 })).out.ok, true);
-  const freed = await house('adminc', 9103, 'Third free', '6.6.6.3'); assert.ok(freed.out.ok); assert.equal(freed.out.house.sn, 6);
+  const l2 = await acall('GET'); assert.deepEqual(l2.out.bans.map((b) => b.sn), [3]); assert.deepEqual(l2.out.log.map((e) => e.action), ['ban', 'remove']); assert.ok(!JSON.stringify(l2.out).includes('"key"'), 'a ban shows no key or kept house');
+  // unban undoes the ban: the house is back on the street with its number, and its owner can update it
+  const unb = await acall('POST', { action: 'unban', sn: 3 }); assert.equal(unb.out.ok, true); assert.equal(unb.out.restored, true);
+  { const pub = (await call('GET', null, { store }, AENV)).out.houses.find((x) => x.sn === 3); assert.ok(pub, 'the unbanned house is back'); assert.ok(!('key' in pub)); }
+  const freed = await house('adminc', 9103, 'Third free', '6.6.6.3'); assert.ok(freed.out.ok); assert.equal(freed.out.house.sn, 3, 'and keeps its number');
+  // the owner put up another house while banned? not possible; but if a lit copy took the picture, the house does not come back
+  assert.equal((await acall('POST', { action: 'ban', sn: 3 })).out.ok, true);
+  { const j = JSON.parse(store.state.text); j.houses.push({ ...j.bans[0].house, key: 'copy'.padEnd(32, '0'), sn: 90, name: 'Copy' }); store.state.text = JSON.stringify(j); }
+  const unb2 = await acall('POST', { action: 'unban', sn: 3 }); assert.equal(unb2.out.restored, false);
+  assert.equal((await call('GET', null, { store }, AENV)).out.houses.filter((x) => x.sn === 3).length, 0);
+  { const j = JSON.parse(store.state.text); j.houses = j.houses.filter((x) => x.sn !== 90); store.state.text = JSON.stringify(j); }
+  // an old ban that kept no house is just lifted
+  { const j = JSON.parse(store.state.text); j.bans.push({ key: 'old'.padEnd(32, '0'), sn: 91, name: 'Old', at: j.updated }); store.state.text = JSON.stringify(j); }
+  const unb3 = await acall('POST', { action: 'unban', sn: 91 }); assert.equal(unb3.out.ok, true); assert.equal(unb3.out.restored, false);
   // bad requests
   assert.equal((await acall('POST', { action: 'nuke', sn: 1 })).status, 400);
   assert.equal((await acall('POST', { action: 'remove', sn: '1' })).status, 400);
