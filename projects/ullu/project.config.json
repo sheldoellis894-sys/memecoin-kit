@@ -698,12 +698,12 @@
       "text": "Top up your wallet with SOL. Leave a bit for fees"
     },
     {
-      "title": "Open guru.fun",
-      "text": "Paste the contract address from this page. Anything else is fake"
+      "title": "Log in to guru.fun",
+      "text": "Connect your wallet and sign up with V-Gate. A quick KYC check opens trading"
     },
     {
       "title": "Buy $ULLU",
-      "text": "Pick the amount and confirm in your wallet. Only spend what you can afford to lose"
+      "text": "Paste the contract address from this page, pick the amount and confirm in your wallet. Anything else is fake"
     }
   ],
   "tokenomics": {
