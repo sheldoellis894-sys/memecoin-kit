@@ -320,7 +320,7 @@ console.log('4 ok: names, signs, codes, numbers, sizes, old houses, methods');
 
 // ---- 5. limits, storage problems, no store
 resetLimits();
-for (let i = 0; i < 6; i++) assert.ok((await call('POST', { ...good, id: `limit${i}aaaaaaaaaaaaa`, code: K.encodeHouse(1000 + i, {}) }, { store }, ENV, '5.5.5.5')).out.ok);
+for (let i = 0; i < 40; i++) assert.ok((await call('POST', { ...good, id: `limit${String(i).padStart(2, '0')}aaaaaaaaaaaa`, code: K.encodeHouse(1000 + i, {}) }, { store }, ENV, '5.5.5.5')).out.ok, `post ${i + 1} of 40 a day from one address`);
 res = await call('POST', { ...good, id: 'limit9aaaaaaaaaaaaa', code: K.encodeHouse(2000, {}) }, { store }, ENV, '5.5.5.5');
 assert.equal(res.status, 429); assert.equal(res.out.error, 'busy');
 store.state.fail = true;
@@ -332,8 +332,8 @@ res = await call('POST', good, { store }, { PROJECT: 'ullu' }); assert.equal(res
 // an IPv6 visitor counts by the /64 block, not by each address in it
 resetLimits();
 {
-  const v6 = await Promise.all(Array.from({ length: 7 }, (_, i) => call('POST', { ...good, id: `vsixvsixvsixvsix${i}00`, name: `Six ${i}`, code: K.encodeHouse(7000 + i, {}) }, { store }, ENV, `2001:db8:aa:bb::${i + 1}`)));
-  assert.deepEqual(v6.map((x) => x.status), [200, 200, 200, 200, 200, 200, 429]);
+  const v6 = await Promise.all(Array.from({ length: 41 }, (_, i) => call('POST', { ...good, id: `vsixvsixvsixvsix${String(i).padStart(2, '0')}0`, name: `Six ${i}`, code: K.encodeHouse(7000 + i, {}) }, { store }, ENV, `2001:db8:aa:bb::${i + 1}`)));
+  assert.deepEqual(v6.map((x) => x.status), [...Array(40).fill(200), 429]);
 }
 // Blob in public mode reads through a CDN that may give the old file: posts one after another are not lost
 resetLimits();

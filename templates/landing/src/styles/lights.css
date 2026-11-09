@@ -342,7 +342,7 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-ca .lt-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .lt-ca-code.is-soon { padding: 8px 12px; border: 1.5px dashed var(--lt-line); border-radius: 10px; color: var(--t-muted); font-family: var(--font-body); letter-spacing: .02em; }
 .lt-ca .lt-btn:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.4); }
-.lt-buy-open .lt-ca { max-width: 520px; margin: 18px auto 0; text-align: left; }
+.lt-buy .lt-ca { max-width: 520px; margin: 22px auto 0; text-align: left; }
 @media (min-width: 760px) { .lt-facade { padding: 28px; } .lt-facade-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; } }
 
 /* ---- How to buy: four diyas ---- */
@@ -432,7 +432,7 @@ html.decor-truck .lt-ask-top { border-radius: 10px 10px 0 0; }
 .lt-buy-sec.is-lit .lt-big-diya-lamp i { animation: lt-flicker 2s ease-in-out infinite; }
 html:not(.ul-motion) .lt-buy-sec.is-lit .lt-big-diya-lamp i { animation: none; }
 .lt-buy-open { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .6s var(--lt-ease), opacity .6s; }
-.lt-buy-sec.is-lit .lt-buy-open, html:not(.ul-js) .lt-buy-open { max-height: 520px; opacity: 1; padding-top: 14px; }
+.lt-buy-sec.is-lit .lt-buy-open, html:not(.ul-js) .lt-buy-open { max-height: 300px; opacity: 1; padding-top: 14px; }
 .lt-buy-open .lt-btn { margin-top: 8px; }
 
 /* ---- Footer ---- */

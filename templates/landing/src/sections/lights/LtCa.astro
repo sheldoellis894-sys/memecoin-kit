@@ -1,6 +1,6 @@
 ---
 // The contract address with a "Copy" button (sections lightsToken and lightsBuy).
-// Before the launch (config "ca" empty) the box says "Coming at launch" and the button is off: no address that looks real,
+// Before the launch (config "ca" empty) the box says "Not available yet" and the button is off: no address that looks real,
 // so nobody copies a fake one. After the launch put the address into "ca" in the config and build again.
 // Texts: config lights.token (ca, copy, copied, caSoon, caFake).
 import { config } from '../../lib/project';
@@ -11,7 +11,7 @@ const ca: string = (config.ca || '').trim();
 <div class="lt-ca" data-ul-ca-box>
   <p class="lt-label">{t.ca || 'Contract address'}</p>
   <div class="lt-row">
-    <code class={`lt-ca-code${ca ? '' : ' is-soon'}`} data-ul-ca>{ca || t.caSoon || 'Coming at launch'}</code>
+    <code class={`lt-ca-code${ca ? '' : ' is-soon'}`} data-ul-ca>{ca || t.caSoon || 'Not available yet'}</code>
     <button type="button" class="lt-btn lt-btn-small" data-ul-ca-copy data-ul-track="ca" data-done={t.copied || 'Copied'} disabled={!ca}>{t.copy || 'Copy'}</button>
   </div>
   {!ca && <p class="lt-ca-none">{t.caFake || 'Any address before the launch is fake'}</p>}

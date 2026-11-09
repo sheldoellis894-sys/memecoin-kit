@@ -27,8 +27,9 @@ import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGH
 
 export const STREETS = { ullu: { keep: 120, ticker: 'ULLU' } };
 const SHOW = 60;                         // houses sent to the page
-const PER_IP = 6;                        // posts a day from one address (kept in memory: a soft limit)
-const PER_MINUTE = 40;                   // posts a minute for the whole street
+const PER_IP = 40;                       // posts a day from one address (kept in memory: a soft limit; mobile networks put many
+                                         // phones behind one address, so it is not small)
+const PER_MINUTE = 120;                  // posts a minute for the whole street
 const MAX_BODY = 9000;                   // bytes in a post
 const STAR_HOURS = 36;                   // the house of the night is chosen among houses lit in the last hours
 const DARK_HOURS = 48;                   // a house not lit for this long is shown dark on the street
