@@ -3,9 +3,9 @@
 import { config } from '../../lib/project';
 import { lights } from '../../lib/lights';
 import LtHead from './LtHead.astro';
+import LtCa from './LtCa.astro';
 const t = lights.token || {};
 const tk = config.tokenomics || { items: [] };
-const ca: string = config.ca || '';
 ---
 <section id="token" class="lt-sec">
   <div class="lt-in">
@@ -23,27 +23,7 @@ const ca: string = config.ca || '';
           </li>
         ))}
       </ul>
-      <div class="lt-ca">
-        <p class="lt-label">{t.ca || 'Contract address'}</p>
-        {ca ? (
-          <div class="lt-row">
-            <code class="lt-ca-code" data-ul-ca>{ca}</code>
-            <button type="button" class="lt-btn lt-btn-small" data-ul-ca-copy data-done={t.copied || 'Copied'}>{t.copy || 'Copy'}</button>
-          </div>
-        ) : (
-          <p class="lt-ca-none">{t.noCa || 'No address yet. Any address before launch is fake.'}</p>
-        )}
-      </div>
+      <LtCa />
     </div>
   </div>
 </section>
-
-<script>
-  document.querySelectorAll<HTMLButtonElement>('[data-ul-ca-copy]').forEach((b) => b.addEventListener('click', async () => {
-    const code = b.parentElement!.querySelector('[data-ul-ca]')!.textContent!.trim();
-    const label = b.textContent;
-    try { await navigator.clipboard.writeText(code); b.textContent = b.dataset.done || 'Copied'; }
-    catch { const r = document.createRange(); r.selectNodeContents(b.parentElement!.querySelector('[data-ul-ca]')!); const s = getSelection(); s?.removeAllRanges(); s?.addRange(r); }
-    setTimeout(() => { b.textContent = label; }, 1600);
-  }));
-</script>

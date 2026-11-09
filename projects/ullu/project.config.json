@@ -107,7 +107,8 @@
       "ca": "Contract address",
       "copy": "Copy",
       "copied": "Copied",
-      "noCa": "No address yet. Any address before the launch is fake"
+      "caSoon": "Coming at launch",
+      "caFake": "Any address before the launch is fake"
     },
     "steps": {
       "kicker": "How to buy",
@@ -176,8 +177,7 @@
       "lead": "The owl is watching. Hold the lamp until it burns.",
       "hold": "Hold the lamp to light it",
       "done": "Lit. The owl saw it.",
-      "cta": "Buy",
-      "noCa": "No contract address yet. Any address before the launch is fake."
+      "cta": "Buy"
     },
     "footer": {
       "tag": "The owl who brings fortune to the brightest house.",

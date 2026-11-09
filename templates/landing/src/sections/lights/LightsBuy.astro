@@ -1,10 +1,10 @@
 ---
-// The last screen: hold the diya to light it, and the buy link appears. Keyboard: hold Space or Enter. The plain link is always there too.
+// The last screen: hold the diya to light it, and the buy link appears with the contract address and its Copy button. Keyboard: hold Space or Enter. The plain link is always there too.
 import { config, buyUrl } from '../../lib/project';
 import { lights } from '../../lib/lights';
+import LtCa from './LtCa.astro';
 const b = lights.buy || {};
 const url: string = config.links.launch || buyUrl;
-const ca: string = config.ca || '';
 ---
 <section id="buy" class="lt-sec lt-buy-sec">
   <div class="lt-in lt-buy" data-ul-in>
@@ -19,7 +19,7 @@ const ca: string = config.ca || '';
     <p id="ul-diya-hint" class="lt-note" data-ul-diya-hint data-done={b.done || "Lit. The owl saw it."}>{b.hold || 'Hold the lamp to light it'}</p>
     <div class="lt-buy-open" data-ul-buy-open>
       <a class="lt-btn lt-btn-big" href={url} target={url.startsWith('#') ? undefined : '_blank'} rel="noopener noreferrer">{b.cta || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
-      {ca ? <p class="lt-note"><code class="lt-ca-code">{ca}</code></p> : <p class="lt-note">{b.noCa || 'No contract address yet. Any address before launch is fake.'}</p>}
+      <LtCa />
     </div>
   </div>
 </section>

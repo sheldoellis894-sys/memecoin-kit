@@ -1,0 +1,31 @@
+---
+// The contract address with a "Copy" button (sections lightsToken and lightsBuy).
+// Before the launch (config "ca" empty) the box says "Coming at launch" and the button is off: no address that looks real,
+// so nobody copies a fake one. After the launch put the address into "ca" in the config and build again.
+// Texts: config lights.token (ca, copy, copied, caSoon, caFake).
+import { config } from '../../lib/project';
+import { lights } from '../../lib/lights';
+const t = lights.token || {};
+const ca: string = (config.ca || '').trim();
+---
+<div class="lt-ca" data-ul-ca-box>
+  <p class="lt-label">{t.ca || 'Contract address'}</p>
+  <div class="lt-row">
+    <code class={`lt-ca-code${ca ? '' : ' is-soon'}`} data-ul-ca>{ca || t.caSoon || 'Coming at launch'}</code>
+    <button type="button" class="lt-btn lt-btn-small" data-ul-ca-copy data-done={t.copied || 'Copied'} disabled={!ca}>{t.copy || 'Copy'}</button>
+  </div>
+  {!ca && <p class="lt-ca-none">{t.caFake || 'Any address before the launch is fake'}</p>}
+</div>
+
+<script>
+  // copy the address; where the clipboard is not allowed, select it so the visitor can copy it by hand
+  document.querySelectorAll<HTMLButtonElement>('[data-ul-ca-copy]').forEach((b) => b.addEventListener('click', async () => {
+    if (b.disabled) return;
+    const box = b.closest('[data-ul-ca-box]')!.querySelector<HTMLElement>('[data-ul-ca]')!;
+    const label = b.textContent;
+    try { await navigator.clipboard.writeText(box.textContent!.trim()); b.textContent = b.dataset.done || 'Copied'; }
+    catch { const r = document.createRange(); r.selectNodeContents(box); const s = getSelection(); s?.removeAllRanges(); s?.addRange(r); }
+    (window as any).ul?.fire?.('ul:ca-copy');
+    setTimeout(() => { b.textContent = label; }, 1600);
+  }));
+</script>
