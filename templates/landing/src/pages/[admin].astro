@@ -61,9 +61,11 @@ const ticker = config.ticker;
     .bar input { flex: 1 1 220px; max-width: 360px; }
     .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     @media (min-width: 1100px) { .tiles { grid-template-columns: repeat(8, 1fr); } }
-    .tile { background: var(--card); border: 1px solid #ffffff1f; border-radius: 14px; padding: 12px 14px; display: grid; gap: 2px; }
+    .tile { background: var(--card); border: 1px solid #ffffff1f; border-radius: 14px; padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
     .tile b { font-size: 1.6rem; line-height: 1.1; color: var(--accent); }
     .tile span { color: var(--muted); font-size: .85rem; }
+    .tile small { color: var(--text); font-size: .78rem; opacity: .8; margin-top: 4px; }
+    .updated { color: var(--muted); font-size: .85rem; }
     .chart { display: flex; align-items: flex-end; gap: 2px; height: 140px; padding: 8px; background: var(--card); border: 1px solid #ffffff1f; border-radius: 14px; }
     .chart i { flex: 1 1 0; min-width: 2px; height: max(var(--h), 2px); background: var(--accent); border-radius: 3px 3px 0 0; opacity: .85; }
     .scroll { overflow-x: auto; margin-top: 14px; }
@@ -95,7 +97,8 @@ const ticker = config.ticker;
           <button type="button" data-tab="stats" aria-pressed="true">Numbers</button>
           {hasStreet && <button type="button" data-tab="street" aria-pressed="false">Street</button>}
         </nav>
-        <button type="button" data-adm-reload>Reload</button>
+        <span class="updated" data-adm-updated aria-live="polite"></span>
+        <button type="button" data-adm-reload>Refresh</button>
         <button type="button" data-adm-logout>Log out</button>
       </header>
       <main>
@@ -105,7 +108,7 @@ const ticker = config.ticker;
             <button type="button" data-adm-csv>Download CSV</button>
           </div>
           <div class="tiles" data-adm-tiles></div>
-          <p class="note" data-adm-rates></p>
+          <p class="note">"Per 100 visitors" is how many times it happened for every 100 visitors, so sites with different traffic can be compared. Over 100 means people did it more than once. A new visit shows up here within about 30 seconds.</p>
           <h2>Visitors by day</h2>
           <div class="chart" data-adm-chart></div>
           <div class="scroll"><table class="days"><thead data-adm-days-head></thead><tbody data-adm-days></tbody></table></div>
@@ -149,6 +152,7 @@ const ticker = config.ticker;
       if (r.status !== 200) { if (r.out.error === 'password') { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} } showLogin(ERR[r.out.error] || `Error ${r.status}`); return; }
       data = r.out; $('[data-adm-loginerr]').textContent = ''; $<HTMLInputElement>('[data-adm-pass]').value = ''; $('[data-adm-login]').hidden = true; $('[data-adm-app]').hidden = false;
       drawStats(); if (data.street && street) draw();
+      $('[data-adm-updated]').textContent = `Updated ${new Date().toLocaleTimeString('en-GB')}`;
     }
     function art(h: any) {
       const got = K.decodeHouse(h.code, { holderOk: false }); if (!got) return '';
@@ -232,11 +236,10 @@ const ticker = config.ticker;
     function drawStats() {
       const { ev, list } = rows();
       const sum: Record<string, number> = Object.fromEntries(ev.map((k) => [k, list.reduce((a: number, r: any) => a + r[k], 0)]));
-      $('[data-adm-tiles]').innerHTML = ev.map((k) => `<div class="tile"><b>${fmt(sum[k])}</b><span>${NAMES[k] || k}</span></div>`).join('');
-      const per = (k: string) => (sum.visitor ? `${Math.round((sum[k] / sum.visitor) * 1000) / 10}` : '0');
-      $('[data-adm-rates]').textContent = sum.visitor
-        ? `Per 100 visitors: ${per('play')} game starts · ${per('share')} shares · ${per('save')} saves · ${per('buy')} Buy clicks · ${per('ca')} CA copies`
-        : 'No visitors in this period yet.';
+      // under each action: how many times per 100 visitors (one decimal), the number to compare runners by
+      const per = (k: string) => (sum.visitor ? Math.round((sum[k] / sum.visitor) * 1000) / 10 : 0);
+      const RATE = new Set(['play', 'picture', 'share', 'save', 'buy', 'ca']);
+      $('[data-adm-tiles]').innerHTML = ev.map((k) => `<div class="tile"><b>${fmt(sum[k])}</b><span>${NAMES[k] || k}</span>${RATE.has(k) ? `<small>${per(k)} per 100 visitors</small>` : k === 'visit' && sum.visitor ? `<small>${Math.round((sum.visit / sum.visitor) * 10) / 10} per visitor</small>` : ''}</div>`).join('');
       const max = Math.max(1, ...list.map((r: any) => r.visitor));
       const chrono = [...list].reverse();
       $('[data-adm-chart]').innerHTML = chrono.map((r: any) => `<i style="--h:${(r.visitor / max) * 100}%" title="${r.day}: ${r.visitor} visitors"></i>`).join('');
@@ -253,7 +256,11 @@ const ticker = config.ticker;
       a.download = `${(ticker || 'site').toLowerCase()}-stats-${dayOf(Date.now())}.csv`;
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     });
-    $('[data-adm-reload]').addEventListener('click', load);
+    // "Refresh": shows that it works, then when the numbers were taken
+    $('[data-adm-reload]').addEventListener('click', async () => {
+      const b = $<HTMLButtonElement>('[data-adm-reload]'); b.disabled = true; b.textContent = 'Refreshing…';
+      try { await Promise.all([load(), new Promise((r) => setTimeout(r, 450))]); } finally { b.disabled = false; b.textContent = 'Refresh'; }
+    });
     $('[data-adm-logout]').addEventListener('click', () => { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} showLogin(); });
     $('[data-adm-login]').addEventListener('submit', (e) => {
       e.preventDefault(); pass = $<HTMLInputElement>('[data-adm-pass]').value;
