@@ -440,10 +440,68 @@ console.log('8 ok: country and city from any host');
   assert.equal((await acall('POST', { action: 'nuke', sn: 1 })).status, 400);
   assert.equal((await acall('POST', { action: 'remove', sn: '1' })).status, 400);
   assert.equal((await acall('POST', { action: 'remove', sn: 999 })).status, 404);
-  assert.equal((await admin(new Request('https://x/api/admin', { method: 'GET' }), { ...AENV, PROJECT: 'molty' }, { now, store })).status, 404);
+  assert.equal((await admin(new Request('https://x/api/admin', { method: 'GET' }), { ...AENV, PROJECT: 'molty' }, { now, store })).status, 401, 'a project without a street still has the admin (numbers only), behind the password');
   // a house hidden by the word filter is shown to the moderator, marked
   { const j = JSON.parse(store.state.text); j.houses.push({ ...j.houses[0], key: 'rude2'.padEnd(32, '0'), seed: 9300, sn: 77, name: 'Chutiya' }); store.state.text = JSON.stringify(j);
     const g = await acall('GET'); assert.equal(g.out.houses.find((x) => x.sn === 77).hidden, 'words'); }
   console.log('9 ok: street numbers, moderator list, remove, ban and unban, wrong passwords');
+}
+// ---- 10. visit and click numbers (api/stats.js) and their place in the moderator page
+{
+  const { handle: stats, resetStatsLimits, cleanReport } = await import(new URL('../api/stats.js', import.meta.url));
+  const { handle: admin, resetAdminLimits } = await import(new URL('../api/admin.js', import.meta.url));
+  resetStatsLimits(); resetAdminLimits();
+  const files = new Map(); let writes = 0;
+  const store = { async read(env, p) { return files.get(p) ?? null; }, async write(env, p, b) { files.set(p, b); writes += 1; } };
+  const AENV = { ...ENV, ADMIN_PASSWORD: 'a-long-moderator-password-123' };
+  const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148';
+  const sreq = (body, ip = '8.8.8.8', ua = UA, method = 'POST') => new Request('https://x/api/stats', { method, headers: { 'content-type': 'application/json', 'x-forwarded-for': ip, 'user-agent': ua }, body: method === 'POST' ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined });
+  const send = async (body, ip, ua, env = AENV, method) => (await stats(sreq(body, ip, ua, method), env, { now, store })).status;
+  // a report adds to the numbers of the day; visit and visitor count at most once per report, the rest up to 30
+  assert.equal(await send({ e: { visit: 1, visitor: 1, play: 2, share: 1, buy: 1 } }), 204);
+  assert.equal(await send({ e: { visit: 5, visitor: 3, play: 100, save: 1, ca: 1, unknown: 7 } }), 204);
+  const day0 = JSON.parse(files.get('ullu/stats.json')).days['2026-11-05'];
+  assert.deepEqual(day0, { visit: 2, visitor: 2, play: 32, share: 1, buy: 1, save: 1, ca: 1 });
+  // nothing is stored about the visitor: no address, no browser, no id
+  assert.ok(!files.get('ullu/stats.json').includes('8.8.8.8') && !files.get('ullu/stats.json').includes('iPhone'));
+  // bad reports, bots, a wrong method, nothing to count
+  assert.equal(await send({ e: { play: -1 } }), 400); assert.equal(await send({ e: { play: 1.5 } }), 400);
+  assert.equal(await send({ e: {} }), 400); assert.equal(await send('not json'), 400); assert.equal(await send({ e: [1] }), 400);
+  assert.equal(await send('x'.repeat(2000)), 413);
+  assert.equal(await send({ e: { visit: 1 } }, '8.8.8.8', 'Mozilla/5.0 (compatible; Googlebot/2.1)'), 204);
+  assert.equal(await send({ e: { visit: 1 } }, '8.8.8.8', 'TelegramBot (like TwitterBot)'), 204);
+  assert.equal(await send({ e: { visit: 1 } }, '8.8.8.8', 'Mozilla/5.0 HeadlessChrome/120'), 204);
+  assert.equal(JSON.parse(files.get('ullu/stats.json')).days['2026-11-05'].visit, 2, 'bots are not counted');
+  assert.equal(await send(null, '8.8.8.8', UA, AENV, 'GET'), 405);
+  assert.deepEqual(cleanReport({ visit: 0, play: 0 }), null);
+  // no storage: the site goes on, nothing is counted
+  assert.equal(await send({ e: { visit: 1 } }, '9.9.9.1', UA, { PROJECT: 'ullu' }), 204);
+  // 400 reports an hour from one address, then it waits; another address goes on
+  const w0 = writes; let lastStatus = 0;
+  for (let i = 0; i < 405; i++) lastStatus = await send({ e: { play: 1 } }, '4.4.4.4');
+  assert.equal(lastStatus, 429); assert.equal(writes - w0, 400);
+  assert.equal(await send({ e: { play: 1 } }, '4.4.4.5'), 204);
+  // a new day starts a new row; the oldest days go after 400
+  clock += 86400000; assert.equal(await send({ e: { visit: 1, visitor: 1 } }, '4.4.4.6'), 204); clock -= 86400000;
+  // reports at the same moment are not lost (one server process)
+  const before = JSON.parse(files.get('ullu/stats.json')).days['2026-11-05'].share;
+  await Promise.all(Array.from({ length: 40 }, (_, i) => send({ e: { share: 1 } }, `3.3.${i}.1`)));
+  assert.equal(JSON.parse(files.get('ullu/stats.json')).days['2026-11-05'].share, before + 40);
+  { const j = JSON.parse(files.get('ullu/stats.json')); for (let i = 0; i < 420; i++) j.days[`2025-01-${String(i).padStart(3, '0')}`] = { visit: 1 }; files.set('ullu/stats.json', JSON.stringify(j));
+    await send({ e: { visit: 1 } }, '4.4.4.7'); assert.equal(Object.keys(JSON.parse(files.get('ullu/stats.json')).days).length, 400); }
+  // the moderator page gets the numbers, newest day first, with the street
+  const areq = (method, body, env = AENV) => admin(new Request('https://x/api/admin', { method, headers: { authorization: `Bearer ${AENV.ADMIN_PASSWORD}`, 'x-forwarded-for': '5.5.5.9', 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }), env, { now, store });
+  const g = await (await areq('GET')).json();
+  assert.equal(g.street, true); assert.equal(g.stats.days[0].day, '2026-11-06'); assert.equal(g.stats.days[1].day, '2026-11-05');
+  assert.deepEqual(g.stats.events, ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca']);
+  // a project without a street: the admin shows only the numbers, street actions are refused
+  const files2 = new Map([['molty/stats.json', JSON.stringify({ days: { '2026-11-05': { visit: 3 } }, rev: 1 })]]);
+  const store2 = { async read(env, p) { return files2.get(p) ?? null; }, async write(env, p, b) { files2.set(p, b); } };
+  const MENV = { PROJECT: 'molty', STORE: 'file', DATA_DIR: '/tmp/none', ADMIN_PASSWORD: AENV.ADMIN_PASSWORD };
+  const m = await admin(new Request('https://x/api/admin', { headers: { authorization: `Bearer ${AENV.ADMIN_PASSWORD}` } }), MENV, { now, store: store2 });
+  const mo = await m.json(); assert.equal(m.status, 200); assert.equal(mo.street, false); assert.deepEqual(mo.stats.days, [{ day: '2026-11-05', visit: 3 }]);
+  const mp = await admin(new Request('https://x/api/admin', { method: 'POST', headers: { authorization: `Bearer ${AENV.ADMIN_PASSWORD}` }, body: JSON.stringify({ action: 'remove', sn: 1 }) }), MENV, { now, store: store2 });
+  assert.equal(mp.status, 404);
+  console.log('10 ok: visit and click numbers by day, limits, bots, no personal data, in the moderator page');
 }
 console.log('street: all ok');

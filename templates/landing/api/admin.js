@@ -2,8 +2,9 @@
 // One password for the moderator: env ADMIN_PASSWORD, at least 16 characters. Without it the page and this function are off.
 // The password goes in every request as "Authorization: Bearer <password>"; nothing else is needed (no accounts, no cookies).
 //
-// GET              → { houses, bans, log } — every house on the street with its number, name, signs and nights,
-//                    also the houses the word filter hides; the bans; the last moderation actions
+// GET              → { street, houses, bans, log, stats } — every house on the street with its number, name, signs and nights,
+//                    also the houses the word filter hides; the bans; the last moderation actions; the visit and click
+//                    numbers by day (api/stats.js). A project without a street gets only the numbers (street: false)
 // POST { action: 'remove', sn }  → takes house #sn off the street (the visitor may put a house there again)
 // POST { action: 'ban', sn }     → takes it off and bans its browser: that visitor cannot put a house on the street again
 // POST { action: 'unban', sn }   → lifts the ban that was given with house #sn and puts that house back on the street with
@@ -11,11 +12,12 @@
 //                                  has the same picture). An undo for a ban given by mistake
 //
 // Wrong passwords: 5 a minute from one address, then the address waits (kept in memory: a soft limit, as on the street).
-// Every action goes into the log with the time and the moderator's address. It answers only for projects in STREETS.
+// Every action goes into the log with the time and the moderator's address.
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { storeFor, storeKind, serial } from './_agent/store.js';
 import { STREETS, ipKey, readStreet, writeStreet, pathOf, isDark, blockList, rude, json } from './street.js';
 import { decodeHouse } from '../src/lib/lights-kit.js';
+import { readStats, EVENTS } from './stats.js';
 
 const TRIES = 5;                         // wrong passwords a minute from one address
 const fails = new Map();                 // address → { at: minute, n }
@@ -52,7 +54,7 @@ function adminOf(h, now, conf, block, bans) {
 export async function handle(request, env = process.env, deps = {}) {
   const conf = STREETS[env.PROJECT];
   const noindex = { 'x-robots-tag': 'noindex, nofollow' };
-  if (!conf || String(env.ADMIN_PASSWORD || '').length < 16) return json({ error: 'not_found' }, 404, noindex);
+  if (!env.PROJECT || String(env.ADMIN_PASSWORD || '').length < 16) return json({ error: 'not_found' }, 404, noindex);
   if (!storeKind(env)) return json({ error: 'off' }, 503, noindex);
   const now = (deps.now || Date.now)();
   const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
@@ -63,13 +65,17 @@ export async function handle(request, env = process.env, deps = {}) {
 
   if (request.method === 'GET') {
     try {
+      const s = await readStats(env, store);
+      const stats = { events: EVENTS, days: Object.keys(s.days).sort().reverse().slice(0, 120).map((d) => ({ day: d, ...s.days[d] })) };
+      if (!conf) return json({ street: false, houses: [], bans: [], log: [], lastSn: 0, stats }, 200, noindex);
       const st = await readStreet(env, store);
       const houses = st.houses.map((h) => adminOf(h, now, conf, block, st.bans)).sort((a, b) => b.sn - a.sn);
       const bans = st.bans.map((b) => ({ sn: b.sn, name: b.name, at: b.at }));
-      return json({ houses, bans, log: st.log.slice(-100).reverse(), lastSn: st.lastSn }, 200, noindex);
+      return json({ street: true, houses, bans, log: st.log.slice(-100).reverse(), lastSn: st.lastSn, stats }, 200, noindex);
     } catch { return json({ error: 'storage' }, 503, noindex); }
   }
   if (request.method !== 'POST') return json({ error: 'method' }, 405, { ...noindex, allow: 'GET, POST' });
+  if (!conf) return json({ error: 'no_street' }, 404, noindex);
 
   let b; try { b = JSON.parse(await request.text()); } catch { return json({ error: 'bad' }, 400, noindex); }
   const action = b && b.action, sn = b && b.sn;

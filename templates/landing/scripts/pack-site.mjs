@@ -163,7 +163,7 @@ ${street ? `- \`STREET_SALT\` - a long random string (for example \`openssl rand
 - ` : ''}\`DATA_DIR=./data\` - the folder with the site's data${street ? ' (the street: houses, bans, the moderation log)' : ''}. Back it up; never delete it on updates
 - \`TRUST_PROXY\` - leave empty when nginx runs on the same server (as below)
 ` : ''}${functions.includes('admin') ? `
-The moderator page is \`https://your-domain.com/admin\` (password = \`ADMIN_PASSWORD\`): remove a house from the street, ban a browser, lift a ban (the house comes back), the log of actions. Without \`ADMIN_PASSWORD\` the page is off.
+The moderator page is \`https://your-domain.com/admin\` (password = \`ADMIN_PASSWORD\`)${functions.includes('stats') ? ': Numbers - visits, game starts, shares, saves, Buy clicks and contract copies by day, with a CSV file (no cookies, no personal data)' : ''}${street ? `${functions.includes('stats') ? '; ' : ': '}Street - remove a house, ban a browser, lift a ban (the house comes back), the log of actions` : ''}. Without \`ADMIN_PASSWORD\` the page is off.
 ` : ''}
 ## 3. Keep it running (systemd)
 

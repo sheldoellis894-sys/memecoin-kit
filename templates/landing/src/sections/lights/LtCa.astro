@@ -12,7 +12,7 @@ const ca: string = (config.ca || '').trim();
   <p class="lt-label">{t.ca || 'Contract address'}</p>
   <div class="lt-row">
     <code class={`lt-ca-code${ca ? '' : ' is-soon'}`} data-ul-ca>{ca || t.caSoon || 'Coming at launch'}</code>
-    <button type="button" class="lt-btn lt-btn-small" data-ul-ca-copy data-done={t.copied || 'Copied'} disabled={!ca}>{t.copy || 'Copy'}</button>
+    <button type="button" class="lt-btn lt-btn-small" data-ul-ca-copy data-ul-track="ca" data-done={t.copied || 'Copied'} disabled={!ca}>{t.copy || 'Copy'}</button>
   </div>
   {!ca && <p class="lt-ca-none">{t.caFake || 'Any address before the launch is fake'}</p>}
 </div>
@@ -25,7 +25,6 @@ const ca: string = (config.ca || '').trim();
     const label = b.textContent;
     try { await navigator.clipboard.writeText(box.textContent!.trim()); b.textContent = b.dataset.done || 'Copied'; }
     catch { const r = document.createRange(); r.selectNodeContents(box); const s = getSelection(); s?.removeAllRanges(); s?.addRange(r); }
-    (window as any).ul?.fire?.('ul:ca-copy');
     setTimeout(() => { b.textContent = label; }, 1600);
   }));
 </script>

@@ -1,14 +1,18 @@
 ---
-// The moderator page /admin: every house on the street with its number (#0001), picture, name, signs and nights,
-// and two buttons: "Remove" (off the street) and "Ban" (off the street, and that browser cannot post again).
-// Built only for a project whose server has the street and the admin function (config "server.functions");
-// other projects get no /admin page at all. The password is the server's ADMIN_PASSWORD (api/admin.js); the page
+// The moderator page /admin. Two tabs:
+//   Numbers  visits, game starts, shares, saves, Buy clicks and contract copies by day (api/stats.js), with a CSV file
+//   Street   every house on the street with its number (#0001), picture, name, signs and nights, and two buttons:
+//            "Remove" (off the street) and "Ban" (off the street, and that browser cannot post again); bans and the log
+// Built for a project whose server has the admin function (config "server.functions"); the Street tab only with "street".
+// Other projects get no /admin page at all. The password is the server's ADMIN_PASSWORD (api/admin.js); the page
 // keeps it only in this browser tab while it is open. Not linked from the site and closed to search engines.
 import { config, theme, asset } from '../lib/project';
 export function getStaticPaths() {
   const fns: string[] = config.server?.functions || [];
-  return fns.includes('street') && fns.includes('admin') ? [{ params: { admin: 'admin' } }] : [];
+  return fns.includes('admin') ? [{ params: { admin: 'admin' } }] : [];
 }
+const fns: string[] = config.server?.functions || [];
+const hasStreet = fns.includes('street');
 const c = theme.colors;
 const ticker = config.ticker;
 ---
@@ -17,7 +21,7 @@ const ticker = config.ticker;
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>{config.name} · street admin</title>
+  <title>{config.name} · admin</title>
   <link rel="icon" href={asset(config.assets.favicon || config.assets.logo)} />
   <style set:html={`
     :root { --bg:${c.bg}; --card:${c.surface}; --text:${c.text}; --muted:${c.muted}; --accent:${c.primary}; --red:#E8343B; --green:#3DBE6B; }
@@ -51,8 +55,23 @@ const ticker = config.ticker;
     .house .acts { display: flex; gap: 8px; padding: 0 12px 12px; }
     section { margin-top: 28px; } h2 { font-size: 1rem; margin: 0 0 10px; }
     table { width: 100%; border-collapse: collapse; font-size: .9rem; } td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ffffff14; }
+    .tabs { display: flex; gap: 6px; }
+    .tabs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #000; }
+    .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+    .bar input { flex: 1 1 220px; max-width: 360px; }
+    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media (min-width: 1100px) { .tiles { grid-template-columns: repeat(8, 1fr); } }
+    .tile { background: var(--card); border: 1px solid #ffffff1f; border-radius: 14px; padding: 12px 14px; display: grid; gap: 2px; }
+    .tile b { font-size: 1.6rem; line-height: 1.1; color: var(--accent); }
+    .tile span { color: var(--muted); font-size: .85rem; }
+    .chart { display: flex; align-items: flex-end; gap: 2px; height: 140px; padding: 8px; background: var(--card); border: 1px solid #ffffff1f; border-radius: 14px; }
+    .chart i { flex: 1 1 0; min-width: 2px; height: max(var(--h), 2px); background: var(--accent); border-radius: 3px 3px 0 0; opacity: .85; }
+    .scroll { overflow-x: auto; margin-top: 14px; }
+    table.days th, table.days td { white-space: nowrap; text-align: right; } table.days th:first-child, table.days td:first-child { text-align: left; }
+    .zero { opacity: .35; }
     @media (max-width: 640px) {
-      header { position: static; } header h1 { flex-basis: 100%; } header input { max-width: none; flex-basis: 100%; }
+      header { position: static; } header h1 { flex-basis: 100%; } .bar input { max-width: none; flex-basis: 100%; }
+      .tiles { grid-template-columns: 1fr 1fr; } .tile b { font-size: 1.35rem; } .chart { height: 110px; }
       main { padding: 12px; } .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
       .house .info { padding: 8px 10px; font-size: 13px; } .house .name { font-size: .95rem; }
       .house .acts { padding: 0 10px 10px; gap: 6px; } .house .acts button { flex: 1; padding: 8px 4px; }
@@ -63,7 +82,7 @@ const ticker = config.ticker;
 <body>
   <div data-adm data-adm-ticker={ticker}>
     <form class="login" data-adm-login>
-      <h1>{config.name} · street admin</h1>
+      <h1>{config.name} · admin</h1>
       <input type="password" autocomplete="current-password" placeholder="Admin password" data-adm-pass required />
       <button class="is-red" type="submit">Open</button>
       <p class="note err" data-adm-loginerr></p>
@@ -71,17 +90,39 @@ const ticker = config.ticker;
     </form>
     <div data-adm-app hidden>
       <header>
-        <h1>{config.name} · street admin</h1>
-        <input type="search" placeholder="Find: #12, a name, a sign" data-adm-find />
-        <select data-adm-show><option value="all">All houses</option><option value="hidden">Hidden by the filter</option><option value="lit">Lit now</option></select>
+        <h1>{config.name} · admin</h1>
+        <nav class="tabs" data-adm-tabs>
+          <button type="button" data-tab="stats" aria-pressed="true">Numbers</button>
+          {hasStreet && <button type="button" data-tab="street" aria-pressed="false">Street</button>}
+        </nav>
         <button type="button" data-adm-reload>Reload</button>
         <button type="button" data-adm-logout>Log out</button>
       </header>
       <main>
-        <p class="note" data-adm-count></p>
-        <div class="grid" data-adm-grid></div>
-        <section><h2>Banned</h2><table><tbody data-adm-bans></tbody></table></section>
-        <section><h2>Log</h2><table><tbody data-adm-log></tbody></table></section>
+        <section class="panel" data-adm-panel="stats">
+          <div class="bar">
+            <select data-adm-period><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="0">All days</option></select>
+            <button type="button" data-adm-csv>Download CSV</button>
+          </div>
+          <div class="tiles" data-adm-tiles></div>
+          <p class="note" data-adm-rates></p>
+          <h2>Visitors by day</h2>
+          <div class="chart" data-adm-chart></div>
+          <div class="scroll"><table class="days"><thead data-adm-days-head></thead><tbody data-adm-days></tbody></table></div>
+          <p class="note">Days in UTC. Only numbers are kept: no cookies, no addresses, no ids. Known bots are not counted. The numbers are what browsers report, so they are close, not exact.</p>
+        </section>
+        {hasStreet && (
+          <section class="panel" data-adm-panel="street" hidden>
+            <div class="bar">
+              <input type="search" placeholder="Find: #12, a name, a sign" data-adm-find />
+              <select data-adm-show><option value="all">All houses</option><option value="hidden">Hidden by the filter</option><option value="lit">Lit now</option></select>
+            </div>
+            <p class="note" data-adm-count></p>
+            <div class="grid" data-adm-grid></div>
+            <section><h2>Banned</h2><table><tbody data-adm-bans></tbody></table></section>
+            <section><h2>Log</h2><table><tbody data-adm-log></tbody></table></section>
+          </section>
+        )}
       </main>
     </div>
   </div>
@@ -92,6 +133,7 @@ const ticker = config.ticker;
     const ticker = $('[data-adm]').dataset.admTicker || '';
     let pass = ''; try { pass = sessionStorage.getItem(KEY) || ''; } catch { /* private mode */ }
     let data: any = null;
+    const street = Boolean(document.querySelector('[data-adm-grid]'));
     const sn4 = (n: number) => `#${String(n).padStart(4, '0')}`;
     const esc = (t: string) => String(t ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!);
     const when = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? '' : d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); };
@@ -105,7 +147,8 @@ const ticker = config.ticker;
     async function load() {
       const r = await api('GET');
       if (r.status !== 200) { if (r.out.error === 'password') { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} } showLogin(ERR[r.out.error] || `Error ${r.status}`); return; }
-      data = r.out; $('[data-adm-loginerr]').textContent = ''; $<HTMLInputElement>('[data-adm-pass]').value = ''; $('[data-adm-login]').hidden = true; $('[data-adm-app]').hidden = false; draw();
+      data = r.out; $('[data-adm-loginerr]').textContent = ''; $<HTMLInputElement>('[data-adm-pass]').value = ''; $('[data-adm-login]').hidden = true; $('[data-adm-app]').hidden = false;
+      drawStats(); if (data.street && street) draw();
     }
     function art(h: any) {
       const got = K.decodeHouse(h.code, { holderOk: false }); if (!got) return '';
@@ -147,17 +190,69 @@ const ticker = config.ticker;
       if (r.status !== 200) alert(ERR[r.out.error] || `Error: ${r.out.error || r.status}`);
       await load();
     }
-    $('[data-adm-grid]').addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]'); if (!b) return;
-      const sn = Number(b.closest<HTMLElement>('[data-sn]')!.dataset.sn);
-      act(b, { action: b.dataset.act, sn });
+    if (street) {
+      $('[data-adm-grid]').addEventListener('click', (e) => {
+        const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]'); if (!b) return;
+        const sn = Number(b.closest<HTMLElement>('[data-sn]')!.dataset.sn);
+        act(b, { action: b.dataset.act, sn });
+      });
+      $('[data-adm-bans]').addEventListener('click', (e) => {
+        const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-unban]'); if (!b) return;
+        act(b, { action: 'unban', sn: Number(b.dataset.unban) });
+      });
+      $('[data-adm-find]').addEventListener('input', () => data && draw());
+      $('[data-adm-show]').addEventListener('change', () => data && draw());
+    }
+
+    // ---- the tabs: Numbers and Street (the last one opened is remembered in this tab)
+    const TAB = 'ul-admin-tab';
+    const openTab = (name: string) => {
+      if (!document.querySelector(`[data-adm-panel="${name}"]`)) name = 'stats';
+      document.querySelectorAll<HTMLElement>('[data-adm-panel]').forEach((p) => { p.hidden = p.dataset.admPanel !== name; });
+      document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === name)));
+      try { sessionStorage.setItem(TAB, name); } catch {}
+    };
+    $('[data-adm-tabs]').addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-tab]'); if (b) openTab(b.dataset.tab!); });
+    try { openTab(sessionStorage.getItem(TAB) || 'stats'); } catch { openTab('stats'); }
+
+    // ---- the numbers: totals, rates, visitors by day, the table and a CSV file
+    const NAMES: Record<string, string> = { visit: 'Page views', visitor: 'Visitors', play: 'Game starts', picture: 'Picture tool', share: 'Shares', save: 'Saves', buy: 'Buy clicks', ca: 'CA copies' };
+    const fmt = (n: number) => n.toLocaleString('en-US');
+    const dayOf = (t: number) => new Date(t).toISOString().slice(0, 10);
+    /** The days of the chosen period, newest first, with zeros for the days nobody came. */
+    function rows() {
+      const ev: string[] = data.stats?.events || Object.keys(NAMES);
+      const have = new Map<string, any>((data.stats?.days || []).map((d: any) => [d.day, d]));
+      const n = Number($<HTMLSelectElement>('[data-adm-period]').value);
+      const days: string[] = [];
+      if (n) { const today = Date.parse(dayOf(Date.now())); for (let i = 0; i < n; i++) days.push(dayOf(today - i * 86400000)); }
+      else days.push(...[...have.keys()].sort().reverse());
+      return { ev, list: days.map((d) => { const r = have.get(d) || {}; return { day: d, ...Object.fromEntries(ev.map((k) => [k, r[k] || 0])) }; }) };
+    }
+    function drawStats() {
+      const { ev, list } = rows();
+      const sum: Record<string, number> = Object.fromEntries(ev.map((k) => [k, list.reduce((a: number, r: any) => a + r[k], 0)]));
+      $('[data-adm-tiles]').innerHTML = ev.map((k) => `<div class="tile"><b>${fmt(sum[k])}</b><span>${NAMES[k] || k}</span></div>`).join('');
+      const per = (k: string) => (sum.visitor ? `${Math.round((sum[k] / sum.visitor) * 1000) / 10}` : '0');
+      $('[data-adm-rates]').textContent = sum.visitor
+        ? `Per 100 visitors: ${per('play')} game starts · ${per('share')} shares · ${per('save')} saves · ${per('buy')} Buy clicks · ${per('ca')} CA copies`
+        : 'No visitors in this period yet.';
+      const max = Math.max(1, ...list.map((r: any) => r.visitor));
+      const chrono = [...list].reverse();
+      $('[data-adm-chart]').innerHTML = chrono.map((r: any) => `<i style="--h:${(r.visitor / max) * 100}%" title="${r.day}: ${r.visitor} visitors"></i>`).join('');
+      $('[data-adm-days-head]').innerHTML = `<tr><th>Day</th>${ev.map((k) => `<th>${NAMES[k] || k}</th>`).join('')}</tr>`;
+      $('[data-adm-days]').innerHTML = list.map((r: any) => `<tr><td>${r.day}</td>${ev.map((k) => `<td>${r[k] ? fmt(r[k]) : '<span class="zero">0</span>'}</td>`).join('')}</tr>`).join('');
+    }
+    $('[data-adm-period]').addEventListener('change', () => data && drawStats());
+    $('[data-adm-csv]').addEventListener('click', () => {
+      if (!data) return;
+      const { ev, list } = rows();
+      const csv = [['day', ...ev].join(','), ...list.map((r: any) => [r.day, ...ev.map((k) => r[k])].join(','))].join('\n') + '\n';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = `${(ticker || 'site').toLowerCase()}-stats-${dayOf(Date.now())}.csv`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     });
-    $('[data-adm-bans]').addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-unban]'); if (!b) return;
-      act(b, { action: 'unban', sn: Number(b.dataset.unban) });
-    });
-    $('[data-adm-find]').addEventListener('input', () => data && draw());
-    $('[data-adm-show]').addEventListener('change', () => data && draw());
     $('[data-adm-reload]').addEventListener('click', load);
     $('[data-adm-logout]').addEventListener('click', () => { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} showLogin(); });
     $('[data-adm-login]').addEventListener('submit', (e) => {

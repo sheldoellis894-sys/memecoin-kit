@@ -22,6 +22,7 @@
 // It answers only for projects listed in STREETS (env PROJECT).
 import { createHash } from 'node:crypto';
 import { storeFor, storeKind, serial } from './_agent/store.js';
+import { ipKey } from './_agent/ip.js';
 import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGHTS } from '../src/lib/lights-kit.js';
 
 export const STREETS = { ullu: { keep: 120, ticker: 'ULLU' } };
@@ -40,17 +41,6 @@ const int = (v, max = 100000) => (Number.isInteger(v) && v >= 0 && v <= max ? v 
 
 const memory = { ip: new Map(), minute: { at: 0, n: 0 } };
 export const resetLimits = () => { memory.ip.clear(); memory.minute = { at: 0, n: 0 }; };
-
-/** The address the limits count by. An IPv6 visitor usually has a whole /64 block of addresses, so it counts as one. */
-export function ipKey(ip) {
-  const s = String(ip || '').trim().toLowerCase().replace(/^\[|\]$/g, '').replace(/%.*$/, '');
-  if (!s.includes(':')) return s || 'unknown';
-  const v4 = s.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/); if (v4) return v4[1];
-  const [a, b] = s.split('::');
-  const head = a ? a.split(':') : [], tail = b ? b.split(':') : [];
-  const full = s.includes('::') ? [...head, ...Array(Math.max(0, 8 - head.length - tail.length)).fill('0'), ...tail] : head;
-  return `${full.slice(0, 4).map((x) => x.replace(/^0+(?=.)/, '') || '0').join(':')}::/64`;
-}
 
 function limited(ip, now) {
   const day = Math.floor(now / 86400000);
@@ -91,7 +81,7 @@ export async function writeStreet(env, store, st, updated) {
   await store.write(env, pathOf(env.PROJECT), JSON.stringify(file));
   written.set(store, { path: pathOf(env.PROJECT), updated, j: file });
 }
-export { pathOf, isDark, publicOf, blockList, rude, json };
+export { pathOf, isDark, publicOf, blockList, rude, json, ipKey };
 
 /** How bright a house is shown now: a house not lit for two days shows at level 1. */
 const isDark = (h, now) => now - Date.parse(h.updated) > DARK_HOURS * 3600000;

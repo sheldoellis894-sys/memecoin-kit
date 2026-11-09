@@ -83,7 +83,7 @@ const iv: Record<string, string> = c.invite || {};
           <p data-ul-story-night></p>
           <p class="lt-story-event" data-ul-story-event></p>
         </div>
-        <button type="button" class="lt-btn lt-btn-big lt-light-btn" data-ul-light>{l.light || 'Light up tonight'}</button>
+        <button type="button" class="lt-btn lt-btn-big lt-light-btn" data-ul-light data-ul-track="play">{l.light || 'Light up tonight'}</button>
         {owlImages.sleep && (houseCfg as any).hide !== false && <p class="lt-found-hint" data-ul-found-hint>{l.foundHint || 'Every day the owl naps somewhere on this page. Find him and he leaves a gift.'}</p>}
 
         <div class="lt-box lt-inv-box" data-ul-invbox>
@@ -124,8 +124,8 @@ const iv: Record<string, string> = c.invite || {};
         </details>
 
         <div class="lt-actions lt-actions-tight">
-          <button type="button" class="lt-btn" data-ul-card>{l.card || 'Save the card'}</button>
-          <button type="button" class="lt-btn lt-btn-ghost" data-ul-share>{l.share || 'Share on X'}</button>
+          <button type="button" class="lt-btn" data-ul-card data-ul-track="save">{l.card || 'Save the card'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-share data-ul-track="share">{l.share || 'Share on X'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-peek aria-pressed="false" hidden>{l.peek || 'Peek at night 7'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-reroll>{l.reroll || 'Another house'}</button>
         </div>
@@ -135,7 +135,7 @@ const iv: Record<string, string> = c.invite || {};
           <img data-ul-out alt={l.cardAlt || 'Your house card'} width="1080" height="1080" />
           <div class="lt-actions lt-actions-tight">
             <a class="lt-btn lt-btn-small" data-ul-download download>{l.download || 'Download'}</a>
-            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-share2>{l.share || 'Share on X'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-share2 data-ul-track="share">{l.share || 'Share on X'}</button>
           </div>
           <p class="lt-note" data-ul-share-note hidden>{l.shareNote || 'X opens with the text ready. Attach the card you downloaded.'}</p>
         </div>
@@ -166,7 +166,7 @@ const iv: Record<string, string> = c.invite || {};
               <p class="lt-note">{iv.note || 'Send the link to a friend: their house will stand next to yours, and they get a housewarming gift.'}</p>
               <div class="lt-row">
                 <button type="button" class="lt-btn lt-btn-small" data-ul-invite-copy>{iv.copy || 'Copy the link'}</button>
-                <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-invite-x>{iv.share || 'Invite on X'}</button>
+                <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-invite-x data-ul-track="share">{iv.share || 'Invite on X'}</button>
               </div>
               <p class="lt-note" data-ul-invite-msg aria-live="polite"></p>
             </div>

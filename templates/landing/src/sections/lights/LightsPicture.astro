@@ -40,12 +40,12 @@ const data = JSON.stringify({
           <p class="lt-label">{l.base || '1. The picture'}</p>
           <div class="lt-bases" data-ul-bases>
             <label class="lt-base lt-base-up">
-              <input type="file" accept="image/*" data-ul-file class="lt-sr" />
+              <input type="file" accept="image/*" data-ul-file class="lt-sr" data-ul-track="picture" data-ul-track-once />
               <span>{l.upload || 'My picture'}</span>
             </label>
-            <button type="button" class="lt-base" data-base="house"><span>{l.myHouse || 'My house'}</span></button>
-            {bases.map((b, i) => <button type="button" class="lt-base" data-base={`b${i}`}><img src={b.src} alt="" width="56" height="56" loading="lazy" /><span>{b.label}</span></button>)}
-            <button type="button" class="lt-base" data-base="night"><span>{l.blank || 'Just the night'}</span></button>
+            <button type="button" class="lt-base" data-base="house" data-ul-track="picture" data-ul-track-once><span>{l.myHouse || 'My house'}</span></button>
+            {bases.map((b, i) => <button type="button" class="lt-base" data-base={`b${i}`} data-ul-track="picture" data-ul-track-once><img src={b.src} alt="" width="56" height="56" loading="lazy" /><span>{b.label}</span></button>)}
+            <button type="button" class="lt-base" data-base="night" data-ul-track="picture" data-ul-track-once><span>{l.blank || 'Just the night'}</span></button>
           </div>
           <label class="lt-range"><span>{l.night || 'Night'}</span><input type="range" min="0" max="100" value="60" data-ul-night /></label>
         </div>
@@ -87,8 +87,8 @@ const data = JSON.stringify({
         </div>
 
         <div class="lt-actions lt-actions-tight">
-          <button type="button" class="lt-btn" data-ul-save>{l.save || 'Save the picture'}</button>
-          <button type="button" class="lt-btn lt-btn-ghost" data-ul-pshare>{l.share || 'Share on X'}</button>
+          <button type="button" class="lt-btn" data-ul-save data-ul-track="save">{l.save || 'Save the picture'}</button>
+          <button type="button" class="lt-btn lt-btn-ghost" data-ul-pshare data-ul-track="share">{l.share || 'Share on X'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-clear>{l.clear || 'Start over'}</button>
         </div>
         <p class="lt-note" data-ul-pnote aria-live="polite">{l.privacy || 'Your picture stays on your phone. Nothing is uploaded.'}</p>

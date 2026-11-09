@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { config, theme, asset } from '../lib/project';
 import Effects from './Effects.astro';
+import Track from './Track.astro';
 
 const c = theme.colors;
 const f = theme.fonts;
@@ -30,6 +31,8 @@ const vars = [
 ].filter(Boolean).join(';');
 
 const title = `${config.name} ($${config.ticker})`;
+// visit and click numbers for /admin, only where the server counts them (config server.functions has "stats")
+const track = ((config as any).server?.functions || []).includes('stats');
 const og = config.assets.og ? (config.url ? new URL(asset(config.assets.og), config.url).href : asset(config.assets.og)) : '';
 ---
 <!doctype html>
@@ -55,5 +58,6 @@ const og = config.assets.og ? (config.url ? new URL(asset(config.assets.og), con
   <body class="antialiased">
     <slot />
     <Effects />
+    {track && <Track />}
   </body>
 </html>

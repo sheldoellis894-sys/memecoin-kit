@@ -18,7 +18,7 @@ const url: string = config.links.launch || buyUrl;
     </button>
     <p id="ul-diya-hint" class="lt-note" data-ul-diya-hint data-done={b.done || "Lit. The owl saw it."}>{b.hold || 'Hold the lamp to light it'}</p>
     <div class="lt-buy-open" data-ul-buy-open>
-      <a class="lt-btn lt-btn-big" href={url} target={url.startsWith('#') ? undefined : '_blank'} rel="noopener noreferrer">{b.cta || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+      <a class="lt-btn lt-btn-big" data-ul-track="buy" href={url} target={url.startsWith('#') ? undefined : '_blank'} rel="noopener noreferrer">{b.cta || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
       <LtCa />
     </div>
   </div>

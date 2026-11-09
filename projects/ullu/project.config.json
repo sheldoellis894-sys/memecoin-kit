@@ -806,7 +806,8 @@
     "functions": [
       "street",
       "geo",
-      "admin"
+      "admin",
+      "stats"
     ]
   }
 }

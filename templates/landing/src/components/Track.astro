@@ -1,0 +1,40 @@
+---
+// Counts visits and clicks for the moderator page (api/stats.js). On every site whose config has "stats" in
+// server.functions; other sites get nothing. No cookies, no ids: the page only counts and sends the numbers.
+//
+// What counts: any element with data-ul-track="<event>" (play, picture, share, save, buy, ca) counts on a click
+// (an <input type="file"> on a change); data-ul-track-once counts that event once per page. Code can count with
+// window.dispatchEvent(new CustomEvent('ul:track', { detail: 'share' })).
+// When it sends: 8 seconds after the page opens, then every 30 seconds if something new happened, at once after a Buy
+// click (the visitor is leaving for the launchpad), and when the page is hidden or closed. Only what is new each time.
+---
+<script>
+  const EVENTS = ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca'];
+  let counts: Record<string, number> = {};
+  const once = new Set<string>();
+  const add = (k: string) => { if (EVENTS.includes(k)) counts[k] = (counts[k] || 0) + 1; };
+  add('visit');
+  // the first page of the day in this browser (the date only; without storage every page counts as a visitor)
+  try { const d = new Date().toISOString().slice(0, 10); if (localStorage.getItem('ul-seen') !== d) { localStorage.setItem('ul-seen', d); add('visitor'); } }
+  catch { add('visitor'); }
+  const hit = (el: Element | null) => {
+    const t = el?.closest<HTMLElement>('[data-ul-track]'); if (!t || (t as HTMLButtonElement).disabled) return;
+    const k = t.dataset.ulTrack || '';
+    if (t.hasAttribute('data-ul-track-once')) { if (once.has(k)) return; once.add(k); }
+    add(k);
+    if (k === 'buy') setTimeout(send, 0);
+  };
+  document.addEventListener('click', (e) => { const el = e.target as Element; if (!(el instanceof HTMLInputElement && el.type === 'file')) hit(el); }, true);
+  document.addEventListener('change', (e) => { const el = e.target as Element; if (el instanceof HTMLInputElement && el.type === 'file') hit(el); }, true);
+  window.addEventListener('ul:track', (e) => add(String((e as CustomEvent).detail || '')));
+  const send = () => {
+    if (!Object.keys(counts).length) return;
+    const body = JSON.stringify({ e: counts }); counts = {};
+    try { if (navigator.sendBeacon && navigator.sendBeacon('/api/stats', new Blob([body], { type: 'application/json' }))) return; } catch { /* go on */ }
+    fetch('/api/stats', { method: 'POST', body, headers: { 'content-type': 'application/json' }, keepalive: true }).catch(() => {});
+  };
+  setTimeout(send, 8000);
+  setInterval(send, 30000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') send(); });
+  addEventListener('pagehide', send);
+</script>
