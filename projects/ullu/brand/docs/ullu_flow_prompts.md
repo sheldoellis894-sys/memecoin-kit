@@ -45,8 +45,8 @@ For night scenes add: `Warm Diwali night light: orange lamp glow against deep na
 | V6–V11 | `v6_night1.jpg` … `v11_seven.jpg` | gallery `ullu_g01.jpg` … `ullu_g06.jpg` |
 | V12 | `v12_banner.jpg` | X header, DEX header, link preview `ullu_og.jpg` (text added in Figma) |
 
-The stickers `ullu_crying.png`, `ullu_laughing.png` and `ullu_shocked.png` come from the casting emotion sheet; their
-prompts go into the "Emotions" section below.
+The stickers `ullu_crying.png`, `ullu_laughing.png` and `ullu_shocked.png` on the site come from the casting emotion sheet;
+the new emotion sheets V13–V14 below have the same emotions in the final style and can replace them.
 
 ---
 
@@ -200,9 +200,126 @@ The X header and the DEX header (1500×500) and the link preview (1200×630) are
 - Diya flames stand straight and calm.
 - Stickers: an even green background, nothing of the owl cut by the frame.
 
-## Emotions
+## Emotions (added 10.11.2026)
 
-To be added: the emotion set (for stickers and the site moods) in the same style, both eyes clear.
+Two wide sheets with six emotions each, upper body, green background for cutting out. Format `16:9`, references `v4_avatar.jpg` and `v1_fly.jpg`.
+
+| No. | File in `flow_vest/` | Emotions (left to right, top row then bottom row) |
+|---|---|---|
+| V13 | `v13_emotions_a_fixed.jpg` | happy · laughing · shocked · crying · smug · sleepy (yawn) |
+| V14 | `v14_emotions_b_fixed.jpg` | angry · in love with the light · suspicious · nervous · facepalm · celebrating |
+
+The `_fixed` files are the Flow pictures with the beauty mark corrected by hand (one mark, on the left side); the Flow
+originals lie next to them without `_fixed`. A wink is left out on purpose: in the casting Flow drew a dark patch around
+the winking eye.
+
+### V13. Emotions A — for the site moods and stickers (16:9)
+
+```
+Generate 2 images.
+Aspect ratio 16:9.
+Using the character from the attached reference images, an expression sheet: six separate pictures of the same owl, Ullu, arranged in a neat grid of three across and two down with even space between them. Each picture shows him from the belly up, facing the viewer, all six the same size, with the same turban, waistcoat and gold chains; only his face and hands change.
+1. Happy: a wide warm smile, both eyes bright and open, both hands clasped together in delight.
+2. Laughing: head thrown back, beak wide open, both eyes squeezed shut with laughter, one hand slapping his round belly.
+3. Shocked: both eyes huge and round, beak dropped open, both hands pressed to his cheeks, the turban jumping up off his head.
+4. Crying: big blue tears streaming down both cheeks, beak in a wobbly sad frown, both eyes shut tight, one hand wiping a tear.
+5. Smug: a sly confident half-smile, the eyelids of both eyes slightly lowered, one hand stroking his chest feathers like a beard.
+6. Sleepy: a huge yawn, both eyes half closed, the turban slipping to one side, one hand covering the yawn.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face with clean pale feathers around both eyes, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of his face as we look at him. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, two thick gold chains and gold rings on his fingers.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour behind all six pictures, with clear space between the pictures so each one can be cut out. The sheet holds only the six pictures of the owl.
+```
+
+Flow sometimes draws 7–8 owls, black frame lines, or takes the turban off in "shocked" and changes the head: pick the sheet with exactly six owls and the turban on.
+
+### V14. Emotions B — for posts (16:9)
+
+```
+Generate 2 images.
+Aspect ratio 16:9.
+Using the character from the attached reference images, an expression sheet with exactly six pictures of the same owl, Ullu, standing freely on one open green background in two rows of three, with wide green space between them. Each picture shows him from the belly up, facing the viewer, all six the same size, with the turban on his head, the waistcoat and the gold chains in every picture; only his face and hands change. The black beauty mark sits on his cheek on the left side of his face in every picture.
+1. Angry: brows pulled down hard, beak clenched in a scowl, cheeks flushed red, both fists raised, a small puff of steam above the turban.
+2. In love with the light: holding a small lit clay diya in both hands close to his face, gazing at its straight calm flame with dreamy half-closed eyes and a blissful smile, three little pink hearts floating above.
+3. Suspicious: one eyebrow raised high and the other low, both eyes narrowed and looking to the side, beak pressed into a doubtful line, one hand rubbing his chin.
+4. Nervous: a big drop of sweat on his forehead, a wide awkward grin with the beak clenched, both eyes wide, one hand tugging at his gold chain like a tight collar.
+5. Facepalm: one big hand pressed flat over his face covering both eyes, beak turned down in a tired sigh, shoulders slumped.
+6. Celebrating: both hands thrown up high, beak wide open in a cheer, both eyes shut tight with joy, little gold sparkles and confetti around him.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face with clean pale feathers around both eyes, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of his face as we look at him. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, two thick gold chains and gold rings on his fingers.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour from edge to edge, the six owls standing freely on it with clear space around each one so each can be cut out. The sheet holds only the six pictures of the owl.
+```
+
+## Poses (added 10.11.2026)
+
+Four wide sheets with three full-body poses each, green background for cutting out. Format `16:9`, references `v4_avatar.jpg` and `v1_fly.jpg`.
+
+| No. | File in `flow_vest/` | Poses (left to right) |
+|---|---|---|
+| V15 | `v15_poses_a_fixed.jpg` | pointing at the viewer · holding a blank sign (for text in Figma) · counting gold by the diya |
+| V16 | `v16_poses_b_fixed.jpg` | Bollywood dance · lighting the diya with a match · namaste greeting |
+| V17 | `v17_poses_c.jpg` | "shh", a secret · running away with the gold · selfie with a V sign |
+| V18 | `v18_poses_d_fixed.jpg` | lifting a giant gold coin (rupee sign) · riding a Diwali rocket · lying on a red cushion |
+
+As with the emotions, `_fixed` means the beauty mark was moved to the left side by hand; `v17_poses_c.jpg` needed no fix.
+
+### V15. Poses A (16:9)
+
+```
+Generate 2 images.
+Aspect ratio 16:9.
+Using the character from the attached reference images, a pose sheet with exactly three full-body pictures of the same owl, Ullu, standing freely in one row on one open green background, with wide green space between them. All three are the same size, each shows him whole from the white feather on the turban down to his bare orange feet, with the turban on his head, the waistcoat, the dhoti and the gold chains in every picture. The black beauty mark sits on his cheek on the left side of his face in every picture.
+1. Pointing: he stands with his feet apart, leans forward and points straight at the viewer with one finger, a confident smug grin, the other hand on his hip.
+2. Holding a sign: he stands facing the viewer and holds up a big blank rectangular wooden sign with both hands at chest height, the sign plain light wood with an empty smooth front, his face peeking over its top edge with a cheeky smile.
+3. Counting gold: he sits cross-legged on the ground behind a small pile of gold coins, holding one coin up to his eye and studying it with a greedy grin, a small lit clay diya beside the pile with a straight calm flame.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face with clean pale feathers around both eyes, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of his face as we look at him. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour from edge to edge, the three owls standing freely on it with clear space around each one so each can be cut out. The sheet holds only the three pictures of the owl.
+```
+
+### V16. Poses B (16:9)
+
+```
+Generate 2 images.
+Aspect ratio 16:9.
+Using the character from the attached reference images, a pose sheet with exactly three full-body pictures of the same owl, Ullu, standing freely in one row on one open green background, with wide green space between them. All three are the same size, each shows him whole from the white feather on the turban down to his bare orange feet, with the turban on his head, the waistcoat, the dhoti and the gold chains in every picture. The black beauty mark sits on his cheek on the left side of his face in every picture.
+1. Dancing: a joyful Bollywood dance move, one knee raised high, both hands up in the air with the fingers spread and twisting, beak open in a happy laugh.
+2. Lighting the lamp: he kneels on one knee and carefully lights a small clay diya on the ground with a long wooden match, his face lit warm orange by the new straight flame, eyes focused and proud.
+3. Greeting: he stands with his feet together, both hands pressed together in front of his chest in a polite namaste and a small bow of the head, a warm friendly smile, both eyes open and kind.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face with clean pale feathers around both eyes, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of his face as we look at him. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour from edge to edge, the three owls standing freely on it with clear space around each one so each can be cut out. The sheet holds only the three pictures of the owl.
+```
+
+### V17. Poses C (16:9)
+
+```
+Generate 2 images.
+Aspect ratio 16:9.
+Using the character from the attached reference images, a pose sheet with exactly three full-body pictures of the same owl, Ullu, standing freely in one row on one open green background, with wide green space between them. All three are the same size, each shows him whole from the white feather on the turban down to his bare orange feet, with the turban on his head, the waistcoat, the dhoti and the gold chains in every picture. The black beauty mark sits on his cheek on the left side of his face in every picture.
+1. Secret: he leans toward the viewer on tiptoe, one finger pressed to his beak in a sly "shh", the other hand cupped beside his beak as if whispering a secret, eyes glancing to the side with a mischievous smile.
+2. Running away: he runs fast to the side in a big comic stride, one foot off the ground, a fat burlap sack of gold coins slung over his shoulder with a few coins flying out behind him, a wide cheeky grin, small speed lines behind him.
+3. Selfie: he stands holding a smartphone up high in one outstretched hand, taking a selfie, the other hand making a V sign beside his face, beak pursed in a playful pout, the phone screen facing him.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face with clean pale feathers around both eyes, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of his face as we look at him. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour from edge to edge, the three owls standing freely on it with clear space around each one so each can be cut out. The sheet holds only the three pictures of the owl.
+```
+
+### V18. Poses D (16:9)
+
+```
+Generate 2 images.
+Aspect ratio 16:9.
+Using the character from the attached reference images, a pose sheet with exactly three full-body pictures of the same owl, Ullu, in one row on one open green background, with wide green space between them. All three are the same size, each shows him whole from the white feather on the turban down to his bare orange feet, with the turban on his head, the waistcoat, the dhoti and the gold chains in every picture. The black beauty mark sits on his cheek on the left side of his face in every picture.
+1. Strongman: he stands with his legs wide and knees bent, lifting a giant shiny gold coin as big as himself high above his head with both hands like a weightlifter, cheeks puffed with effort, a proud determined grin.
+2. Rocket ride: he rides a big red-and-gold Diwali firework rocket like a horse, flying diagonally upward, gripping the rocket's stick with both hands, a shower of golden sparks bursting from its tail, his turban feather streaming back, beak open in a wild thrilled laugh.
+3. Lazy: he lies on his side on a big round red silk cushion with gold tassels, propping his head on one hand, his round belly up, legs crossed at the ankles, eyelids half lowered with a relaxed lazy smile, a small lit clay diya on the ground beside the cushion with a straight calm flame.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face with clean pale feathers around both eyes, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of his face as we look at him. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour from edge to edge, the three owls placed freely on it with clear space around each one so each can be cut out. The sheet holds only the three pictures of the owl.
+```
+
+Flow puts the beauty mark on the wrong cheek about one time in three on the sheets: check every owl and move it in an edit
+(`Move the black beauty mark to his cheek on the left side of the picture`) or by hand.
 
 ## Extra pictures
 
