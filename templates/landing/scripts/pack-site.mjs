@@ -58,6 +58,9 @@ for (const p of packages) deps[p] = pkg.dependencies?.[p] || pkg.devDependencies
 fs.writeFileSync(path.join(out, 'package.json'), JSON.stringify({
   name: `${project}-site`, private: true, type: 'module', engines: { node: '>=20' },
   scripts: { start: 'node server/serve.mjs' }, dependencies: deps,
+  // @vercel/blob brings an old zod through Vercel's sign-in helper; `npm audit` reports it. The newer zod is taken instead
+  // (the helper runs only on Vercel; a site on its own server keeps its data in files and never loads it)
+  ...(packages.has('@vercel/blob') ? { overrides: { zod: '^4.6.6' } } : {}),
 }, null, 2) + '\n');
 
 const street = functions.includes('street');
