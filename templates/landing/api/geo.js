@@ -5,7 +5,7 @@
 // Where the answer comes from (the first one that is there):
 //   Vercel:      x-vercel-ip-country, x-vercel-ip-city (set by Vercel on every deployment)
 //   Cloudflare:  cf-ipcountry (and cf-ipcity when "Add visitor location headers" is on)
-//   nginx:       x-geo-country, x-geo-city (set by nginx with the GeoIP2 module, see projects/ullu/launch/hosting.md)
+//   nginx:       x-geo-country, x-geo-city (set by nginx with the GeoIP2 module, see the README of the site pack: scripts/pack-site.mjs)
 //   own names:   GEO_COUNTRY_HEADER, GEO_CITY_HEADER — header names in the environment
 // When none is there the answer is empty and the city is simply not shown.
 // It answers only for projects listed in GEO (env PROJECT).

@@ -78,7 +78,7 @@ fs.writeFileSync(path.join(out, '.env.example'), [
     'TRUST_PROXY=',
   ] : []),
   ...(functions.includes('admin') ? [
-    '# the moderator page /admin: one password, at least 16 characters (without it the page is off). Keep it secret',
+    '# the moderator page /admin: one password, at least 16 characters: Latin letters, digits and symbols (without it the page is off). Keep it secret',
     'ADMIN_PASSWORD=',
   ] : []),
   // settings of this project's own functions: config "server.env": [{ "key": "NAME", "note": "what it is" }]
@@ -149,7 +149,7 @@ Point your domain (DNS record A) to the server's IP.
 ## 2. Install
 
 \`\`\`
-sudo mkdir -p /srv/${project} && sudo cp -r ./* ./.env.example /srv/${project}/ && cd /srv/${project}
+sudo mkdir -p /srv/${project} && sudo cp -r ./* ./.env.example ./.dockerignore /srv/${project}/ && cd /srv/${project}
 sudo node set-domain.mjs https://your-domain.com   # the pages are built for ${siteUrl || 'another address'}; this swaps it for yours
 sudo npm install --omit=dev
 sudo cp .env.example .env && sudo chmod 600 .env   # then fill in .env (below): sudo nano .env
@@ -159,7 +159,7 @@ ${functions.length ? `
 Fill in \`.env\`:
 
 ${street ? `- \`STREET_SALT\` - a long random string (for example \`openssl rand -hex 32\`). Set it once and never change it: every house on the street is tied to it
-` : ''}${(config.server?.env || []).map((e) => `- \`${e.key}\` - ${e.note || ''}\n`).join('')}- ${functions.includes('admin') ? `\`ADMIN_PASSWORD\` - the password of the moderator page, 16 characters or more (for example \`openssl rand -base64 24\`)
+` : ''}${(config.server?.env || []).map((e) => `- \`${e.key}\` - ${e.note || ''}\n`).join('')}- ${functions.includes('admin') ? `\`ADMIN_PASSWORD\` - the password of the moderator page, 16 characters or more, only Latin letters, digits and symbols (for example \`openssl rand -base64 24\`)
 - ` : ''}\`DATA_DIR=./data\` - the folder with the site's data${street ? ' (the street: houses, bans, the moderation log)' : ''}. Back it up; never delete it on updates
 - \`TRUST_PROXY\` - leave empty when nginx runs on the same server (as below)
 ` : ''}${functions.includes('admin') ? `
@@ -214,6 +214,8 @@ server {
 
 \`sudo nginx -t && sudo systemctl reload nginx && sudo certbot --nginx -d your-domain.com\` - certbot adds HTTPS and the redirect from http.
 Keep the site's port on 127.0.0.1 (as above): the server trusts X-Forwarded-For only from this machine or the private network.
+
+Behind Cloudflare or another CDN nginx sees the CDN's addresses, not the visitors', and the limits that count by address (${street ? 'houses a day, ' : ''}wrong admin passwords) would take many visitors for one. Give nginx the visitor's address: in \`http { }\` add \`real_ip_header CF-Connecting-IP;\` and one \`set_real_ip_from <range>;\` line for every range listed on https://www.cloudflare.com/ips/
 ${functions.includes('geo') ? `
 Optional, the visitor's city${street ? ' on the house card' : ''}: nginx with the GeoIP2 module and a free city database (MaxMind GeoLite2 City or DB-IP Lite), passing \`X-Geo-Country\` and \`X-Geo-City\` to the site:
 
@@ -241,7 +243,7 @@ ${functions.includes('admin') ? '- `https://your-domain.com/admin` opens with th
 
 ## Update
 
-Replace \`dist/\` (and \`api/\`, \`server/\`, \`src/\` if they changed) with the new release, run \`set-domain.mjs\` again if the new release was built for another address, and restart the service. Never touch \`data/\` or \`.env\`.
+Replace \`dist/\` and \`site-url.txt\` (and \`api/\`, \`server/\`, \`src/\` if they changed) with the ones from the new release, run \`node set-domain.mjs https://your-domain.com\` again (it does nothing when the release was already built for your domain), and restart the service. Never touch \`data/\` or \`.env\`.
 `);
 
 console.log(`Packed ${project} → ${path.relative(here, out)}`);
