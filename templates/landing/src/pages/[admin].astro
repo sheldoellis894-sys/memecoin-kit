@@ -60,7 +60,7 @@ const ticker = config.ticker;
     .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
     .bar input { flex: 1 1 220px; max-width: 360px; }
     .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    @media (min-width: 1100px) { .tiles { grid-template-columns: repeat(8, 1fr); } }
+    @media (min-width: 1100px) { .tiles { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); } }
     .tile { background: var(--card); border: 1px solid #ffffff1f; border-radius: 14px; padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
     .tile b { font-size: 1.6rem; line-height: 1.1; color: var(--accent); }
     .tile span { color: var(--muted); font-size: .85rem; }
@@ -122,6 +122,7 @@ const ticker = config.ticker;
             </div>
             <p class="note" data-adm-count></p>
             <div class="grid" data-adm-grid></div>
+            <p data-adm-morebox hidden><button type="button" data-adm-more>Show more houses</button></p>
             <section><h2>Banned</h2><table><tbody data-adm-bans></tbody></table></section>
             <section><h2>Log</h2><table><tbody data-adm-log></tbody></table></section>
           </section>
@@ -159,6 +160,8 @@ const ticker = config.ticker;
       const hh = K.houseOfP(got);
       return K.houseSvg(hh, got.placed, { free: got.free, level: h.dark ? 1 : Math.max(1, Math.min(K.NIGHTS, h.streak)), id: `adm${h.sn}`, ctx: { ticker, time: 'night' } });
     }
+    // the street may hold two thousand houses: the page draws them sixty at a time (the search looks through all of them)
+    const PAGE = 60; let shown = PAGE;
     function draw() {
       const q = ($<HTMLInputElement>('[data-adm-find]').value || '').trim().toLowerCase().replace(/^#0*/, '#');
       const show = $<HTMLSelectElement>('[data-adm-show]').value;
@@ -169,8 +172,9 @@ const ticker = config.ticker;
         if (q.startsWith('#')) return String(h.sn) === q.slice(1);
         return h.name.toLowerCase().includes(q) || h.signs.some((t: string) => t.toLowerCase().includes(q));
       });
-      $('[data-adm-count]').textContent = `${data.houses.length} houses on the street · ${data.houses.filter((h: any) => h.hidden).length} hidden by the word filter · showing ${list.length}`;
-      $('[data-adm-grid]').innerHTML = list.map((h: any) => `
+      $('[data-adm-count]').textContent = `${data.houses.length} houses on the street · ${data.houses.filter((h: any) => h.hidden).length} hidden by the word filter · found ${list.length} · showing ${Math.min(list.length, shown)}`;
+      $('[data-adm-morebox]').hidden = list.length <= shown;
+      $('[data-adm-grid]').innerHTML = list.slice(0, shown).map((h: any) => `
         <article class="house${h.hidden ? ' is-hidden' : ''}" data-sn="${h.sn}">
           <div class="art">${art(h)}</div>
           <div class="info">
@@ -204,8 +208,9 @@ const ticker = config.ticker;
         const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-unban]'); if (!b) return;
         act(b, { action: 'unban', sn: Number(b.dataset.unban) });
       });
-      $('[data-adm-find]').addEventListener('input', () => data && draw());
-      $('[data-adm-show]').addEventListener('change', () => data && draw());
+      $('[data-adm-find]').addEventListener('input', () => { shown = PAGE; if (data) draw(); });
+      $('[data-adm-show]').addEventListener('change', () => { shown = PAGE; if (data) draw(); });
+      $('[data-adm-more]').addEventListener('click', () => { shown += PAGE; draw(); });
     }
 
     // ---- the tabs: Numbers and Street (the last one opened is remembered in this tab)
@@ -220,7 +225,7 @@ const ticker = config.ticker;
     try { openTab(sessionStorage.getItem(TAB) || 'stats'); } catch { openTab('stats'); }
 
     // ---- the numbers: totals, rates, visitors by day, the table and a CSV file
-    const NAMES: Record<string, string> = { visit: 'Page views', visitor: 'Visitors', play: 'Game starts', picture: 'Picture tool', share: 'Shares', save: 'Saves', buy: 'Buy clicks', ca: 'CA copies' };
+    const NAMES: Record<string, string> = { visit: 'Page views', visitor: 'Visitors', play: 'Game starts', picture: 'Picture tool', share: 'Shares', save: 'Saves', buy: 'Buy clicks', ca: 'CA copies', city: 'City map opened' };
     const fmt = (n: number) => n.toLocaleString('en-US');
     const dayOf = (t: number) => new Date(t).toISOString().slice(0, 10);
     /** The days of the chosen period, newest first, with zeros for the days nobody came. */
@@ -238,7 +243,7 @@ const ticker = config.ticker;
       const sum: Record<string, number> = Object.fromEntries(ev.map((k) => [k, list.reduce((a: number, r: any) => a + r[k], 0)]));
       // under each action: how many times per 100 visitors (one decimal), the number to compare runners by
       const per = (k: string) => (sum.visitor ? Math.round((sum[k] / sum.visitor) * 1000) / 10 : 0);
-      const RATE = new Set(['play', 'picture', 'share', 'save', 'buy', 'ca']);
+      const RATE = new Set(['play', 'picture', 'share', 'save', 'buy', 'ca', 'city']);
       $('[data-adm-tiles]').innerHTML = ev.map((k) => `<div class="tile"><b>${fmt(sum[k])}</b><span>${NAMES[k] || k}</span>${RATE.has(k) ? `<small>${per(k)} per 100 visitors</small>` : k === 'visit' && sum.visitor ? `<small>${Math.round((sum.visit / sum.visitor) * 10) / 10} per visitor</small>` : ''}</div>`).join('');
       const max = Math.max(1, ...list.map((r: any) => r.visitor));
       const chrono = [...list].reverse();

@@ -7,6 +7,7 @@
 //   play     the game started (lights tonight)    picture  the picture tool used
 //   share    "Share on X" (or another network)    save     a card or a picture saved
 //   buy      a click to the buy page              ca       the contract address copied
+//   city     the city map opened (once a page)
 //
 // Kept: one JSON file `${PROJECT}/stats.json` in the same store as the street (api/_agent/store.js), days in UTC,
 // the last 400 days. Honest limits: these are counts a browser reports, so they are approximate. Known bots (by the
@@ -15,7 +16,7 @@
 import { storeFor, storeKind, serial } from './_agent/store.js';
 import { ipKey } from './_agent/ip.js';
 
-export const EVENTS = ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca'];
+export const EVENTS = ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca', 'city'];
 const MAX = { visit: 1, visitor: 1 };    // per report; the rest up to 30
 const PER_HOUR = 400;                    // reports an hour from one address (kept in memory: a soft limit; mobile networks put
                                          // many phones behind one address, so it is not small)

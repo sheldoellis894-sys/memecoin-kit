@@ -1,0 +1,762 @@
+---
+// The city: a map of every house on the street. From far away every house is a light in a round city with a river,
+// ring roads and a district for every style of house; closer the lights turn into small houses, and close up into the
+// real pictures with all their decorations. The visitor's own house stands in the middle of the city, so it is found
+// at once. A tap on a light shows a card of the house; a tap on a near house opens it.
+// Data: GET /api/street?map=1 (every house in a short row) and ?sn=… (full houses, asked for when the map comes
+// close to them), see api/street.js. Where the houses stand: src/lib/lights-city.js.
+// Texts: config.city = { kicker, title, lead, labels: { … }, districts: { style: name } }.
+import { config, theme } from '../../lib/project';
+import { streetCfg, houseCfg, owlImages, nightCtx } from '../../lib/lights';
+import LtHead from './LtHead.astro';
+const c: Record<string, any> = (config as any).city || {};
+const l: Record<string, string> = c.labels || {};
+const sl: Record<string, string> = streetCfg.labels || {};
+const tc: Record<string, string> = (theme as any).colors || {};
+const tl: Record<string, any> = (theme as any).lights || {};
+const data = JSON.stringify({
+  endpoint: streetCfg.enabled === false ? '' : streetCfg.endpoint || '/api/street', samples: streetCfg.samples || [], min: streetCfg.minReal ?? 3,
+  owl: owlImages, ticker: config.ticker, night: nightCtx, labels: { ...sl, ...l }, styles: houseCfg.styleNames || {}, districts: c.districts || {},
+  // the night of the map: the middle, the ring around it and the edge
+  sky: Array.isArray(tl.citySky) && tl.citySky.length === 3 ? tl.citySky : ['#2A1A12', '#17101A', '#090812'],
+  colors: { track: tl.track || '#2E2B5C', dim: tl.dim || '#4A4870', glow: tl.glow || '#FFB52E', cream: tl.cream || '#FFF3C4',
+    pane: tl.pane || '#FFD36B', ink: tl.ink || '#141026', text: tc.text || '#FFFFFF', muted: tc.muted || '#BBBBCC', primary: tc.primary || '#FFB52E', secondary: tc.secondary || '#4A78D0', accent: tc.accent || '#FF7A1C' },
+});
+---
+<section id="city" class="lt-sec lt-city-sec" data-ul-city={data}>
+  <div class="lt-in">
+    <LtHead kicker={c.kicker || 'The city'} title={c.title || 'The city we lit'} lead={c.lead || 'Every light is a house. Tap one to look inside'} />
+    <p class="lt-city-stats" data-ul-city-stats aria-live="polite"></p>
+    <div class="lt-city" data-ul-city-map data-ul-in>
+      <canvas data-ul-city-canvas tabindex="0" role="img" aria-label={l.mapLabel || 'A map of the houses on the street'}></canvas>
+      <button type="button" class="lt-btn lt-btn-small lt-city-home" data-ul-city-home>{l.home || 'Find my house'}</button>
+      <div class="lt-city-tools">
+        <button type="button" data-ul-city-zoom="1" aria-label={l.zoomIn || 'Closer'}>+</button>
+        <button type="button" data-ul-city-zoom="-1" aria-label={l.zoomOut || 'Further'}>−</button>
+        <button type="button" data-ul-city-all aria-label={l.all || 'The whole city'} title={l.all || 'The whole city'}>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <button type="button" class="lt-city-start" data-ul-city-start><span class="lt-flame" aria-hidden="true"></span>{l.start || 'Tap to walk the city'}</button>
+      <div class="lt-city-card" data-ul-city-card hidden>
+        <div class="lt-city-card-art" data-ul-city-card-art></div>
+        <div class="lt-city-card-text">
+          <span class="lt-city-card-no" data-ul-city-card-no></span>
+          <h3 class="font-heading" data-ul-city-card-name></h3>
+          <p data-ul-city-card-line></p>
+          <div class="lt-city-card-acts">
+            <button type="button" class="lt-btn lt-btn-small" data-ul-city-card-open>{l.cardOpen || 'Open the house'}</button>
+            <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-city-card-go>{l.cardGo || 'Come closer'}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="lt-city-legend" aria-hidden="true">
+      <span><i class="is-lit"></i>{l.legendLit || 'Lit tonight'}</span>
+      <span><i class="is-dark"></i>{l.legendDark || 'Dark tonight'}</span>
+      <span><i class="is-owl"></i>{l.legendOwl || 'Seven nights, the owl landed'}</span>
+    </p>
+    <p class="lt-note lt-city-note" data-ul-city-note>{l.loading || 'Lighting the map…'}</p>
+  </div>
+  <dialog class="lt-view" data-ul-city-view aria-label={l.viewLabel || 'A house in the city'}>
+    <div class="lt-view-in">
+      <div data-ul-city-view-art></div>
+      <p class="font-heading lt-view-name" data-ul-city-view-name></p>
+      <p data-ul-city-view-line></p>
+      <form method="dialog"><button class="lt-btn lt-btn-small">{l.close || 'Back to the city'}</button></form>
+    </div>
+  </dialog>
+</section>
+
+<script>
+  import * as K from '../../lib/lights-kit.js';
+  import * as C from '../../lib/lights-city.js';
+  const root = document.querySelector<HTMLElement>('[data-ul-city]');
+  const ul: any = (window as any).ul;
+  const cv = root?.querySelector<HTMLCanvasElement>('[data-ul-city-canvas]');
+  const g = cv?.getContext('2d');
+  if (root && ul && cv && g) {
+    const cfg = JSON.parse(root.dataset.ulCity!);
+    const L: Record<string, string> = cfg.labels;
+    const col: Record<string, string> = cfg.colors;
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
+    const map = $<HTMLElement>('[data-ul-city-map]');
+    const note = $<HTMLElement>('[data-ul-city-note]');
+    const sn4 = (n: number) => `#${String(n).padStart(4, '0')}`;
+    const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+    const sky: string[] = Array.isArray(cfg.night?.sky) ? cfg.night.sky : ['#0B1030', '#1A2257', '#2C2A6B'];
+    const veil: string = cfg.night?.veil || '#0A0F33';
+    const drawCtx = () => ({ ticker: cfg.ticker, ...cfg.night, time: 'night' });
+    // On the map a house is shown without most of the sky of its picture, so the house itself is larger: this part of the picture
+    const CUT = { x: 0.12, y: 0.25, s: 0.76 };
+    // the colour of the lights of every district (style of house), seen from far away
+    const HUES = ['#FFB23E', '#FF8A1F', '#FFC861', '#F6A6C1', '#7FD7C4', '#FFD27A', '#FF9F6B', '#8FB4FF', '#B8E08A'];
+    const districtName = (family: string) => String(cfg.districts[family] || cfg.styles[family] || family);
+
+    // ---- the houses ------------------------------------------------------------------------------
+    // kind: house = a real house, sample = an example, you = the visitor's lot while their house is not on the street, free = an empty lot
+    type Spot = { k: number; x: number; y: number; kind: 'house' | 'sample' | 'you' | 'free'; sn: number; name: string; seed: number; family: string; wish: string; paint: string;
+      light: number; streak: number; age: number; mine: boolean; star: boolean; mini: any; full: any; asked: boolean; bmp: HTMLCanvasElement | null; bmpPx: number; bmpSize: number; bmpAt: number;
+      busy: boolean; used: number; owl: any; tw: number; turn: number; hue: number; slot: number; label: string; labelFor: number };
+    let spots: Spot[] = [];
+    let plan: any = { rings: [], avenues: [], river: null, districts: [], kx: 1, ky: 1, R: 3 };
+    let find: (x: number, y: number) => number = () => -1;
+    let ext = { x0: -4, x1: 4, y0: -4, y1: 4 };
+    let real = 0, live = false, loaded = false;
+    const lit = (s: Spot) => s.streak > 0;
+    const landed = (s: Spot) => s.streak >= K.NIGHTS;
+    const isHouse = (s: Spot) => s.kind === 'house' || s.kind === 'sample';
+    const miniOf = (s: Spot) => (s.mini ||= C.miniHouse(s.seed, s.family, s.wish, s.paint, s.streak));
+    const blank = (kind: Spot['kind']): Spot => ({ k: 0, x: 0, y: 0, kind, sn: 0, name: '', seed: 0, family: 'mumbai', wish: '', paint: '', light: 0, streak: 0, age: 999,
+      mine: false, star: false, mini: null, full: null, asked: false, bmp: null, bmpPx: 0, bmpSize: 0, bmpAt: 0, busy: false, used: 0, owl: null, tw: Math.random() * 6.28, turn: 0, hue: 0, slot: -1, label: '', labelFor: 0 });
+
+    function build(rows: any[], star: number) {
+      const houses: Partial<Spot>[] = [];
+      for (const r of rows) {
+        if (!Array.isArray(r) || !Number.isInteger(r[0]) || typeof r[1] !== 'string' || !Number.isInteger(r[2]) || !K.FAMILY_IDS[r[3]]) continue;
+        houses.push({ kind: 'house', sn: r[0], name: r[1], seed: r[2], family: K.FAMILY_IDS[r[3]], wish: K.WISH_IDS[r[4]] || '', paint: typeof r[5] === 'string' ? r[5] : '',
+          light: Number(r[6]) || 0, streak: Number(r[7]) || 0, age: Number(r[8]) || 0, star: r[0] === star });
+      }
+      real = houses.length;
+      // the visitor's own house: the name it was put on the street with and its house number
+      let mine: Partial<Spot> | null = null;
+      if (ul.onStreet?.() && ul.houseName) {
+        const name = ul.houseName(), no = ul.houseNo?.();
+        mine = houses.find((h) => h.name === name && C.miniHouse(h.seed!, h.family!, h.wish, h.paint, 1).no === no) || null;
+      }
+      const others = houses.filter((h) => h !== mine);
+      // until real houses arrive the examples of the street stand here too, marked as examples
+      if (real < cfg.min) for (const s of cfg.samples as any[]) {
+        const family = K.FAMILY_IDS.includes(s.style) ? s.style : 'mumbai', wish = K.WISH_IDS.includes(s.wish) ? s.wish : '';
+        const placed = K.autoDecorate(s.seed, s.items ?? 6, false, family, wish);
+        const streak = Number(s.streak) || 1;
+        others.push({ kind: 'sample', name: String(s.name || ''), seed: s.seed, family, wish, streak, age: 0, light: K.lightOf(K.houseOf(s.seed, family, { wish }), placed, Math.min(K.NIGHTS, streak)),
+          full: { sample: true, placed, streak, gifts: s.gifts ?? s.nights, best: s.best ?? streak, nights: s.nights, landings: s.landings ?? 0 } });
+      }
+      // a wide screen gets a city wider than tall, a phone a city taller than wide
+      plan = C.cityPlan(others.map((h) => K.FAMILY_IDS.indexOf(h.family!)), { count: K.FAMILY_IDS.length, wide: W >= H * 1.15 });
+      const old = new Map(spots.filter((s) => s.kind === 'house').map((s) => [s.sn, s]));
+      const list: Spot[] = [{ ...blank(mine ? 'house' : 'you'), ...(mine || {}), mine: Boolean(mine) } as Spot];
+      for (const p of plan.spots) list.push({ ...blank(p.i < 0 ? 'free' : others[p.i].kind!), ...(p.i < 0 ? {} : others[p.i]), x: p.x, y: p.y, turn: p.a } as Spot);
+      let slot = 0;
+      spots = list.map((s, k) => {
+        s.k = k; s.hue = Math.max(0, K.FAMILY_IDS.indexOf(s.family)); if (isHouse(s)) s.slot = slot++;
+        // a house that did not change keeps its picture
+        const was = s.kind === 'house' ? old.get(s.sn) : null;
+        if (was && was.seed === s.seed && was.family === s.family && was.streak === s.streak && was.light === s.light && was.name === s.name) { s.full = was.full; s.asked = was.asked; s.bmp = was.bmp; s.bmpPx = was.bmpPx; s.bmpSize = was.bmpSize; s.bmpAt = was.bmpAt; s.owl = was.owl; s.mini = was.mini; }
+        return s;
+      });
+      used = spots.reduce((a, s) => a + (s.bmp ? s.bmpSize : 0), 0);
+      find = C.cityFinder(spots);
+      ext = { x0: -(plan.R + 2.5) * plan.kx, x1: (plan.R + 2.5) * plan.kx, y0: -(plan.R + 2.5) * plan.ky, y1: (plan.R + 2.5) * plan.ky };
+      atlasDone = 0; atlasFor = ''; lightsFor = '';
+      closeCard();
+      stats();
+    }
+
+    function stats() {
+      const hs = spots.filter((s) => s.kind === 'house');
+      const box = $<HTMLElement>('[data-ul-city-stats]');
+      box.textContent = '';
+      const chip = (n: number, text: string) => { const el = document.createElement('span'); el.className = 'lt-city-chip'; const b = document.createElement('b'); b.textContent = n.toLocaleString('en-US').replace(/,/g, ' '); el.append(b, ` ${text}`); box.appendChild(el); };
+      if (hs.length) {
+        chip(hs.length, hs.length === 1 ? L.statHouse || 'house' : L.statHouses || 'houses');
+        chip(hs.filter((s) => lit(s) && s.age < 24).length, L.statLit || 'lit tonight');
+        chip(hs.filter(landed).length, L.statOwl || 'with the owl');
+      }
+      const some = real < cfg.min;
+      note.textContent = [hs.length ? '' : live ? L.empty || 'No real houses yet. Yours can be the first.' : L.offline || 'The street is not open yet.',
+        some ? L.citySamples || 'Houses marked Example show how the city will look. Real houses take their place' : '',
+        on ? L.hintOn || 'Drag to move · pinch or scroll to come closer · your house is in the middle, new houses grow the city outwards' : ''].filter(Boolean).join(' ');
+      $<HTMLButtonElement>('[data-ul-city-home]').textContent = spots[0]?.kind === 'you' ? L.homeFree || 'Find my lot' : L.home || 'Find my house';
+    }
+
+    // ---- the camera ------------------------------------------------------------------------------
+    // x, y = the point of the city in the middle of the map (in lots); s = pixels in one lot
+    const cam = { x: 0, y: 0, s: 60 };
+    let W = 300, H = 300, dpr = 1;
+    let sMin = 4, sMax = 400, sHome = 100, sNear = 180;
+    const tp = () => cam.s * C.TILE;                       // the picture of a house, in pixels
+    const sx = (x: number) => (x - cam.x) * cam.s + W / 2;
+    const sy = (y: number) => (y - cam.y) * cam.s + H / 2;
+    const wx = (px: number) => (px - W / 2) / cam.s + cam.x;
+    const wy = (py: number) => (py - H / 2) / cam.s + cam.y;
+    const limits = () => {
+      const fit = Math.min(W / (ext.x1 - ext.x0), H / (ext.y1 - ext.y0));
+      sHome = clamp(W * 0.3, 96, 150) / C.TILE;
+      sNear = clamp(Math.min(W, H) * 0.5, 150, 250) / C.TILE;
+      sMax = clamp(Math.min(W * 0.92, H * 0.74), 240, 560) / C.TILE;
+      sMin = Math.min(fit, sHome);
+    };
+    const hold = () => {
+      cam.s = clamp(cam.s, sMin, sMax);
+      // the middle of the map never leaves the city
+      cam.x = clamp(cam.x, ext.x0, ext.x1); cam.y = clamp(cam.y, ext.y0, ext.y1);
+    };
+
+    // moves: fly = to a place and a size in a set time; zoom = to a size, the point under the finger stays where it is
+    let fly: null | { x0: number; y0: number; l0: number; x1: number; y1: number; l1: number; t0: number; dur: number } = null;
+    let zoom: null | { l: number; ax: number; ay: number; px: number; py: number } = null;
+    let glide: null | { vx: number; vy: number } = null;
+    const flyTo = (x: number, y: number, s: number, dur = 700) => {
+      zoom = null; glide = null; closeCard();
+      if (ul.calm) { cam.x = x; cam.y = y; cam.s = s; hold(); paint(); return; }
+      fly = { x0: cam.x, y0: cam.y, l0: Math.log(cam.s), x1: x, y1: y, l1: Math.log(clamp(s, sMin, sMax)), t0: performance.now(), dur }; paint();
+    };
+    const zoomBy = (f: number, px = W / 2, py = H / 2, smooth = true) => {
+      fly = null; glide = null; closeCard();
+      const base = zoom ? zoom.l : Math.log(cam.s);
+      const l = clamp(base + Math.log(f), Math.log(sMin), Math.log(sMax));
+      if (!smooth || ul.calm) { const ax = wx(px), ay = wy(py); cam.s = Math.exp(l); cam.x = ax - (px - W / 2) / cam.s; cam.y = ay - (py - H / 2) / cam.s; zoom = null; hold(); paint(); return; }
+      zoom = { l, ax: zoom && zoom.px === px && zoom.py === py ? zoom.ax : wx(px), ay: zoom && zoom.px === px && zoom.py === py ? zoom.ay : wy(py), px, py }; paint();
+    };
+    let last = 0;
+    function step(now: number) {
+      const dt = Math.min(64, now - (last || now)); last = now;
+      let moving = false;
+      if (fly) {
+        const t = clamp((now - fly.t0) / fly.dur, 0, 1), e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        cam.x = fly.x0 + (fly.x1 - fly.x0) * e; cam.y = fly.y0 + (fly.y1 - fly.y0) * e; cam.s = Math.exp(fly.l0 + (fly.l1 - fly.l0) * e);
+        if (t >= 1) fly = null; else moving = true;
+      } else if (zoom) {
+        const cur = Math.log(cam.s), k = 1 - Math.exp(-dt / 85);
+        const l = Math.abs(zoom.l - cur) < 0.004 ? zoom.l : cur + (zoom.l - cur) * k;
+        cam.s = Math.exp(l); cam.x = zoom.ax - (zoom.px - W / 2) / cam.s; cam.y = zoom.ay - (zoom.py - H / 2) / cam.s;
+        if (l === zoom.l) zoom = null; else moving = true;
+      } else if (glide) {
+        cam.x -= (glide.vx * dt) / cam.s; cam.y -= (glide.vy * dt) / cam.s;
+        const f = Math.exp(-dt / 260); glide.vx *= f; glide.vy *= f;
+        if (Math.hypot(glide.vx, glide.vy) < 0.02) glide = null; else moving = true;
+      }
+      hold();
+      return moving;
+    }
+
+    // ---- small pictures --------------------------------------------------------------------------
+    const hexA = (hex: string, a: number) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; };
+    const rr = (c2: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+      const q = Math.min(r, w / 2, h / 2); c2.beginPath(); c2.moveTo(x + q, y); c2.arcTo(x + w, y, x + w, y + h, q); c2.arcTo(x + w, y + h, x, y + h, q); c2.arcTo(x, y + h, x, y, q); c2.arcTo(x, y, x + w, y, q); c2.closePath();
+    };
+    const soft = (stops: [number, string][], px = 64) => { const c2 = document.createElement('canvas'); c2.width = c2.height = px; const q = c2.getContext('2d')!; const gr = q.createRadialGradient(px / 2, px / 2, 0, px / 2, px / 2, px / 2);
+      for (const [o, c3] of stops) gr.addColorStop(o, c3); q.fillStyle = gr; q.fillRect(0, 0, px, px); return c2; };
+    // the glow of a lit house and of a house the owl landed on, seen from far away
+    const glowDot = soft([[0, 'rgba(255,150,50,.5)'], [0.5, 'rgba(255,140,40,.16)'], [1, 'rgba(255,140,40,0)']]);
+    const glowGold = soft([[0, 'rgba(255,215,120,.62)'], [0.5, 'rgba(255,190,80,.2)'], [1, 'rgba(255,170,60,0)']]);
+    // the night of the map: warm in the middle of the city, dark blue at its edge, drawn once and stretched under the map
+    const night = soft([[0, cfg.sky[0]], [0.45, cfg.sky[1]], [1, cfg.sky[2]]], 256);
+    // a light: a small square with round corners, one for every colour
+    const chip = (color: string) => { const c2 = document.createElement('canvas'); c2.width = c2.height = 24; const q = c2.getContext('2d')!; q.fillStyle = color; rr(q, 1, 1, 22, 22, 6); q.fill(); return c2; };
+    const chips = HUES.map(chip), chipDark = chip('#3D2F29'), chipGold = chip('#FFE9A6'), chipFree = chip('#2A211D');
+    // The lights of the whole city as one picture: every house a small square turned a little, lit in the colour of its
+    // district with a glow around it, dark when it is not lit, cream with a ring when the owl landed on it. Drawn once
+    // (a few hundred houses a frame, so the city lights up before the eyes) and then only stretched: two thousand lights
+    // cost one paste a frame.
+    let lights: HTMLCanvasElement | null = null, lightsFor = '', lightsAt = 0, lightsPass = 0, litList: Spot[] = [];
+    function lightsStep() {
+      const ew = ext.x1 - ext.x0, eh = ext.y1 - ext.y0;
+      const k = Math.min(11.5 * dpr, 2400 / Math.max(ew, eh));       // pixels of the picture in one lot
+      const key = `${spots.length}:${real}:${k.toFixed(2)}`;
+      if (lightsFor !== key) {
+        lights ||= document.createElement('canvas');
+        lights.width = Math.max(1, Math.round(ew * k)); lights.height = Math.max(1, Math.round(eh * k));
+        lightsFor = key; lightsAt = 0; lightsPass = 0; litList = spots.filter((s) => isHouse(s) && lit(s));
+      }
+      if (lightsPass > 1) return false;
+      const q = lights!.getContext('2d')!;
+      const d = 0.78 * C.TILE;
+      let done = 0;
+      for (; lightsAt < spots.length && done < 420; lightsAt++) {
+        const sp = spots[lightsAt]; if (sp.kind === 'you') continue;
+        const x = (sp.x - ext.x0) * k, y = (sp.y - ext.y0) * k;
+        if (lightsPass === 0) {
+          // first the glow of every lit house
+          if (!isHouse(sp) || !lit(sp)) continue;
+          const r = C.TILE * 1.75 * (0.7 + (sp.light / 100) * 0.6) * (landed(sp) ? 1.7 : 1) * k;
+          q.setTransform(1, 0, 0, 1, 0, 0); q.globalCompositeOperation = 'lighter'; q.globalAlpha = landed(sp) ? 1 : 0.55 + (sp.light / 100) * 0.45;
+          q.drawImage(landed(sp) ? glowGold : glowDot, x - r, y - r, r * 2, r * 2);
+        } else {
+          const free = sp.kind === 'free', k2 = (landed(sp) ? 1.35 : free ? 0.7 : 1.05) * d * k, cs = Math.cos(sp.turn), sn = Math.sin(sp.turn);
+          q.globalCompositeOperation = 'source-over'; q.globalAlpha = free ? 0.8 : 1;
+          q.setTransform(cs, sn, -sn, cs, x, y);
+          q.drawImage(free ? chipFree : !lit(sp) ? chipDark : landed(sp) ? chipGold : chips[sp.hue % chips.length], -k2 / 2, -k2 / 2, k2, k2);
+          if (isHouse(sp) && landed(sp)) { q.setTransform(1, 0, 0, 1, 0, 0); q.strokeStyle = col.primary; q.lineWidth = Math.max(1, 0.16 * k); q.beginPath(); q.arc(x, y, d * 1.15 * k, 0, 6.3); q.stroke(); }
+        }
+        done++;
+      }
+      q.setTransform(1, 0, 0, 1, 0, 0); q.globalAlpha = 1; q.globalCompositeOperation = 'source-over';
+      if (lightsAt >= spots.length) { lightsPass += 1; lightsAt = 0; }
+      return lightsPass <= 1;
+    }
+    // a few stars at the edges of the map (the same every time)
+    const stars = (() => { let s = 20261110; const rnd = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; const out: number[][] = [];
+      while (out.length < 90) { const x = rnd(), y = rnd(); if (Math.hypot(x - 0.5, y - 0.5) > 0.4) out.push([x, y, 0.15 + rnd() * 0.35]); } return out; })();
+
+    /** A small house drawn with a few rectangles: the same walls, roof, door and windows as the real picture. */
+    function drawMini(c2: CanvasRenderingContext2D, s: Spot, x: number, y: number, size: number) {
+      const m = miniOf(s), isOn = lit(s);
+      const lv = isOn ? Math.min(K.NIGHTS, s.streak) : 0;
+      const gy = clamp((m.ground - CUT.y) / CUT.s, 0.5, 0.98);
+      // the sky and the ground in one fill: no clipping, so a hundred small houses cost little
+      const sk = c2.createLinearGradient(0, y, 0, y + size); sk.addColorStop(0, sky[0]); sk.addColorStop(gy * 0.7, sky[1]); sk.addColorStop(gy - 0.001, sky[2]); sk.addColorStop(gy, '#2a2019'); sk.addColorStop(1, '#2a2019');
+      c2.fillStyle = sk; rr(c2, x, y, size, size, size * 0.12); c2.fill();
+      const R = (b: number[], color: string) => { c2.fillStyle = color; c2.fillRect(x + ((b[0] - CUT.x) / CUT.s) * size, y + ((b[1] - CUT.y) / CUT.s) * size, (b[2] / CUT.s) * size, (b[3] / CUT.s) * size); };
+      R(m.body, m.wall); R(m.cap, m.roof); R(m.doorBox, m.door);
+      for (const w of m.windows) if (!w[4]) R(w, '#1c1a2a');
+      // the night over the house: lighter with every night in a row, as on the real picture
+      c2.fillStyle = hexA(veil, 0.56 - 0.34 * (lv / K.NIGHTS)); rr(c2, x, y, size, size, size * 0.12); c2.fill();
+      if (isOn) {
+        if (size >= 30) { c2.globalAlpha = 0.25 + 0.5 * (lv / K.NIGHTS); c2.drawImage(glowDot, x + size * 0.08, y + size * 0.2, size * 0.84, size * 0.84); c2.globalAlpha = 1; }
+        for (const w of m.windows) if (w[4]) R(w, col.pane);
+      }
+    }
+    // every house once in a sheet of small pictures: two thousand small houses are drawn from it in one go
+    let atlas: HTMLCanvasElement | null = null, atlasCell = 32, atlasCols = 1, atlasDone = 0, atlasFor = '', sheetMax = 22;
+    function atlasStep() {
+      const n = spots.filter(isHouse).length;
+      const key = `${n}:${atlasCell}`;
+      if (atlasFor !== key) {
+        atlasCols = Math.max(1, Math.ceil(Math.sqrt(n)));
+        atlas ||= document.createElement('canvas');
+        atlas.width = atlasCols * atlasCell; atlas.height = Math.max(1, Math.ceil(n / atlasCols)) * atlasCell;
+        atlasFor = key; atlasDone = 0;
+      }
+      const c2 = atlas!.getContext('2d')!;
+      // a few milliseconds of work in a frame, so a slow phone does not stop while the sheet is made
+      let done = 0; const t0 = performance.now();
+      for (let k = atlasDone; k < spots.length && (done < 10 || (done < 220 && performance.now() - t0 < 5)); k++, atlasDone = k) {
+        const s = spots[k]; if (!isHouse(s)) continue;
+        const a = atlasSlot(s); drawMini(c2, s, a.x + 1, a.y + 1, atlasCell - 2); done++;
+      }
+      return atlasDone < spots.length;
+    }
+    const atlasSlot = (s: Spot) => ({ x: (s.slot % atlasCols) * atlasCell, y: Math.floor(s.slot / atlasCols) * atlasCell });
+
+    // ---- the real pictures -----------------------------------------------------------------------
+    const loadImg = (src: string) => new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.decoding = 'async'; i.onload = () => res(i); i.onerror = () => rej(new Error('image')); i.src = src; });
+    const owlPics: Record<string, HTMLImageElement | null> = { fly: null, landed: null };
+    for (const pose of ['fly', 'landed'] as const) loadImg(cfg.owl[pose] || K.owlPlaceholder(pose)).then((i) => { owlPics[pose] = i; paint(); }).catch(() => {});
+    let budget = 6e6, used = 0, frame = 0, running = 0, pid = 0;
+    // how large the real picture of a house is drawn for a tile of this size: sharp on the screen, no larger than needed
+    const pxFor = (size: number) => { const need = (size * dpr) / CUT.s; return need <= 270 ? 256 : need <= 560 ? 512 : 1024; };
+    const partsOf = (s: Spot) => {
+      if (s.kind === 'sample') return { seed: s.seed, family: s.family, wish: s.wish, placed: s.full.placed, free: [], paint: '' };
+      return s.full?.code ? K.decodeHouse(s.full.code) : null;
+    };
+    async function picture(s: Spot, px: number) {
+      const got = partsOf(s); if (!got) return;
+      s.busy = true; running++;
+      try {
+        const h = K.houseOfP(got);
+        if (landed(s)) s.owl = K.owlPlace(h, K.NIGHTS, true);
+        const img = await loadImg(K.svgUrl(K.houseSvg(h, got.placed, { free: got.free, ctx: drawCtx(), level: lit(s) ? Math.min(K.NIGHTS, s.streak) : 1, id: `ulm${pid++}`, size: px })));
+        // kept as it is shown: only the part of the picture the map shows, with round corners, so a frame just pastes it
+        const out = Math.round(px * CUT.s);
+        const c2 = document.createElement('canvas'); c2.width = c2.height = out;
+        const q = c2.getContext('2d')!;
+        rr(q, 0, 0, out, out, out * 0.12); q.fill(); q.globalCompositeOperation = 'source-in';
+        q.drawImage(img, -CUT.x * px, -CUT.y * px, px, px);
+        if (s.bmp) used -= s.bmpSize; else s.bmpAt = performance.now();
+        s.bmp = c2; s.bmpPx = px; s.bmpSize = out * out; used += s.bmpSize;
+        // old pictures go when the memory for them is full: the ones not seen for the longest first
+        if (used > budget) for (const o of spots.filter((x) => x.bmp && x !== s && x.used < frame - 2).sort((a, b) => a.used - b.used)) { used -= o.bmpSize; o.bmp = null; o.bmpPx = 0; o.bmpSize = 0; if (used <= budget * 0.8) break; }
+      } catch { /* the small house stays */ } finally { s.busy = false; running--; paint(); }
+    }
+    // full houses are asked from the street a handful at a time
+    let askTimer = 0;
+    const urlFor = (query: string) => `${cfg.endpoint}${cfg.endpoint.includes('?') ? '&' : '?'}${query}`;
+    const ask = (list: Spot[]) => {
+      const need = list.filter((s) => s.kind === 'house' && !s.full && !s.asked).slice(0, 40);
+      if (!need.length || !cfg.endpoint) return;
+      for (const s of need) s.asked = true;
+      fetch(urlFor(`sn=${need.map((s) => s.sn).join(',')}`), { headers: { accept: 'application/json' } })
+        .then((r) => r.json()).then((out) => { for (const h of Array.isArray(out.houses) ? out.houses : []) { const s = need.find((x) => x.sn === h.sn); if (s && typeof h.code === 'string' && K.decodeHouse(h.code)) s.full = h; } paint(); })
+        .catch(() => { setTimeout(() => { for (const s of need) s.asked = false; }, 4000); });
+    };
+    const fullOf = async (sp: Spot) => {
+      if (sp.kind === 'house' && !sp.full && cfg.endpoint) {
+        try { const out = await (await fetch(urlFor(`sn=${sp.sn}`), { headers: { accept: 'application/json' } })).json(); const h = (out.houses || [])[0]; if (h && K.decodeHouse(h.code)) sp.full = h; } catch { /* no picture */ }
+      }
+      return partsOf(sp);
+    };
+
+    // ---- drawing ---------------------------------------------------------------------------------
+    let raf = 0, on = false, inView = false, t = 0;
+    let picked: Spot | null = null;   // the house whose card is open
+    const paint = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    const fontBody = getComputedStyle(document.body).fontFamily || 'sans-serif';
+    const fontHead = getComputedStyle(root.querySelector('h2') || document.body).fontFamily || fontBody;
+    const pill = (text: string, x: number, y: number, bg: string, fg: string, px = 11) => {
+      g.font = `800 ${px}px ${fontBody}`; const w = g.measureText(text).width + px * 1.3, h = px * 1.75;
+      g.fillStyle = bg; rr(g, x - w / 2, y - h / 2, w, h, h / 2); g.fill(); g.strokeStyle = col.ink; g.lineWidth = 1.5; g.stroke();
+      g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, x, y + px * 0.06);
+    };
+    // a label next to a house: dark, with a thin line of its colour; kept inside the map
+    const tag = (text: string, x: number, y: number, line: string, fg: string) => {
+      g.font = `800 12.5px ${fontBody}`; const w = g.measureText(text).width + 24, h = 25;
+      const cx2 = clamp(x, w / 2 + 8, W - w / 2 - 8);
+      g.fillStyle = 'rgba(20,12,9,.88)'; rr(g, cx2 - w / 2, y - h / 2, w, h, h / 2); g.fill(); g.strokeStyle = line; g.lineWidth = 1.2; g.stroke();
+      g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, cx2, y + 1);
+    };
+    const cut = (text: string, max: number) => { if (g.measureText(text).width <= max) return text; let s2 = text; while (s2.length > 1 && g.measureText(`${s2}…`).width > max) s2 = s2.slice(0, -1); return `${s2}…`; };
+    function drawOwl(pose: 'fly' | 'landed', cxp: number, bottom: number, size: number, flip = false) {
+      const img = owlPics[pose]; if (!img) return;
+      const k = size / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height), w = (img.naturalWidth || img.width) * k, h = (img.naturalHeight || img.height) * k;
+      g.save(); g.translate(cxp, bottom); if (flip) g.scale(-1, 1); g.drawImage(img, -w / 2, -h, w, h); g.restore();
+    }
+    const ring = (x: number, y: number, r: number, color: string) => {
+      g.strokeStyle = color; g.lineWidth = 2.5; g.beginPath(); g.arc(x, y, r, 0, 6.3); g.stroke();
+      g.globalAlpha = 0.35; g.lineWidth = 6; g.beginPath(); g.arc(x, y, r + 5, 0, 6.3); g.stroke(); g.globalAlpha = 1;
+    };
+
+    let cost = 0;   // how long the last frame took to draw, in milliseconds (for the tests)
+    function tick(now: number) {
+      raf = 0; const now0 = performance.now();
+      const moving = step(now);
+      t = now / 1000; frame++;
+      const size = tp(), half = size / 2, s = cam.s;
+      const base = () => g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      base();
+      // the night: warm over the city, dark at the edges, a few stars
+      const cxp = sx(0), cyp = sy(0), rad = Math.max(plan.R * 1.75 * s * Math.max(plan.kx, plan.ky), Math.max(W, H) * 0.8);
+      g.fillStyle = cfg.sky[2]; g.fillRect(0, 0, W, H);
+      g.drawImage(night, cxp - rad, cyp - rad, rad * 2, rad * 2);
+      const far = size < 9.5, sheet = !far && size < sheetMax, close = size >= 62;
+      if (size < 26) { const a = clamp((26 - size) / 14, 0, 1); for (const st of stars) { g.fillStyle = `rgba(255,240,210,${(st[2] * a).toFixed(3)})`; g.fillRect(st[0] * W, st[1] * H, 1.4, 1.4); } }
+      // the river
+      if (plan.river) {
+        g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath();
+        plan.river.forEach((p: number[], i: number) => { const x = sx(p[0]), y = sy(p[1]); if (i) g.lineTo(x, y); else g.moveTo(x, y); });
+        g.strokeStyle = 'rgba(70,110,190,.2)'; g.lineWidth = Math.max(5, s * 1.05); g.stroke();
+        g.strokeStyle = 'rgba(120,160,230,.16)'; g.lineWidth = Math.max(1.5, s * 0.12); g.stroke();
+      }
+      // ring roads and avenues: seen once the map comes closer (from far away they are the dark lines between the lights)
+      if (s > 6) {
+        g.strokeStyle = hexA(col.track, clamp((s - 6) / 12, 0, 1) * 0.7); g.lineWidth = Math.max(1.5, s * 0.42); g.lineCap = 'round';
+        for (const q of plan.rings) { g.beginPath(); g.ellipse(cxp, cyp, q * plan.kx * s, q * plan.ky * s, 0, 0, 6.3); g.stroke(); }
+        for (const av of plan.avenues) { g.beginPath(); g.moveTo(sx(av.r0 * Math.cos(av.a) * plan.kx), sy(av.r0 * Math.sin(av.a) * plan.ky)); g.lineTo(sx(av.r1 * Math.cos(av.a) * plan.kx), sy(av.r1 * Math.sin(av.a) * plan.ky)); g.stroke(); }
+      }
+      // the houses on the screen
+      const pad = Math.max(size * 0.9, 30);
+      const seen: Spot[] = [];
+      for (const sp of spots) { const x = sx(sp.x), y = sy(sp.y); if (x < -pad || x > W + pad || y < -pad || y > H + pad) continue; seen.push(sp); }
+      let more = false;
+      if (far || sheet) {
+        // lights fade into small houses between 8 and 10.5 pixels
+        const dots = far ? 1 : clamp((10.5 - size) / 1.5, 0, 1);
+        if (dots > 0) {
+          // the lights of the whole city are one picture (see lightsStep), stretched to the size of the map now
+          // when the lights are ready the sheet of small houses is made ahead, so coming closer does not wait for it
+          if (lightsStep()) more = true; else if (far && atlasStep()) more = true;
+          if (lights) { g.globalAlpha = dots; g.drawImage(lights, sx(ext.x0), sy(ext.y0), (ext.x1 - ext.x0) * s, (ext.y1 - ext.y0) * s); g.globalAlpha = 1; }
+          // a few lights flare up for a moment, so the city twinkles
+          if (!ul.calm && litList.length) {
+            g.globalCompositeOperation = 'lighter';
+            for (let i = 0; i < 46; i++) {
+              const beat = t * 0.7 + i * 0.37, sp = litList[(Math.floor(beat) * 31 + i * 97) % litList.length], a = Math.sin((beat % 1) * Math.PI);
+              const x = sx(sp.x), y = sy(sp.y); if (x < -20 || x > W + 20 || y < -20 || y > H + 20) continue;
+              const r = Math.max(6, size * 2.1); g.globalAlpha = a * 0.75 * dots; g.drawImage(landed(sp) ? glowGold : glowDot, x - r, y - r, r * 2, r * 2);
+            }
+            g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+          }
+        }
+        if (!far) {
+          // among the small houses the ones the owl landed on keep their glow
+          g.globalCompositeOperation = 'lighter';
+          for (const sp of seen) {
+            if (!isHouse(sp) || !landed(sp)) continue;
+            const r = size * 1.5; g.globalAlpha = 0.7 * (1 - dots); g.drawImage(glowGold, sx(sp.x) - r, sy(sp.y) - r, r * 2, r * 2);
+          }
+          g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+          if (atlasStep()) more = true;
+        }
+        if (!far) {
+          g.globalAlpha = 1 - dots;
+          for (const sp of seen) {
+            const x = sx(sp.x), y = sy(sp.y);
+            if (sp.kind === 'free') { g.fillStyle = hexA(col.dim, 0.22); g.fillRect(x - half * 0.5, y - half * 0.5, half, half); continue; }
+            if (sp.kind === 'you') continue;
+            if (atlas && sp.k < atlasDone) { const a = atlasSlot(sp); g.drawImage(atlas, a.x, a.y, atlasCell, atlasCell, x - half, y - half, size, size); }
+          }
+          g.globalAlpha = 1;
+        }
+      } else {
+        const want: Spot[] = [];
+        g.textAlign = 'center';
+        for (const sp of seen) {
+          const x = sx(sp.x) - half, y = sy(sp.y) - half;
+          if (sp.kind === 'free' || sp.kind === 'you') {
+            g.setLineDash([size * 0.07, size * 0.06]); g.lineWidth = Math.max(1, size * 0.018);
+            g.strokeStyle = sp.kind === 'you' ? col.secondary : hexA(col.dim, 0.7); rr(g, x + size * 0.04, y + size * 0.04, size * 0.92, size * 0.92, size * 0.12); g.stroke(); g.setLineDash([]);
+            if (size >= 70) { g.font = `700 ${clamp(size * 0.1, 10, 15)}px ${fontBody}`; g.textBaseline = 'middle'; g.fillStyle = sp.kind === 'you' ? col.text : hexA(col.muted, 0.6);
+              g.fillText(sp.kind === 'you' ? L.yourLot || 'Your house goes here' : L.freeLot || 'Free lot', x + half, y + half, size * 0.84); }
+            continue;
+          }
+          sp.used = frame;
+          // the real picture when the map is close and the picture is ready, the small house until then
+          const fade = sp.bmp ? clamp((now - sp.bmpAt) / 260, 0, 1) : 0;
+          if (fade < 1) drawMini(g, sp, x, y, size);
+          if (sp.bmp) {
+            g.globalAlpha = fade; g.drawImage(sp.bmp, x, y, size, size); g.globalAlpha = 1;
+            if (fade < 1) more = true;
+            if (sp.owl) drawOwl('landed', x + ((sp.owl.x / K.VIEW - CUT.x) / CUT.s) * size, y + ((sp.owl.y / K.VIEW - CUT.y) / CUT.s) * size, (sp.owl.size / K.VIEW / CUT.s) * size, sp.owl.flip);
+          } else if (landed(sp) && size >= 30) drawOwl('landed', x + half, y + ((miniOf(sp).cap[1] - CUT.y) / CUT.s) * size + size * 0.03, size * 0.34);
+          if (close && !sp.busy && sp.bmpPx < pxFor(size)) want.push(sp);
+          g.lineWidth = sp.mine ? Math.max(2.5, size * 0.03) : 1.5; g.strokeStyle = sp.mine ? col.secondary : hexA(col.ink, 0.9); rr(g, x, y, size, size, size * 0.12); g.stroke();
+          if (size >= 50) {
+            g.font = `700 ${clamp(size * 0.115, 10.5, 15)}px ${fontBody}`; g.textBaseline = 'top'; g.fillStyle = lit(sp) ? col.text : col.muted;
+            const lf = Math.round(size); if (sp.labelFor !== lf) { sp.label = cut(sp.name, size * 1.0); sp.labelFor = lf; }
+            g.fillText(sp.label, x + half, y + size + size * 0.035);
+          }
+          if (sp.kind === 'sample' && size >= 44) pill(L.sample || 'Example', x + half, y + size * 0.12, col.cream, col.ink, clamp(size * 0.085, 8.5, 11));
+        }
+        if (close && want.length) {
+          // nearest to the middle of the map first
+          want.sort((a, b) => Math.hypot(a.x - cam.x, a.y - cam.y) - Math.hypot(b.x - cam.x, b.y - cam.y));
+          clearTimeout(askTimer); askTimer = window.setTimeout(() => ask(want), moving ? 200 : 40);
+          for (const sp of want) { if (running >= 2) break; if (sp.full || sp.kind === 'sample') picture(sp, pxFor(size)); }
+        }
+      }
+      // the names of the districts, while the houses are small
+      if (size < 30 && plan.districts.length) {
+        g.font = `${W < 600 ? 13 : 16}px ${fontHead}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+        const a = clamp((30 - size) / 8, 0, 1);
+        for (const dd of plan.districts) {
+          if (dd.n < 6) continue;
+          const x = sx(dd.x), y = sy(dd.y); if (x < 40 || x > W - 40 || y < 30 || y > H - 30) continue;
+          const name = districtName(K.FAMILY_IDS[dd.d]), w = g.measureText(name).width + 16, h = W < 600 ? 21 : 26;
+          g.fillStyle = `rgba(20,12,9,${(0.55 * a).toFixed(2)})`; rr(g, x - w / 2, y - h / 2, w, h, 8); g.fill();
+          g.fillStyle = hexA(col.text, 0.8 * a); g.fillText(name, x, y + 1);
+        }
+      }
+      // marks that are seen from any distance: the opened house, the house of the night with the owl, the visitor's own house
+      const rOf = Math.max(half + 4, 11);
+      if (picked) ring(sx(picked.x), sy(picked.y), rOf + 2, col.primary);
+      const star = spots.find((sp) => sp.star);
+      if (star) {
+        const x = sx(star.x), y = sy(star.y);
+        if (x > -160 && x < W + 160 && y > -80 && y < H + 200) {
+          const bob = ul.calm ? 0 : Math.sin(t * 2.1) * 3;
+          if (close) {
+            drawOwl('fly', x + half * 0.9, y - half + 8 + bob, clamp(size * 0.5, 60, 110));
+            pill(L.cityStar || 'Brightest tonight', x, y - half + size * 0.12, col.primary, col.ink, clamp(size * 0.085, 9, 12));
+          } else {
+            // the owl hangs over the brightest house and shines on it
+            const os = W < 600 ? 84 : 124, ox = x + (W < 600 ? 8 : 26) + os / 2, top = y - os * 0.95 + bob;
+            ring(x, y, rOf + 3, '#FFE9A6');
+            const beam = g.createLinearGradient(ox, top + os * 0.7, x, y); beam.addColorStop(0, 'rgba(255,220,140,0)'); beam.addColorStop(1, 'rgba(255,220,140,.5)');
+            g.fillStyle = beam; g.beginPath(); g.moveTo(ox - os * 0.12, top + os * 0.72); g.lineTo(ox + os * 0.1, top + os * 0.72); g.lineTo(x + rOf, y + 4); g.lineTo(x - rOf, y + 4); g.closePath(); g.fill();
+            drawOwl('fly', ox, top + os, os);
+            tag(`${L.cityStar || 'Brightest tonight'} · ${sn4(star.sn)}`, x, y + rOf + 20, col.primary, col.primary);
+          }
+        }
+      }
+      const me = spots[0];
+      if (me) {
+        const x = sx(me.x), y = sy(me.y);
+        if (x > -120 && x < W + 120 && y > -80 && y < H + 80) {
+          if (close) pill(me.kind === 'you' ? L.you || 'You' : L.mine || 'Yours', x, y - half + size * 0.12, col.secondary, '#fff', clamp(size * 0.085, 9, 12));
+          else {
+            ring(x, y, rOf + 1, col.secondary);
+            if (!ul.calm) { const pulse = (t * 0.9) % 1; g.strokeStyle = col.secondary; g.lineWidth = 2; g.globalAlpha = 1 - pulse; g.beginPath(); g.arc(x, y, rOf + 6 + pulse * 16, 0, 6.3); g.stroke(); g.globalAlpha = 1; }
+            if (!(star && Math.hypot(sx(star.x) - x, sy(star.y) - y) < 40)) tag(me.kind === 'you' ? L.yourLotTag || 'Your lot' : `${L.yourHouse || 'Your house'} · ${sn4(me.sn)}`, x, y + rOf + 20, col.secondary, '#A9C4FF');
+          }
+        }
+      }
+      if (picked) { const x = sx(picked.x), y = sy(picked.y); if (x < -20 || x > W + 20 || y < -20 || y > H + 20) closeCard(); else placeCard(); }
+      cost = performance.now() - now0;
+      // lights twinkle and the owl hovers while the map is on the screen
+      if (moving || more || running) paint();
+      else if (inView && !ul.calm && (size < 10.5 || star)) window.setTimeout(paint, 90);
+    }
+
+    // ---- size ------------------------------------------------------------------------------------
+    function resize() {
+      const r = map.getBoundingClientRect();
+      if (r.width < 10 || r.height < 10) return;
+      // two pixels for one are enough for the map: more only slows a phone down
+      W = Math.round(r.width); H = Math.round(r.height); dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      // the sheet of small houses is used while a house on the screen is at most half as large again as in the sheet
+      atlasCell = dpr > 1.4 ? 44 : 28; sheetMax = (atlasCell / dpr) * 1.5;
+      // room for the real pictures: less on a phone
+      budget = W < 700 ? 6e6 : 16e6;
+      limits(); hold(); paint();
+    }
+    if ('ResizeObserver' in window) new ResizeObserver(resize).observe(map); else addEventListener('resize', resize);
+
+    // ---- the card of a house ---------------------------------------------------------------------
+    const card = $<HTMLElement>('[data-ul-city-card]');
+    let cardId = 0;
+    function closeCard() { if (!picked) return; picked = null; card.hidden = true; paint(); }
+    // next to the house on a wide map; on a phone the card lies along the bottom of the map (see the styles)
+    function placeCard() {
+      if (!picked || W < 600) { card.style.left = ''; card.style.top = ''; return; }
+      const x = sx(picked.x), y = sy(picked.y), cw = card.offsetWidth, ch = card.offsetHeight;
+      const right = x + 30 + cw < W - 8;
+      const top = clamp(y - ch * 0.4, 8, Math.max(8, H - ch - 8));
+      card.style.left = `${right ? x + 30 : x - 30 - cw}px`; card.style.top = `${top}px`;
+      card.classList.toggle('is-left', !right); card.style.setProperty('--tail', `${clamp(y - top, 20, ch - 20)}px`);
+    }
+    async function showCard(sp: Spot) {
+      picked = sp; const id = ++cardId;
+      const art = $<HTMLElement>('[data-ul-city-card-art]');
+      art.textContent = '';
+      $<HTMLElement>('[data-ul-city-card-no]').textContent = sp.kind === 'house' ? sn4(sp.sn) : L.sample || 'Example';
+      $<HTMLElement>('[data-ul-city-card-name]').textContent = sp.name;
+      const nights = !lit(sp) ? L.cardDark || 'Dark tonight' : fill(sp.streak > K.NIGHTS ? L.cardRun || 'Night {n} in a row' : L.cardNight || 'Night {n} of {of}', { n: sp.streak, of: K.NIGHTS });
+      $<HTMLElement>('[data-ul-city-card-line]').textContent = `${districtName(sp.family)} · ${nights} · ${fill(L.cardBright || '{light}% bright', { light: Math.round(sp.light) })}`;
+      card.hidden = false; placeCard(); paint();
+      const got = await fullOf(sp);
+      if (id !== cardId || picked !== sp || !got) return;
+      const h = K.houseOfP(got);
+      const owl = landed(sp) ? { ...K.owlPlace(h, K.NIGHTS, true), href: cfg.owl.landed || K.owlPlaceholder('landed') } : null;
+      art.innerHTML = K.houseSvg(h, got.placed, { free: got.free, ctx: drawCtx(), level: lit(sp) ? Math.min(K.NIGHTS, sp.streak) : 1, owl, id: `ulk${id}` });
+    }
+    $<HTMLButtonElement>('[data-ul-city-card-open]').addEventListener('click', () => { const sp = picked; if (sp) open(sp); });
+    $<HTMLButtonElement>('[data-ul-city-card-go]').addEventListener('click', () => { const sp = picked; if (sp) flyTo(sp.x, sp.y + 0.08, Math.max(sNear, cam.s), 900); });
+
+    // ---- fingers, mouse, keys --------------------------------------------------------------------
+    const startBtn = $<HTMLButtonElement>('[data-ul-city-start]');
+    let counted = false;
+    const turnOn = () => {
+      if (on) return; on = true; map.classList.add('is-on'); stats();
+      if (!counted) { counted = true; window.dispatchEvent(new CustomEvent('ul:track', { detail: 'city' })); }
+    };
+    const turnOff = () => { if (!on) return; on = false; map.classList.remove('is-on'); pts.clear(); closeCard(); stats(); };
+    startBtn.addEventListener('click', turnOn);
+    const pts = new Map<number, { x: number; y: number }>();
+    let drag: null | { x: number; y: number; moved: number; t: number; vx: number; vy: number } = null;
+    let pinch: null | { d: number; s: number; ax: number; ay: number } = null;
+    let lastTap = { t: 0, x: 0, y: 0 };
+    const at = (e: PointerEvent | WheelEvent | MouseEvent) => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    cv.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      // a finger on a map that is not switched on scrolls the page; a tap switches it on (see "click" below)
+      if (!on) { if (e.pointerType === 'mouse') turnOn(); else return; }
+      const p = at(e); pts.set(e.pointerId, p);
+      try { cv.setPointerCapture(e.pointerId); } catch { /* fine */ }
+      fly = null; zoom = null; glide = null;
+      if (pts.size === 1) drag = { x: p.x, y: p.y, moved: 0, t: performance.now(), vx: 0, vy: 0 };
+      else if (pts.size === 2) { const [a, b] = [...pts.values()]; const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s: cam.s, ax: wx(mx), ay: wy(my) }; drag = null; closeCard(); }
+    });
+    cv.addEventListener('pointermove', (e) => {
+      if (!pts.has(e.pointerId)) return;
+      const p = at(e), was = pts.get(e.pointerId)!; pts.set(e.pointerId, p);
+      if (pinch && pts.size >= 2) {
+        const [a, b] = [...pts.values()]; const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        cam.s = clamp(pinch.s * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.d), sMin, sMax);
+        cam.x = pinch.ax - (mx - W / 2) / cam.s; cam.y = pinch.ay - (my - H / 2) / cam.s; hold(); paint();
+      } else if (drag) {
+        const dx = p.x - was.x, dy = p.y - was.y, now = performance.now(), dt = Math.max(1, now - drag.t);
+        drag.moved += Math.hypot(dx, dy); drag.t = now;
+        drag.vx = drag.vx * 0.6 + (dx / dt) * 0.4; drag.vy = drag.vy * 0.6 + (dy / dt) * 0.4;
+        if (drag.moved > 6) { cam.x -= dx / cam.s; cam.y -= dy / cam.s; hold(); paint(); }
+      }
+    });
+    const lift = (e: PointerEvent) => {
+      if (!pts.has(e.pointerId)) return;
+      const p = at(e); pts.delete(e.pointerId);
+      if (pinch) { if (pts.size < 2) { pinch = null; const rest = [...pts.values()][0]; drag = rest ? { x: rest.x, y: rest.y, moved: 99, t: performance.now(), vx: 0, vy: 0 } : null; } return; }
+      if (!drag) return;
+      const d = drag; drag = null;
+      if (e.type === 'pointercancel') return;
+      if (d.moved > 6) { if (!ul.calm && performance.now() - d.t < 90 && Math.hypot(d.vx, d.vy) > 0.25) { glide = { vx: d.vx, vy: d.vy }; paint(); } return; }
+      tap(p.x, p.y);
+    };
+    cv.addEventListener('pointerup', lift); cv.addEventListener('pointercancel', lift);
+    // a tap on the map that is not switched on yet (a finger): switches it on
+    cv.addEventListener('click', () => { if (!on) turnOn(); });
+    cv.addEventListener('wheel', (e) => {
+      if (!on) return;
+      const out = e.deltaY > 0, lim = out ? sMin : sMax;
+      // at the end of the zoom the wheel scrolls the page again
+      if (Math.abs(Math.log((zoom ? Math.exp(zoom.l) : cam.s) / lim)) < 0.01) { if (e.ctrlKey) e.preventDefault(); return; }
+      e.preventDefault();
+      const p = at(e); zoomBy(Math.exp(-clamp(e.deltaY, -240, 240) * (e.ctrlKey ? 0.012 : 0.0032)), p.x, p.y);
+    }, { passive: false });
+    cv.addEventListener('keydown', (e) => {
+      const stepPx = 80;
+      if (e.key === '+' || e.key === '=') zoomBy(1.6); else if (e.key === '-') zoomBy(1 / 1.6);
+      else if (e.key === 'ArrowLeft') cam.x -= stepPx / cam.s; else if (e.key === 'ArrowRight') cam.x += stepPx / cam.s;
+      else if (e.key === 'ArrowUp') cam.y -= stepPx / cam.s; else if (e.key === 'ArrowDown') cam.y += stepPx / cam.s;
+      else if (e.key === 'Escape') { closeCard(); return; }
+      else if (e.key === 'Enter') { tap(W / 2, H / 2); return; } else return;
+      e.preventDefault(); turnOn(); closeCard(); hold(); paint();
+    });
+    function tap(px: number, py: number) {
+      const now = performance.now();
+      // a finger is not as exact as a light is small: from far away the nearest house within reach is taken
+      const reach = Math.max(0.5, 16 / cam.s);
+      let k = find(wx(px), wy(py));
+      if (k < 0 && reach > 0.5) { let bd = reach; spots.forEach((sp2, i) => { if (sp2.kind === 'free') return; const d = Math.hypot(sp2.x - wx(px), sp2.y - wy(py)); if (d < bd) { bd = d; k = i; } }); }
+      const sp = k < 0 ? null : spots[k];
+      const twice = now - lastTap.t < 320 && Math.hypot(px - lastTap.x, py - lastTap.y) < 28;
+      lastTap = { t: now, x: px, y: py };
+      if (twice) { zoomBy(2.2, px, py); return; }
+      if (!sp || sp.kind === 'free') { closeCard(); return; }
+      if (sp.kind === 'you') { closeCard(); if (tp() < 62) flyTo(sp.x, sp.y + 0.08, sNear); else goBuild(); return; }
+      // a tap on a light or a small house shows its card; a tap on a near house opens it
+      if (tp() < 62) { if (picked === sp) closeCard(); else showCard(sp); } else open(sp);
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-ul-city-zoom]').forEach((b) => b.addEventListener('click', () => { turnOn(); zoomBy(Number(b.dataset.ulCityZoom) > 0 ? 1.9 : 1 / 1.9); }));
+    $<HTMLButtonElement>('[data-ul-city-all]').addEventListener('click', () => { turnOn(); flyTo(0, 0, sMin, 900); });
+    $<HTMLButtonElement>('[data-ul-city-home]').addEventListener('click', () => { turnOn(); const me = spots[0]; if (me) flyTo(me.x, me.y + 0.08, Math.max(sHome, Math.min(cam.s, sNear)), 800); });
+    // the visitor's lot: to the street form above, where a house is put on the street
+    function goBuild() {
+      const form = document.querySelector<HTMLElement>('[data-ul-street-post]') || document.getElementById('house');
+      form?.scrollIntoView({ block: 'center', behavior: ul.calm ? 'auto' : 'smooth' });
+    }
+
+    // ---- a house opened --------------------------------------------------------------------------
+    const dlg = $<HTMLDialogElement>('[data-ul-city-view]');
+    let vid = 0;
+    async function open(sp: Spot) {
+      const got = await fullOf(sp); if (!got) return;
+      const h = K.houseOfP(got), f = sp.full || {};
+      const owl = landed(sp) ? { ...K.owlPlace(h, K.NIGHTS, true), href: cfg.owl.landed || K.owlPlaceholder('landed') } : null;
+      $<HTMLElement>('[data-ul-city-view-art]').innerHTML = K.houseSvg(h, got.placed, { free: got.free, ctx: { ...drawCtx(), time: K.timeOfDay() }, level: lit(sp) ? Math.min(K.NIGHTS, sp.streak) : 1, owl, id: `ulv${vid++}` });
+      $<HTMLElement>('[data-ul-city-view-name]').textContent = sp.kind === 'house' ? `${sp.name} · ${sn4(sp.sn)}` : sp.name;
+      const v = { streak: sp.streak, gifts: f.gifts ?? 0, best: f.best ?? sp.streak, light: sp.light };
+      const line = !lit(sp) ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', v) : fill(landed(sp) ? L.lineLanded || 'Night {streak} in a row · the owl is on the roof' : L.line || 'Night {streak} in a row · {gifts} owl visits', v);
+      $<HTMLElement>('[data-ul-city-view-line]').textContent = `${line} · ${fill(L.best || 'best run {best}', v)} · ${sp.light}%`;
+      if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    }
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+
+    // ---- loading ---------------------------------------------------------------------------------
+    // fresh = right after the visitor put a house on the street: past the 30-second cache, so the house is there at once
+    async function load(fresh = false) {
+      let rows: any[] = [], star = 0;
+      live = false;
+      if (cfg.endpoint) {
+        try {
+          const res = await fetch(urlFor(`map=1${fresh ? `&t=${Date.now()}` : ''}`), { headers: { accept: 'application/json' }, cache: fresh ? 'no-store' : 'default' });
+          const out = await res.json(); live = Boolean(out.live);
+          rows = Array.isArray(out.houses) ? out.houses : []; star = Number(out.star) || 0;
+        } catch { /* the city is shown with the examples */ }
+      }
+      const was = spots[0]?.kind;
+      resize();
+      build(rows, star);
+      resize();
+      // the map opens on the whole city; it goes to the visitor's house when the house has just been put on the street
+      if (!loaded) { cam.x = 0; cam.y = 0; cam.s = sMin; }
+      else if (was === 'you' && spots[0].kind === 'house') { cam.x = 0; cam.y = 0.08; cam.s = sHome; }
+      loaded = true; hold(); paint();
+    }
+    ul.on('ul:street', (d: any) => { if (loaded) load(Boolean(d?.refresh)); });
+    if ('IntersectionObserver' in window) {
+      let started = false;
+      new IntersectionObserver((es) => {
+        const e = es[es.length - 1];
+        if (e.isIntersecting && !started) { started = true; load(); }
+        inView = e.isIntersecting && e.intersectionRatio > 0.05;
+        if (e.intersectionRatio < 0.3) turnOff();
+        if (inView) paint();
+      }, { rootMargin: '300px 0px', threshold: [0, 0.05, 0.3, 0.6] }).observe(map);
+    } else { inView = true; load(); }
+    (document as any).fonts?.ready?.then(() => paint());
+    (root as any).city = { get spots() { return spots; }, get plan() { return plan; }, cam, flyTo, load, get on() { return on; }, get cost() { return cost; }, get picked() { return picked; }, tp, sx, sy };
+  }
+</script>

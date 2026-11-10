@@ -107,6 +107,7 @@ import LightsHouse from '../sections/lights/LightsHouse.astro';
 import LightsStreet from '../sections/lights/LightsStreet.astro';
 import LightsPicture from '../sections/lights/LightsPicture.astro';
 import LightsGallery from '../sections/lights/LightsGallery.astro';
+import LightsCity from '../sections/lights/LightsCity.astro';
 import LightsToken from '../sections/lights/LightsToken.astro';
 import LightsSteps from '../sections/lights/LightsSteps.astro';
 import LightsPlan from '../sections/lights/LightsPlan.astro';
@@ -134,7 +135,7 @@ const registry: Record<string, any> = {
   wheelShell: WheelShell, wheelHero: WheelHero, wheelIssue: WheelIssue, wheelAbout: WheelAbout, wheelHow: WheelHow,
   wheelHolders: WheelHolders, wheelMoons: WheelMoons, wheelStars: WheelStars, wheelCalendar: WheelCalendar, wheelBubbles: WheelBubbles,
   wheelPlan: WheelPlan, wheelRules: WheelRules, wheelBall: WheelBall, wheelFooter: WheelFooter,
-  lightsShell: LightsShell, lightsHero: LightsHero, lightsLore: LightsLore, lightsHouse: LightsHouse, lightsStreet: LightsStreet, lightsPicture: LightsPicture, lightsGallery: LightsGallery,
+  lightsShell: LightsShell, lightsHero: LightsHero, lightsLore: LightsLore, lightsHouse: LightsHouse, lightsStreet: LightsStreet, lightsPicture: LightsPicture, lightsGallery: LightsGallery, lightsCity: LightsCity,
   lightsToken: LightsToken, lightsSteps: LightsSteps, lightsPlan: LightsPlan, lightsRules: LightsRules, lightsBuy: LightsBuy, lightsFooter: LightsFooter,
 };
 const unknown = layout.sections.filter((s) => !registry[s]);

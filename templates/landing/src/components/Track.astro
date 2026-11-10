@@ -2,14 +2,14 @@
 // Counts visits and clicks for the moderator page (api/stats.js). On every site whose config has "stats" in
 // server.functions; other sites get nothing. No cookies, no ids: the page only counts and sends the numbers.
 //
-// What counts: any element with data-ul-track="<event>" (play, picture, share, save, buy, ca) counts on a click
+// What counts: any element with data-ul-track="<event>" (play, picture, share, save, buy, ca, city) counts on a click
 // (an <input type="file"> on a change); data-ul-track-once counts that event once per page. Code can count with
 // window.dispatchEvent(new CustomEvent('ul:track', { detail: 'share' })).
 // When it sends: 8 seconds after the page opens, then every 30 seconds if something new happened, at once after a Buy
 // click (the visitor is leaving for the launchpad), and when the page is hidden or closed. Only what is new each time.
 ---
 <script>
-  const EVENTS = ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca'];
+  const EVENTS = ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca', 'city'];
   let counts: Record<string, number> = {};
   const once = new Set<string>();
   const add = (k: string) => { if (EVENTS.includes(k)) counts[k] = (counts[k] || 0) + 1; };

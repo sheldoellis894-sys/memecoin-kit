@@ -1,5 +1,8 @@
 // Vercel Function behind the street of houses (section lightsStreet of the layout "lights").
 // GET  → { live, houses, star, count } — the houses visitors put on the street, brightest first; star = house of the night.
+// GET ?map=1 → { live, count, star, houses } — the city map (section lightsCity): every house as a short row
+//      [sn, name, seed, style, wish, paint, light, streak, hours since it was lit], oldest number first; star = number of the house of the night.
+// GET ?sn=3,17,40 → { houses } — the same houses in full (with their codes), asked for when the map comes close to them.
 // POST { id, name, code, nights, gifts, best, landings, streak } → { ok, house } — puts the visitor's house on the street,
 //      or updates it (one house per visitor id). The id is a random string kept in the visitor's browser.
 // POST { id, remove: true } → { ok, removed } — takes the visitor's own house off the street (only the browser that
@@ -23,10 +26,11 @@
 import { createHash } from 'node:crypto';
 import { storeFor, storeKind, serial } from './_agent/store.js';
 import { ipKey } from './_agent/ip.js';
-import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGHTS } from '../src/lib/lights-kit.js';
+import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGHTS, FAMILY_IDS, WISH_IDS } from '../src/lib/lights-kit.js';
 
-export const STREETS = { ullu: { keep: 120, ticker: 'ULLU' } };
-const SHOW = 60;                         // houses sent to the page
+export const STREETS = { ullu: { keep: 2000, ticker: 'ULLU' } };   // keep = houses the street holds (the city map shows them all)
+const SHOW = 60;                         // houses sent to the street row of the page
+const CODES_MAX = 40;                    // houses one request may ask for in full (?sn=)
 const PER_IP = 40;                       // posts a day from one address (kept in memory: a soft limit; mobile networks put many
                                          // phones behind one address, so it is not small)
 const PER_MINUTE = 120;                  // posts a minute for the whole street
@@ -58,7 +62,8 @@ function limited(ip, now) {
 
 // Vercel Blob in public mode is read through its CDN, which may give the file as it was up to a minute ago. Then two posts
 // in a row would undo each other. So the last file this instance wrote is kept in memory, and the newer of the two is used.
-const written = new WeakMap();   // store → { path, updated, j }
+const written = new WeakMap();   // store → { path, updated, j, n }
+let writes = 0;
 
 /** The street file: houses, the last serial number given, bans and the moderation log (api/admin.js). */
 export async function readStreet(env, store) {
@@ -66,21 +71,23 @@ export async function readStreet(env, store) {
   const raw = await store.read(env, path);
   let j = raw ? JSON.parse(raw) : null;
   const mine = storeKind(env) === 'blob' ? written.get(store) : null;
-  if (mine && mine.path === path && (!j || String(j.updated || '') < mine.updated)) j = mine.j;
+  // stamp = a mark of this version of the file (see visibleOf)
+  let stamp = raw ? createHash('sha1').update(raw).digest('base64') : '';
+  if (mine && mine.path === path && (!j || String(j.updated || '') < mine.updated)) { j = mine.j; stamp = `w${mine.n}`; }
   const houses = Array.isArray(j?.houses) ? j.houses.filter((h) => h && typeof h.key === 'string' && typeof h.code === 'string') : [];
   const bans = Array.isArray(j?.bans) ? j.bans.filter((b) => b && typeof b.key === 'string') : [];
   const log = Array.isArray(j?.log) ? j.log.filter((e) => e && typeof e === 'object') : [];
   // houses from before the numbers get theirs now, oldest first; numbers already given are never given again
   let last = Math.max(Number.isInteger(j?.lastSn) ? j.lastSn : 0, ...houses.map((h) => (Number.isInteger(h.sn) ? h.sn : 0)), ...bans.map((b) => (Number.isInteger(b.sn) ? b.sn : 0)));
   for (const h of [...houses].sort((a, b) => (a.updated < b.updated ? -1 : 1))) if (!Number.isInteger(h.sn)) h.sn = ++last;
-  return { houses, bans, log, lastSn: last };
+  return { houses, bans, log, lastSn: last, stamp };
 }
 
 /** Writes the street file (houses, numbers, bans, log) and remembers it for the CDN case above. */
 export async function writeStreet(env, store, st, updated) {
   const file = { houses: st.houses, lastSn: st.lastSn, bans: st.bans, log: st.log.slice(-300), updated };
   await store.write(env, pathOf(env.PROJECT), JSON.stringify(file));
-  written.set(store, { path: pathOf(env.PROJECT), updated, j: file });
+  written.set(store, { path: pathOf(env.PROJECT), updated, j: file, n: ++writes });
 }
 export { pathOf, isDark, publicOf, blockList, rude, json, ipKey };
 
@@ -101,6 +108,28 @@ function publicOf(h, now) {
     streak: dark ? 0 : h.streak, light: dark ? h.lightDark : h.light, dark, updated: h.updated };
 }
 
+// The houses a page may see: a house whose code the site cannot draw any more (an old style, a removed item) is left out,
+// and so is a house with words the street does not allow (also one put there before the rules got stricter).
+// Worked out once for each version of the file: with two thousand houses, reading every code on every request
+// would keep a small server busy.
+let seen = { stamp: '', list: [] };
+function visibleOf(st, env, conf) {
+  const block = blockList(env);
+  const stamp = `${env.PROJECT}|${st.stamp}|${block.join(',')}`;
+  if (st.stamp && seen.stamp === stamp) return seen.list;
+  const list = [];
+  for (const h of st.houses) { const g = decodeHouse(h.code, { holderOk: false }); if (g && !rude(h.name, g, conf, block)) list.push({ h, g: { seed: g.seed, family: g.family, wish: g.wish, paint: g.paint || '' } }); }
+  seen = { stamp, list };
+  return list;
+}
+
+/** A house on the city map, in a few numbers: the page draws its walls and windows from the seed and the style. */
+const mapRow = ({ h, g }, now) => {
+  const dark = isDark(h, now);
+  return [h.sn, h.name, g.seed, FAMILY_IDS.indexOf(g.family), WISH_IDS.indexOf(g.wish), g.paint, dark ? h.lightDark : h.light, dark ? 0 : h.streak,
+    Math.max(0, Math.min(999, Math.floor((now - Date.parse(h.updated)) / 3600000) || 0))];
+};
+
 function starOf(houses, now) {
   const fresh = houses.filter((h) => now - Date.parse(h.updated) <= STAR_HOURS * 3600000);
   return fresh.sort((a, b) => b.light - a.light || b.streak - a.streak || (a.updated < b.updated ? 1 : -1))[0] || null;
@@ -116,14 +145,21 @@ export async function handle(request, env = process.env, deps = {}) {
   if (request.method === 'GET') {
     if (!live) return json({ live, houses: [], star: null, count: 0 });
     try {
-      // a house whose code the site cannot draw any more (an old style, a removed item) is left out
-      // and a house with words the street does not allow (also one put there before the rules got stricter)
-      const block = blockList(env);
-      const houses = (await readStreet(env, store)).houses.filter((h) => { const g = decodeHouse(h.code, { holderOk: false }); return g && !rude(h.name, g, conf, block); });
+      const seenNow = visibleOf(await readStreet(env, store), env, conf);
+      const houses = seenNow.map((x) => x.h);
+      const cache = { 'cache-control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=300' };
+      const q = new URL(request.url).searchParams;
+      if (q.has('map')) {
+        const star = starOf(houses, now);
+        return json({ live, count: houses.length, star: star ? star.sn : 0, houses: [...seenNow].sort((a, b) => a.h.sn - b.h.sn).map((x) => mapRow(x, now)) }, 200, cache);
+      }
+      if (q.has('sn')) {
+        const want = new Set(String(q.get('sn')).split(',').slice(0, CODES_MAX).map((v) => Number(v)).filter((v) => Number.isInteger(v) && v > 0));
+        return json({ live, houses: houses.filter((h) => want.has(h.sn)).map((h) => publicOf(h, now)) }, 200, cache);
+      }
       const sorted = [...houses].sort((a, b) => lightNow(b, now) - lightNow(a, now) || (a.updated < b.updated ? 1 : -1));
       const star = starOf(houses, now);
-      return json({ live, count: houses.length, star: star ? publicOf(star, now) : null, houses: sorted.slice(0, SHOW).map((h) => publicOf(h, now)) }, 200,
-        { 'cache-control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=300' });
+      return json({ live, count: houses.length, star: star ? publicOf(star, now) : null, houses: sorted.slice(0, SHOW).map((h) => publicOf(h, now)) }, 200, cache);
     } catch {
       return json({ live, houses: [], star: null, count: 0, error: 'storage' });
     }

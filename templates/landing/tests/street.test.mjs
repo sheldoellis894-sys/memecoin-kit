@@ -493,7 +493,7 @@ console.log('8 ok: country and city from any host');
   const areq = (method, body, env = AENV) => admin(new Request('https://x/api/admin', { method, headers: { authorization: `Bearer ${AENV.ADMIN_PASSWORD}`, 'x-forwarded-for': '5.5.5.9', 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }), env, { now, store });
   const g = await (await areq('GET')).json();
   assert.equal(g.street, true); assert.equal(g.stats.days[0].day, '2026-11-06'); assert.equal(g.stats.days[1].day, '2026-11-05');
-  assert.deepEqual(g.stats.events, ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca']);
+  assert.deepEqual(g.stats.events, ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca', 'city']);
   // a project without a street: the admin shows only the numbers, street actions are refused
   const files2 = new Map([['molty/stats.json', JSON.stringify({ days: { '2026-11-05': { visit: 3 } }, rev: 1 })]]);
   const store2 = { async read(env, p) { return files2.get(p) ?? null; }, async write(env, p, b) { files2.set(p, b); } };
@@ -503,5 +503,98 @@ console.log('8 ok: country and city from any host');
   const mp = await admin(new Request('https://x/api/admin', { method: 'POST', headers: { authorization: `Bearer ${AENV.ADMIN_PASSWORD}` }, body: JSON.stringify({ action: 'remove', sn: 1 }) }), MENV, { now, store: store2 });
   assert.equal(mp.status, 404);
   console.log('10 ok: visit and click numbers by day, limits, bots, no personal data, in the moderator page');
+}
+
+// ---- 11. the city map: every house in a short row, full houses on request, two thousand houses
+{
+  resetLimits();
+  const st = memoryStore();
+  const get = async (query) => { const r = await handle(new Request(`https://ullu.vercel.app/api/street${query}`, { headers: { 'x-forwarded-for': '9.9.9.9' } }), ENV, { now, store: st }); return { status: r.status, out: await r.json(), cache: r.headers.get('cache-control') }; };
+  let m = await get('?map=1');
+  assert.equal(m.status, 200); assert.deepEqual(m.out.houses, []); assert.equal(m.out.star, 0); assert.equal(m.out.count, 0);
+  const mk = (i, more = {}) => ({ id: `mapvisitor${String(i).padStart(10, '0')}`, name: `Map ${i}`, code: K.encodeHouse(5000 + i, K.autoDecorate(5000 + i, 5, false, K.FAMILY_IDS[i % K.FAMILY_IDS.length]), K.FAMILY_IDS[i % K.FAMILY_IDS.length], i % 2 ? 'gold' : ''), nights: 8, gifts: 8, best: 7, landings: 1, streak: 1 + (i % 7), ...more });
+  for (let i = 1; i <= 5; i++) { const r = await call('POST', mk(i), { store: st }, ENV, `10.0.${i}.1`); assert.ok(r.out.ok, JSON.stringify(r.out)); clock += 1000; }
+  m = await get('?map=1');
+  assert.equal(m.out.count, 5); assert.equal(m.out.houses.length, 5); assert.ok(m.cache.includes('s-maxage=30'));
+  assert.deepEqual(m.out.houses.map((x) => x[0]), [1, 2, 3, 4, 5], 'oldest number first');
+  { const [sn, name, seed, fam, wish, paint, light, streak, age] = m.out.houses[2];
+    assert.equal(sn, 3); assert.equal(name, 'Map 3'); assert.equal(seed, 5003); assert.equal(K.FAMILY_IDS[fam], K.FAMILY_IDS[3 % K.FAMILY_IDS.length]); assert.equal(K.WISH_IDS[wish], 'gold');
+    assert.equal(paint, ''); assert.equal(streak, 4); assert.equal(age, 0);
+    assert.equal(light, K.lightOf(K.houseOf(5003, K.FAMILY_IDS[fam], { wish: 'gold' }), K.autoDecorate(5003, 5, false, K.FAMILY_IDS[fam]), 4), 'the light on the map is the light on the street'); }
+  assert.equal(m.out.houses[1][4], -1, 'no wish');
+  assert.ok(!JSON.stringify(m.out).includes('mapvisitor'), 'no visitor ids on the map'); assert.ok(m.out.houses.every((x) => x.length === 9));
+  // the star of the map is the house of the night of the street
+  { const s = await call('GET', null, { store: st }); assert.equal(m.out.star, s.out.star.sn); }
+  // full houses on request: only the numbers asked for, never more than forty, rubbish is ignored
+  let c = await get('?sn=2,4,4,999,abc,-1,2.5');
+  assert.deepEqual(c.out.houses.map((x) => x.sn).sort(), [2, 4]); assert.ok(c.out.houses.every((x) => typeof x.code === 'string' && K.decodeHouse(x.code) && !('key' in x)));
+  assert.deepEqual((await get('?sn=')).out.houses, []);
+  c = await get(`?sn=${Array.from({ length: 60 }, (_, i) => (i < 55 ? 900 + i : i - 54)).join(',')}`);
+  assert.deepEqual(c.out.houses, [], 'only the first forty numbers of a request are looked at');
+  // a change shows on the map at once (the list of houses a page may see follows the file)
+  let r = await call('POST', mk(2, { name: 'Map two', streak: 7 }), { store: st }, ENV, '10.0.2.1'); assert.ok(r.out.ok);
+  m = await get('?map=1'); assert.equal(m.out.houses[1][1], 'Map two'); assert.equal(m.out.houses[1][7], 7);
+  r = await call('POST', { id: mk(5).id, remove: true }, { store: st }, ENV, '10.0.5.1'); assert.ok(r.out.removed);
+  m = await get('?map=1'); assert.deepEqual(m.out.houses.map((x) => x[0]), [1, 2, 3, 4]);
+  // a word the street does not allow hides the house from the map and from the full houses too
+  { const j = JSON.parse(st.state.text); j.houses.find((x) => x.sn === 3).name = 'rug pull'; st.state.text = JSON.stringify(j); }
+  m = await get('?map=1'); assert.deepEqual(m.out.houses.map((x) => x[0]), [1, 2, 4]); assert.equal(m.out.count, 3);
+  assert.deepEqual((await get('?sn=3')).out.houses, []);
+  // dark after two days: streak 0, the dark light, the hours grow
+  clock += 50 * 3600000;
+  m = await get('?map=1'); assert.ok(m.out.houses.every((x) => x[7] === 0 && x[8] >= 50)); assert.equal(m.out.star, 0);
+  // two thousand houses stay on the street; the 2001st pushes out the one lit longest ago
+  resetLimits();
+  const big = memoryStore();
+  const t0 = Date.parse('2026-11-01T00:00:00Z');
+  big.state.text = JSON.stringify({ lastSn: 2000, bans: [], log: [], updated: new Date(t0).toISOString(), houses: Array.from({ length: 2000 }, (_, i) => {
+    const seed = 100000 + i, fam = K.FAMILY_IDS[i % K.FAMILY_IDS.length], placed2 = K.autoDecorate(seed, 4, false, fam), hh = K.houseOf(seed, fam);
+    return { key: `k${i}`, seed, family: fam, wish: '', name: `Home ${'abcdefghij'[Math.floor(i / 100) % 10]}${'klmnopqrst'[Math.floor(i / 10) % 10]}${'uvwxyzabcd'[i % 10]}${i >= 1000 ? ' b' : ''}`, code: K.encodeHouse(seed, placed2, fam), no: hh.no, nights: 3, gifts: 3, best: 3, landings: 0, streak: 2, sn: i + 1,
+      light: K.lightOf(hh, placed2, 2), lightDark: K.lightOf(hh, placed2, 1), updated: new Date(t0 + i * 1000).toISOString() };
+  }) });
+  clock = t0 + 3000 * 1000;
+  const getBig = async (query) => { const r2 = await handle(new Request(`https://ullu.vercel.app/api/street${query}`), ENV, { now, store: big }); return r2.json(); };
+  let all = await getBig('?map=1'); assert.equal(all.houses.length, 2000); assert.equal(all.count, 2000);
+  const t1 = performance.now(); await getBig('?map=1'); await getBig(''); await getBig('?sn=5,6,7');
+  assert.ok(performance.now() - t1 < 400, 'the second look at the same file does not read every code again');
+  assert.equal((await getBig('')).houses.length, 60, 'the street row still shows sixty');
+  r = await call('POST', mk(77), { store: big }, ENV, '10.1.1.1'); assert.ok(r.out.ok); assert.equal(r.out.house.sn, 2001);
+  all = await getBig('?map=1'); assert.equal(all.houses.length, 2000); assert.equal(all.houses[0][0], 2, 'house 1 was lit longest ago and left'); assert.equal(all.houses[1999][0], 2001);
+  console.log('11 ok: the city map, full houses on request, word filter, dark houses, two thousand houses');
+}
+
+// ---- 12. where the houses of the city stand (src/lib/lights-city.js)
+{
+  const C = await import(new URL('../src/lib/lights-city.js', import.meta.url));
+  let seedC = 7; const rndC = () => ((seedC = (seedC * 1664525 + 1013904223) >>> 0) / 4294967296);
+  for (const [n, wide] of [[0, true], [1, false], [6, true], [45, false], [300, true], [2000, true], [2000, false]]) {
+    const styles = Array.from({ length: n }, () => { const v = rndC(); return v < 0.3 ? 0 : v < 0.5 ? 1 : v < 0.6 ? 2 : v < 0.7 ? 3 : v < 0.85 ? 4 : v < 0.9 ? 5 : v < 0.95 ? 6 : v < 0.98 ? 7 : 8; });
+    const p2 = C.cityPlan(styles, { count: 9, wide });
+    const hs = p2.spots.filter((q) => q.i >= 0);
+    assert.equal(hs.length, n, `${n}: every house has a place`); assert.equal(new Set(hs.map((q) => q.i)).size, n, 'no house twice');
+    assert.ok(p2.spots.length - n >= 18, 'empty lots around the city');
+    // nobody stands on the visitor's place in the middle, and no two houses overlap
+    assert.ok(p2.spots.every((q) => Math.hypot(q.x, q.y) > 1.3));
+    let min = 9; for (let i = 0; i < p2.spots.length; i++) for (let j = i + 1; j < Math.min(p2.spots.length, i + 300); j++) min = Math.min(min, Math.hypot(p2.spots[i].x - p2.spots[j].x, p2.spots[i].y - p2.spots[j].y));
+    assert.ok(min > 1.38, `${n}: houses stand apart (${min})`);
+    // a large city has a district for every style, and every house stands in the district of its style
+    if (n >= 45) { assert.ok(p2.districts.length >= 8); assert.ok(hs.every((q) => q.d === styles[q.i])); assert.equal(p2.avenues.length, new Set(styles).size); }
+    else { assert.equal(p2.districts.length, 0); assert.ok(hs.every((q) => q.d === -1)); }
+    // a river and ring roads only in a city large enough for them
+    assert.equal(Boolean(p2.river), n >= 300); assert.equal(p2.rings.length > 0, n >= 300);
+    // the houses of a city without districts stand in the order they came: the first ones nearest to the middle
+    if (n === 6) assert.deepEqual(hs.map((q) => q.i), [0, 1, 2, 3, 4, 5]);
+    // a point on a house finds it; a point far outside finds nothing
+    const find2 = C.cityFinder(p2.spots);
+    if (p2.spots.length) { assert.equal(find2(p2.spots[5].x + 0.3, p2.spots[5].y - 0.2), 5); assert.equal(find2(p2.R * 3, p2.R * 3), -1); }
+    // the same houses give the same city
+    assert.deepEqual(C.cityPlan(styles, { count: 9, wide }).spots.slice(0, 50), p2.spots.slice(0, 50));
+  }
+  // the small house of the map has the walls and the windows of the real one
+  const m = C.miniHouse(7123, 'haveli', 'gold', '', 4), real = K.houseOf(7123, 'haveli', { wish: 'gold' });
+  assert.equal(m.no, real.no); assert.equal(m.wall, real.wall); assert.equal(m.windows.length, real.windows.length);
+  assert.equal(m.windows.filter((w) => w[4]).length, Math.max(1, Math.round((real.windows.length * 4) / K.NIGHTS)));
+  assert.equal(C.miniHouse(7123, 'haveli', 'gold', '', 0).windows.filter((w) => w[4]).length, 0, 'a dark house has no lit windows');
+  console.log('12 ok: the plan of the city, districts, roads, finding a house, the small house');
 }
 console.log('street: all ok');

@@ -1,4 +1,4 @@
 {
   "name": "lights",
-  "sections": ["lightsShell", "lightsHero", "lightsLore", "lightsHouse", "lightsStreet", "lightsPicture", "lightsGallery", "lightsToken", "lightsSteps", "lightsRules", "lightsBuy", "lightsFooter"]
+  "sections": ["lightsShell", "lightsHero", "lightsLore", "lightsHouse", "lightsStreet", "lightsPicture", "lightsGallery", "lightsCity", "lightsToken", "lightsSteps", "lightsRules", "lightsBuy", "lightsFooter"]
 }

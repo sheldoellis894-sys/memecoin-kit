@@ -688,6 +688,55 @@
       }
     ]
   },
+  "city": {
+    "kicker": "The city",
+    "title": "The city we lit",
+    "lead": "Every light is someone's house. Tap one to look inside",
+    "districts": {
+      "mumbai": "Mumbai",
+      "haveli": "Jaipur",
+      "jaisalmer": "Jaisalmer",
+      "kolkata": "Kolkata",
+      "goa": "Goa",
+      "varanasi": "Varanasi",
+      "delhi": "Old Delhi",
+      "chennai": "Chennai",
+      "kerala": "Kerala"
+    },
+    "labels": {
+      "start": "Tap to walk the city",
+      "home": "Find my house",
+      "homeFree": "Find my lot",
+      "zoomIn": "Closer",
+      "zoomOut": "Further",
+      "all": "The whole city",
+      "mapLabel": "A map of the houses on the street",
+      "loading": "Lighting the map…",
+      "statHouse": "house",
+      "statHouses": "houses",
+      "statLit": "lit tonight",
+      "statOwl": "with the owl",
+      "legendLit": "Lit tonight",
+      "legendDark": "Dark tonight",
+      "legendOwl": "Seven nights, the owl landed",
+      "citySamples": "Houses marked Example show how the city will look. Real houses take their place",
+      "hintOn": "Drag to move · pinch or scroll to come closer · your house is in the middle, new houses grow the city outwards",
+      "cityStar": "Brightest tonight",
+      "yourHouse": "Your house",
+      "yourLotTag": "Your lot",
+      "yourLot": "Your house goes here",
+      "freeLot": "Free lot",
+      "you": "You",
+      "cardOpen": "Open the house",
+      "cardGo": "Come closer",
+      "cardNight": "Night {n} of {of}",
+      "cardRun": "Night {n} in a row",
+      "cardDark": "Dark tonight",
+      "cardBright": "{light}% bright",
+      "viewLabel": "A house in the city",
+      "close": "Back to the city"
+    }
+  },
   "howToBuy": [
     {
       "title": "Get a wallet",

@@ -212,6 +212,7 @@ const iv: Record<string, string> = c.invite || {};
     const KEY = `ul-house-${cfg.file}`;
     const ID_KEY = `ul-id-${cfg.file}`;
     const STREET_KEY = `ul-street-${cfg.file}`;   // the name, once the house stands on the street
+    const SN_KEY = `ul-street-sn-${cfg.file}`;   // its number on the street (#0007)
     const css = getComputedStyle(document.documentElement);
     const heading = `${css.getPropertyValue('--t-font-heading').trim() || 'sans-serif'}, system-ui, sans-serif`;
     const body = `${css.getPropertyValue('--t-font-body').trim() || 'sans-serif'}, system-ui, sans-serif`;
@@ -801,6 +802,7 @@ const iv: Record<string, string> = c.invite || {};
         if (!res.ok || !out.ok) { postNote.textContent = cfg.streetErrors[out.error] || cfg.streetErrors.failed || 'The street did not take the house. Try later.'; return { ok: false, error: out.error || 'failed' }; }
         postNote.textContent = L.posted || 'Your house is on the street. Scroll down to see it.';
         ul.store.set(STREET_KEY, clean);
+        if (Number.isInteger(out.house?.sn)) ul.store.set(SN_KEY, String(out.house.sn));
         ul.fire('ul:street', { refresh: true });
         return { ok: true };
       } catch {
@@ -828,13 +830,15 @@ const iv: Record<string, string> = c.invite || {};
         const res = await fetch(cfg.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: visitorId(), remove: true }) });
         const out = await res.json().catch(() => ({}));
         if (!res.ok || !out.ok) return { ok: false, text: cfg.streetErrors[out.error] || cfg.streetErrors.failed || 'The street did not answer. Try later.' };
-        ul.store.set(STREET_KEY, '');
+        ul.store.set(STREET_KEY, ''); ul.store.set(SN_KEY, '');
         ul.fire('ul:street', { refresh: true });
         return { ok: true, text: L.removedStreet || 'Your house is off the street. It stays here with you, and you can put it back any time.' };
       } catch { return { ok: false, text: cfg.streetErrors.offline || 'The street is not reachable from here.' }; }
     };
     ul.houseName = () => ul.store.get(STREET_KEY) || p.name || '';
     ul.houseNo = () => h.no;
+    // the number of the visitor's house on the street, 0 while it is not there (or was put there before the numbers were kept)
+    ul.houseSn = () => (ul.onStreet() ? Number(ul.store.get(SN_KEY)) || 0 : 0);
 
     // ---- house code ----------------------------------------------------------------------------
     const codeNote = $<HTMLElement>('[data-ul-code-note]');

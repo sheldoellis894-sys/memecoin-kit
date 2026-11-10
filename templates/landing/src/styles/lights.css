@@ -664,3 +664,57 @@ html:not(.ul-motion) .lt-sleepy { transition: none; }
 .lt-pic-sec.is-docked [data-ul-litbox] > .lt-label { display: none; }
 @media (max-width: 939px) { .lt-tabs { gap: 4px; } .lt-tabs button { padding: 3px 9px; font-size: .72rem; } }
 .lt-pic-sec.is-docked .lt-meter-text { margin-top: 4px; font-size: .85rem; }
+
+/* ---- The city (LightsCity.astro): a map of every house on the street ---- */
+.lt-city-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; min-height: 0; }
+.lt-city-stats:empty { display: none; }
+.lt-city-chip { padding: 5px 14px 4px; border-radius: 999px; background: var(--lt-card); border: 1px solid var(--lt-line); font-weight: 700; font-size: .92rem; color: var(--t-text); }
+.lt-city-chip b { color: var(--t-primary); font-weight: 800; font-size: 1.05rem; }
+/* over the map the owl that follows the cursor steps aside: he would cover houses and their cards, and the owl of the map marks the brightest house */
+.lt-follow.is-page { transition: opacity .25s; }
+body:has(.lt-city:hover) .lt-follow.is-page { opacity: 0; }
+.lt-city { position: relative; height: clamp(440px, 72vh, 700px); height: clamp(440px, 72svh, 700px); border-radius: var(--t-radius-card); overflow: hidden; background: #090812; border: 2px solid var(--lt-line);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--t-primary) 7%, transparent); }
+.lt-city canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: grab; outline-offset: -4px; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.lt-city.is-on canvas { touch-action: none; }
+.lt-city.is-on canvas:active { cursor: grabbing; }
+.lt-city-home { position: absolute; left: 12px; top: 12px; z-index: 2; }
+.lt-city-tools { position: absolute; right: 12px; top: 12px; z-index: 2; display: grid; gap: 8px; }
+.lt-city-tools button { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; border: 1px solid var(--lt-line); background: color-mix(in srgb, var(--t-surface) 92%, transparent); color: var(--t-text);
+  font: 800 1.4rem/1 var(--font-body); cursor: pointer; }
+.lt-city-tools button:hover { background: var(--t-surface); border-color: var(--t-accent); }
+.lt-city-start { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 2; display: inline-flex; align-items: center; gap: 10px; padding: 11px 20px 9px; border-radius: 999px; white-space: nowrap;
+  border: 2px solid var(--t-primary); background: rgb(20 12 9 / .86); color: var(--t-text); font: 800 1rem/1 var(--font-body); cursor: pointer; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.lt-city.is-on .lt-city-start { display: none; }
+/* the card of a house: next to it on a wide map, along the bottom of the map on a phone */
+.lt-city-card { position: absolute; z-index: 3; width: 264px; padding: 12px 14px 14px; border-radius: 22px; background: var(--t-surface); border: 2px solid var(--t-primary); box-shadow: 0 18px 40px rgb(0 0 0 / .6); }
+.lt-city-card::after { content: ""; position: absolute; left: -11px; top: var(--tail, 100px); width: 18px; height: 18px; margin-top: -9px; background: var(--t-surface); border-left: 2px solid var(--t-primary); border-bottom: 2px solid var(--t-primary); transform: rotate(45deg); }
+.lt-city-card.is-left::after { left: auto; right: -11px; transform: rotate(225deg); }
+.lt-city-card-art { height: 180px; border-radius: 14px; overflow: hidden; background: #130D18; display: grid; place-items: center; }
+.lt-city-card-art svg { display: block; height: 100%; width: auto; }
+.lt-city-card-no { float: right; margin-top: 12px; padding: 4px 8px 2px; border-radius: 8px; background: color-mix(in srgb, var(--t-text) 12%, transparent); font: 800 .8rem/1 var(--font-body); color: var(--t-text); }
+.lt-city-card h3 { margin: 10px 0 2px; font-size: 1.35rem; line-height: 1.1; color: var(--t-primary); overflow-wrap: anywhere; }
+.lt-city-card p { margin: 0; font-size: .9rem; line-height: 1.35; color: var(--t-muted); }
+.lt-city-card-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.lt-city-card-acts .lt-btn { flex: 1 1 auto; justify-content: center; white-space: nowrap; }
+.lt-city-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 10px 2px 0; font-size: .82rem; color: var(--t-muted); }
+.lt-city-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.lt-city-legend .is-lit { background: #FFB23E; box-shadow: 0 0 8px #FF8A1F; }
+.lt-city-legend .is-dark { background: #4A3A30; }
+.lt-city-legend .is-owl { background: #FFE9A6; box-shadow: 0 0 0 2px var(--t-primary), 0 0 10px #FFD46B; }
+.lt-city-note { text-align: center; }
+@media (min-width: 900px) {
+  /* on a wide screen the legend lies on the map, in its bottom left corner */
+  .lt-city-legend { position: relative; z-index: 2; width: fit-content; margin: -46px 0 14px 14px; padding: 7px 14px 5px; border-radius: 14px; background: rgb(20 12 9 / .72); pointer-events: none; }
+}
+@media (max-width: 599px) {
+  .lt-city { height: clamp(420px, 68vh, 580px); height: clamp(420px, 68svh, 580px); }
+  .lt-city-tools button { width: 40px; height: 40px; border-radius: 12px; }
+  .lt-city-card { left: 10px !important; right: 10px; top: auto !important; bottom: 10px; width: auto; padding: 10px; display: grid; grid-template-columns: 120px 1fr; gap: 0 12px; align-items: start; }
+  .lt-city-card::after { display: none; }
+  .lt-city-card-art { height: 132px; }
+  .lt-city-card-no { float: none; display: inline-block; margin-top: 2px; }
+  .lt-city-card h3 { font-size: 1.2rem; margin-top: 6px; }
+  .lt-city-card p { font-size: .84rem; }
+  .lt-city-card-acts { margin-top: 8px; gap: 6px; } .lt-city-card-acts .lt-btn { font-size: .8rem; padding: .5em .7em; }
+}

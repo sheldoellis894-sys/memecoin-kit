@@ -82,9 +82,11 @@ const data = JSON.stringify({
     const lineOf = (x: H) => x.dark
       ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', x as any)
       : fill(x.streak >= K.NIGHTS ? L.lineLanded || 'Night {streak} in a row · the owl is on the roof' : L.line || 'Night {streak} in a row · {gifts} owl visits', x as any);
+    // the visitor's own house on the street: the name it was put there with and its house number
+    const isMine = (x: H) => Boolean(!x.sample && ul.houseName && ul.onStreet?.() && x.name === ul.houseName() && (x as any).no === ul.houseNo?.());
     const draw = () => {
-      // real houses always come before the examples
-      const list = [...houses].sort((a, b) => Number(Boolean(a.sample)) - Number(Boolean(b.sample)) || (sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light));
+      // the visitor's own house stands first, then the real houses, then the examples
+      const list = [...houses].sort((a, b) => Number(isMine(b)) - Number(isMine(a)) || Number(Boolean(a.sample)) - Number(Boolean(b.sample)) || (sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light));
       row.innerHTML = '';
       moreBox.hidden = list.length <= shown;
       list.slice(0, shown).forEach((x, i) => {
@@ -97,8 +99,7 @@ const data = JSON.stringify({
         const sn = (x as any).sn;
         if (!x.sample && Number.isInteger(sn)) { const t = document.createElement('span'); t.className = 'lt-door-sn'; t.textContent = `#${String(sn).padStart(4, '0')}`; b.querySelector('.lt-door-name')!.after(t); }
         if (x.sample) b.querySelector('.lt-door-sample')!.textContent = L.sample || 'Example';
-        // the visitor's own house on the street: the name it was put there with and its number
-        const mine = !x.sample && ul.houseName && ul.onStreet?.() && x.name === ul.houseName() && (x as any).no === ul.houseNo?.();
+        const mine = isMine(x);
         if (mine) { li.classList.add('is-mine'); const t = document.createElement('span'); t.className = 'lt-door-sample lt-door-mine'; t.textContent = L.mine || 'Yours'; b.appendChild(t); }
         b.querySelector('.lt-door-line')!.textContent = lineOf(x);
         b.style.setProperty('--i', String(i));
@@ -131,6 +132,15 @@ const data = JSON.stringify({
           real = (Array.isArray(out.houses) ? out.houses : []).filter((x: H) => x && typeof x.code === 'string' && K.decodeHouse(x.code));
           top = out.star && K.decodeHouse(out.star.code) ? out.star : null;
         } catch { /* the street is shown with samples */ }
+        // the row shows the brightest sixty; the visitor's own house is in it always: when it is not among them, it is asked for by its number
+        const sn = ul.houseSn?.() || 0;
+        if (sn && !real.some(isMine)) {
+          try {
+            const out = await (await fetch(`${cfg.endpoint}${cfg.endpoint.includes('?') ? '&' : '?'}sn=${sn}${fresh ? `&t=${Date.now()}` : ''}`, { headers: { accept: 'application/json' }, cache: fresh ? 'no-store' : 'default' })).json();
+            const own = (Array.isArray(out.houses) ? out.houses : [])[0];
+            if (own && typeof own.code === 'string' && K.decodeHouse(own.code) && isMine(own)) real.push(own);
+          } catch { /* the row without it */ }
+        }
       }
       shown = PAGE;
       houses = real.length >= cfg.min ? real : [...real, ...samples()];
