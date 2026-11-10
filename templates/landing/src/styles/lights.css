@@ -343,6 +343,12 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-ca-code.is-soon { padding: 8px 12px; border: 1.5px dashed var(--lt-line); border-radius: 10px; color: var(--t-muted); font-family: var(--font-body); letter-spacing: .02em; }
 .lt-ca .lt-btn:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.4); }
 .lt-buy .lt-ca { max-width: 520px; margin: 22px auto 0; text-align: left; }
+/* the first screen: one short line under the buttons */
+.lt-ca.is-inline, html.decor-truck .lt-ca.is-inline { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin-top: 18px; max-width: 100%; padding: 0; background: none; border: 0; outline: 0; border-radius: 0; }
+.lt-ca.is-inline .lt-label { margin: 0; font-weight: 800; letter-spacing: .08em; }
+.lt-ca.is-inline .lt-row { flex: 0 1 auto; min-width: 0; gap: 8px; flex-wrap: nowrap; }
+.lt-ca.is-inline .lt-ca-code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: min(360px, 52vw); padding: 6px 10px; font-size: .85rem; }
+.lt-ca.is-inline .lt-btn { padding: 6px 14px; font-size: .85rem; }
 @media (min-width: 760px) { .lt-facade { padding: 28px; } .lt-facade-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; } }
 
 /* ---- How to buy: four diyas ---- */
