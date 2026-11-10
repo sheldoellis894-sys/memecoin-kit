@@ -36,6 +36,9 @@ const data = JSON.stringify({
         <button type="button" data-ul-city-all aria-label={l.all || 'The whole city'} title={l.all || 'The whole city'}>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
+        <button type="button" class="lt-city-off" data-ul-city-off aria-label={l.off || 'Back to the page'} title={l.off || 'Back to the page'}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+        </button>
       </div>
       <button type="button" class="lt-city-start" data-ul-city-start><span class="lt-flame" aria-hidden="true"></span>{l.start || 'Tap to walk the city'}</button>
       <div class="lt-city-card" data-ul-city-card hidden>
@@ -111,7 +114,9 @@ const data = JSON.stringify({
     const blank = (kind: Spot['kind']): Spot => ({ k: 0, x: 0, y: 0, kind, sn: 0, name: '', seed: 0, family: 'mumbai', wish: '', paint: '', light: 0, streak: 0, age: 999,
       mine: false, star: false, mini: null, full: null, asked: false, bmp: null, bmpPx: 0, bmpSize: 0, bmpAt: 0, busy: false, used: 0, owl: null, tw: Math.random() * 6.28, turn: 0, hue: 0, slot: -1, label: '', labelFor: 0 });
 
+    let lastRows: any[] = [], lastStar = 0, wideNow = true;
     function build(rows: any[], star: number) {
+      lastRows = rows; lastStar = star; wideNow = W >= H * 1.15;
       const houses: Partial<Spot>[] = [];
       for (const r of rows) {
         if (!Array.isArray(r) || !Number.isInteger(r[0]) || typeof r[1] !== 'string' || !Number.isInteger(r[2]) || !K.FAMILY_IDS[r[3]]) continue;
@@ -135,7 +140,7 @@ const data = JSON.stringify({
           full: { sample: true, placed, streak, gifts: s.gifts ?? s.nights, best: s.best ?? streak, nights: s.nights, landings: s.landings ?? 0 } });
       }
       // a wide screen gets a city wider than tall, a phone a city taller than wide
-      plan = C.cityPlan(others.map((h) => K.FAMILY_IDS.indexOf(h.family!)), { count: K.FAMILY_IDS.length, wide: W >= H * 1.15 });
+      plan = C.cityPlan(others.map((h) => K.FAMILY_IDS.indexOf(h.family!)), { count: K.FAMILY_IDS.length, wide: wideNow });
       const old = new Map(spots.filter((s) => s.kind === 'house').map((s) => [s.sn, s]));
       const list: Spot[] = [{ ...blank(mine ? 'house' : 'you'), ...(mine || {}), mine: Boolean(mine) } as Spot];
       for (const p of plan.spots) list.push({ ...blank(p.i < 0 ? 'free' : others[p.i].kind!), ...(p.i < 0 ? {} : others[p.i]), x: p.x, y: p.y, turn: p.a } as Spot);
@@ -336,8 +341,9 @@ const data = JSON.stringify({
 
     // ---- the real pictures -----------------------------------------------------------------------
     const loadImg = (src: string) => new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.decoding = 'async'; i.onload = () => res(i); i.onerror = () => rej(new Error('image')); i.src = src; });
-    const owlPics: Record<string, HTMLImageElement | null> = { fly: null, landed: null };
-    for (const pose of ['fly', 'landed'] as const) loadImg(cfg.owl[pose] || K.owlPlaceholder(pose)).then((i) => { owlPics[pose] = i; paint(); }).catch(() => {});
+    // the owl that sits on the roof of a house after seven nights (part of the picture of the house)
+    const owlPics: Record<string, HTMLImageElement | null> = { landed: null };
+    for (const pose of ['landed'] as const) loadImg(cfg.owl[pose] || K.owlPlaceholder(pose)).then((i) => { owlPics[pose] = i; paint(); }).catch(() => {});
     let budget = 6e6, used = 0, frame = 0, running = 0, pid = 0;
     // how large the real picture of a house is drawn for a tile of this size: sharp on the screen, no larger than needed
     const pxFor = (size: number) => { const need = (size * dpr) / CUT.s; return need <= 270 ? 256 : need <= 560 ? 512 : 1024; };
@@ -358,6 +364,7 @@ const data = JSON.stringify({
         const q = c2.getContext('2d')!;
         rr(q, 0, 0, out, out, out * 0.12); q.fill(); q.globalCompositeOperation = 'source-in';
         q.drawImage(img, -CUT.x * px, -CUT.y * px, px, px);
+        if (spots[s.k] !== s) return;   // the city was built again meanwhile: this house is not on the map any more
         if (s.bmp) used -= s.bmpSize; else s.bmpAt = performance.now();
         s.bmp = c2; s.bmpPx = px; s.bmpSize = out * out; used += s.bmpSize;
         // old pictures go when the memory for them is full: the ones not seen for the longest first
@@ -401,7 +408,7 @@ const data = JSON.stringify({
       g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, cx2, y + 1);
     };
     const cut = (text: string, max: number) => { if (g.measureText(text).width <= max) return text; let s2 = text; while (s2.length > 1 && g.measureText(`${s2}…`).width > max) s2 = s2.slice(0, -1); return `${s2}…`; };
-    function drawOwl(pose: 'fly' | 'landed', cxp: number, bottom: number, size: number, flip = false) {
+    function drawOwl(pose: 'landed', cxp: number, bottom: number, size: number, flip = false) {
       const img = owlPics[pose]; if (!img) return;
       const k = size / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height), w = (img.naturalWidth || img.width) * k, h = (img.naturalHeight || img.height) * k;
       g.save(); g.translate(cxp, bottom); if (flip) g.scale(-1, 1); g.drawImage(img, -w / 2, -h, w, h); g.restore();
@@ -535,28 +542,20 @@ const data = JSON.stringify({
       const starSeen = Boolean(starAt && starAt[0] > -160 && starAt[0] < W + 160 && starAt[1] > -80 && starAt[1] < H + 200);
       // the visitor's own house when it is not the brightest one itself
       const meBox = meSeen && me !== star ? houseBox(meAt![0], meAt![1]) : null;
-      // from afar the owl hangs over the brightest house: to the right of it, or to the left when the visitor's own house stands on the right
-      const os = W < 600 ? 84 : 124, away = (W < 600 ? 8 : 26) + os / 2;
-      let side = 1, owlBox: number[] | null = null, starBox: number[] | null = null;
+      let starBox: number[] | null = null;
       // the labels of the two houses: where each stands, or null when there is no free place for it
       const starText = star ? `${L.cityStar || 'Brightest tonight'} · ${sn4(star.sn)}` : '';
       const meText = !me ? '' : me.kind === 'you' ? L.yourLotTag || 'Your lot' : `${L.yourHouse || 'Your house'} · ${sn4(me.sn)}`;
       let starTagAt: number[] | null = null, meTagAt: number[] | null = null, starTagBox: number[] | null = null, meTagBox: number[] | null = null;
       if (starSeen && !close) {
         const [x, y] = starAt!;
-        const box = (sd: number) => [x + sd * away - os / 2, y - os * 0.95, x + sd * away + os / 2, y + os * 0.05];
-        side = meBox && hit(box(1), meBox) && !hit(box(-1), meBox) ? -1 : 1;
-        owlBox = box(side); starBox = houseBox(x, y);
-        // the owl's label stands under the house; when the visitor's own house is there, to the left of the house, or over
-        // the owl in a large city. In a small city, with the names of the districts all around, the owl and the ring say it
-        // without a label when there is no free place
-        const over = [x + side * away, Math.max(18, y - os * 0.95 - 16)], wTag = tagW(starText);
-        // over the owl it steps aside from the buttons of the map
-        const beside = buttons.filter((q) => hit(tagBox(starText, over[0], over[1]), q)).map((q) => (q[0] + q[2] < W ? q[2] + wTag / 2 + 2 : q[0] - wTag / 2 - 2));
-        const small = Boolean(plan.districts[0]?.out);
-        const places = [[x, y + tagDy], [x - rOf - 12 - wTag / 2, y], ...(small ? [] : [over, ...beside.map((bx) => [bx, over[1]])])];
+        starBox = houseBox(x, y);
+        // the label of the brightest house stands under it; when the visitor's own house or a button of the map is there,
+        // over the house or beside it
+        const wTag = tagW(starText);
+        const places = [[x, y + tagDy], [x, y - rOf - 20], [x - rOf - 12 - wTag / 2, y], [x + rOf + 12 + wTag / 2, y]];
         const free = (c: number[], strict: boolean) => { const b = tagBox(starText, c[0], c[1]); return !hit(b, starBox!) && !(meBox && hit(b, meBox)) && !(strict && buttons.some((q) => hit(b, q))); };
-        starTagAt = places.find((c) => free(c, true)) || (small ? null : places.find((c) => free(c, false))) || null;
+        starTagAt = places.find((c) => free(c, true)) || places.find((c) => free(c, false)) || null;
         if (starTagAt) starTagBox = tagBox(starText, starTagAt[0], starTagAt[1]);
       }
       if (meSeen && !close && me !== star) {
@@ -572,9 +571,9 @@ const data = JSON.stringify({
       if (size < namesTo && plan.districts.length) {
         g.font = `${W < 600 ? 13 : 16}px ${fontHead}`; g.textAlign = 'center'; g.textBaseline = 'middle';
         const a = clamp((namesTo - size) / 8, 0, 1), h = W < 600 ? 21 : 26;
-        // a name keeps off the owl, the two marked houses, their labels and the buttons of the map: it steps up or down,
-        // and is left out when there is no free place. The largest districts are served first
-        const keepOff = [owlBox, starBox, meBox, starTagBox, meTagBox, ...buttons].filter(Boolean) as number[][];
+        // a name keeps off the two marked houses, their labels and the buttons of the map: it steps aside, and is left
+        // out when there is no free place. The largest districts are served first
+        const keepOff = [starBox, meBox, starTagBox, meTagBox, ...buttons].filter(Boolean) as number[][];
         if (!plan.byHouses) plan.byHouses = [...plan.districts].sort((p, q) => q.n - p.n);
         for (const dd of plan.byHouses) {
           let x = sx(dd.x), y = sy(dd.y); if (x < 12 || x > W - 12 || y < 14 || y > H - 14) continue;
@@ -591,21 +590,15 @@ const data = JSON.stringify({
         }
       }
 
-      // marks that are seen from any distance: the opened house, the house of the night with the owl, the visitor's own house
+      // marks that are seen from any distance: the opened house, the brightest house of the night, the visitor's own house
       if (picked) ring(sx(picked.x), sy(picked.y), rOf + 2, col.primary);
       if (star && starSeen) {
         const [x, y] = starAt!;
-        const bob = ul.calm ? 0 : Math.sin(t * 2.1) * 3;
-        if (close) {
-          drawOwl('fly', x + half * 0.9, y - half + 8 + bob, clamp(size * 0.5, 60, 110));
-          pill(L.cityStar || 'Brightest tonight', x, y - half + size * 0.12, col.primary, col.ink, clamp(size * 0.085, 9, 12));
-        } else {
-          // the owl shines on the house
-          const ox = x + side * away, top = y - os * 0.95 + bob;
+        if (close) pill(L.cityStar || 'Brightest tonight', x, y - half + size * 0.12, col.primary, col.ink, clamp(size * 0.085, 9, 12));
+        else {
+          // a golden ring that breathes, and the label
           ring(x, y, rOf + 3, '#FFE9A6');
-          const beam = g.createLinearGradient(ox, top + os * 0.7, x, y); beam.addColorStop(0, 'rgba(255,220,140,0)'); beam.addColorStop(1, 'rgba(255,220,140,.5)');
-          g.fillStyle = beam; g.beginPath(); g.moveTo(ox - os * 0.12, top + os * 0.72); g.lineTo(ox + os * 0.1, top + os * 0.72); g.lineTo(x + rOf, y + 4); g.lineTo(x - rOf, y + 4); g.closePath(); g.fill();
-          drawOwl('fly', ox, top + os, os);
+          if (!ul.calm) { const pulse = (t * 0.6 + 0.5) % 1; g.strokeStyle = '#FFE9A6'; g.lineWidth = 2; g.globalAlpha = (1 - pulse) * 0.8; g.beginPath(); g.arc(x, y, rOf + 8 + pulse * 14, 0, 6.3); g.stroke(); g.globalAlpha = 1; }
           if (starTagAt) tag(starText, starTagAt[0], starTagAt[1], col.primary, col.primary);
         }
       }
@@ -620,9 +613,9 @@ const data = JSON.stringify({
       }
       if (picked) { const x = sx(picked.x), y = sy(picked.y); if (x < -20 || x > W + 20 || y < -20 || y > H + 20) closeCard(); else placeCard(); }
       cost = performance.now() - now0;
-      // lights twinkle and the owl hovers while the map is on the screen
+      // lights twinkle and the rings of the two marked houses breathe while they are on the screen
       if (moving || more || running) paint();
-      else if (inView && !ul.calm && (size < 10.5 || star)) window.setTimeout(paint, 90);
+      else if (inView && !ul.calm && (size < 10.5 || (!close && (starSeen || meSeen)))) window.setTimeout(paint, 90);
     }
 
     // ---- size ------------------------------------------------------------------------------------
@@ -636,12 +629,25 @@ const data = JSON.stringify({
       atlasCell = dpr > 1.4 ? 44 : 28; sheetMax = (atlasCell / dpr) * 1.5;
       // room for the real pictures: less on a phone
       budget = W < 700 ? 6e6 : 16e6;
-      // where the buttons lie on the map, so the names of districts and the labels keep off them
-      buttons = ['[data-ul-city-home]', '.lt-city-tools', '.lt-city-legend'].map((q) => root.querySelector<HTMLElement>(q)?.getBoundingClientRect()).filter((b) => b && b.width > 0)
-        .map((b) => [b!.left - r.left - 6, b!.top - r.top - 6, b!.right - r.left + 6, b!.bottom - r.top + 6]);
+      measure();
       limits(); hold(); paint();
     }
-    if ('ResizeObserver' in window) new ResizeObserver(resize).observe(map); else addEventListener('resize', resize);
+    // where the buttons lie on the map, so the names of districts and the labels keep off them
+    function measure() {
+      const r = map.getBoundingClientRect();
+      buttons = ['[data-ul-city-home]', '.lt-city-tools', '.lt-city-legend'].map((q) => root.querySelector<HTMLElement>(q)?.getBoundingClientRect()).filter((b) => b && b.width > 0)
+        .map((b) => [b!.left - r.left - 6, b!.top - r.top - 6, b!.right - r.left + 6, b!.bottom - r.top + 6]);
+      paint();
+    }
+    // a phone turned on its side: the city is laid out again, wider than tall (or back)
+    // A map that showed the whole city shows the whole city in its new size too.
+    const resized = () => {
+      const whole = loaded && cam.s <= sMin * 1.02;
+      resize();
+      if (loaded && (W >= H * 1.15) !== wideNow) { build(lastRows, lastStar); resize(); }
+      if (whole) { cam.x = 0; cam.y = 0; cam.s = sMin; hold(); paint(); }
+    };
+    if ('ResizeObserver' in window) new ResizeObserver(resized).observe(map); else addEventListener('resize', resized);
 
     // ---- the card of a house ---------------------------------------------------------------------
     const card = $<HTMLElement>('[data-ul-city-card]');
@@ -649,7 +655,7 @@ const data = JSON.stringify({
     function closeCard() { if (!picked) return; picked = null; card.hidden = true; paint(); }
     // next to the house on a wide map; on a phone the card lies along the bottom of the map (see the styles)
     function placeCard() {
-      if (!picked || W < 600) { card.style.left = ''; card.style.top = ''; return; }
+      if (!picked || W < 600 || H < 400) { card.style.left = ''; card.style.top = ''; return; }
       const x = sx(picked.x), y = sy(picked.y), cw = card.offsetWidth, ch = card.offsetHeight;
       const right = x + 30 + cw < W - 8;
       const top = clamp(y - ch * 0.4, 8, Math.max(8, H - ch - 8));
@@ -678,11 +684,13 @@ const data = JSON.stringify({
     const startBtn = $<HTMLButtonElement>('[data-ul-city-start]');
     let counted = false;
     const turnOn = () => {
-      if (on) return; on = true; map.classList.add('is-on'); stats();
+      if (on) return; on = true; map.classList.add('is-on'); stats(); measure();
       if (!counted) { counted = true; window.dispatchEvent(new CustomEvent('ul:track', { detail: 'city' })); }
     };
-    const turnOff = () => { if (!on) return; on = false; map.classList.remove('is-on'); pts.clear(); closeCard(); stats(); };
+    const turnOff = () => { if (!on) return; on = false; map.classList.remove('is-on'); pts.clear(); drag = null; pinch = null; glide = null; closeCard(); stats(); measure(); };
     startBtn.addEventListener('click', turnOn);
+    // the way back for a finger: on a low screen the map fills it, and a finger on a switched-on map moves the map, not the page
+    $<HTMLButtonElement>('[data-ul-city-off]').addEventListener('click', turnOff);
     const pts = new Map<number, { x: number; y: number }>();
     let drag: null | { x: number; y: number; moved: number; t: number; vx: number; vy: number } = null;
     let pinch: null | { d: number; s: number; ax: number; ay: number } = null;
@@ -785,15 +793,17 @@ const data = JSON.stringify({
     // ---- loading ---------------------------------------------------------------------------------
     // fresh = right after the visitor put a house on the street: past the 30-second cache, so the house is there at once
     async function load(fresh = false) {
-      let rows: any[] = [], star = 0;
-      live = false;
+      let rows: any[] = [], star = 0, ok = false, liveNow = false;
       if (cfg.endpoint) {
         try {
           const res = await fetch(urlFor(`map=1${fresh ? `&t=${Date.now()}` : ''}`), { headers: { accept: 'application/json' }, cache: fresh ? 'no-store' : 'default' });
-          const out = await res.json(); live = Boolean(out.live);
+          const out = await res.json(); liveNow = Boolean(out.live) && !out.error; ok = res.ok && !out.error;
           rows = Array.isArray(out.houses) ? out.houses : []; star = Number(out.star) || 0;
         } catch { /* the city is shown with the examples */ }
       }
+      // the street did not answer this time: the city that is already on the map stays
+      if (loaded && !ok) return;
+      live = liveNow;
       const was = spots[0]?.kind;
       resize();
       build(rows, star);
@@ -814,7 +824,7 @@ const data = JSON.stringify({
         if (inView) paint();
       }, { rootMargin: '300px 0px', threshold: [0, 0.05, 0.3, 0.6] }).observe(map);
     } else { inView = true; load(); }
-    (document as any).fonts?.ready?.then(() => paint());
+    (document as any).fonts?.ready?.then(() => { for (const s of spots) s.labelFor = 0; paint(); });
     (root as any).city = { get spots() { return spots; }, get plan() { return plan; }, cam, flyTo, load, get on() { return on; }, get cost() { return cost; }, get picked() { return picked; }, tp, sx, sy };
   }
 </script>

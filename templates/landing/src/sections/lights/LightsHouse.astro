@@ -20,6 +20,7 @@ const data = JSON.stringify({
   holderGift: c.holderGift || { jhoomar: 1, golddiya: 2, 'string-gold': 1, 'paint-goldleaf': 1 }, categories: c.categories || {}, rarityNames: c.rarityNames || {},
   story: c.story || {}, events: c.events || {}, night: nightCtx,
   geo: c.geoEndpoint === '' ? '' : c.geoEndpoint || '/api/geo', wishes: c.wishes || {}, setup: c.setup || {}, invite: c.invite || {},
+  districts: (config as any).city?.districts || {},
 });
 const su: Record<string, string> = c.setup || {};
 const iv: Record<string, string> = c.invite || {};
@@ -150,6 +151,7 @@ const iv: Record<string, string> = c.invite || {};
                 <button type="submit" class="lt-btn lt-btn-small">{l.post || 'Put it there'}</button>
               </div>
               <p class="lt-note" data-ul-post-note>{l.postNote || 'Latin letters and numbers. Only the house, its name and its nights go to the street.'}</p>
+              <p class="lt-note lt-where" data-ul-where hidden></p>
             </form>
             <div class="lt-form">
               <p class="lt-label">{l.codeTitle || 'House code'}</p>
@@ -597,6 +599,7 @@ const iv: Record<string, string> = c.invite || {};
       const st = (k: string, v: string | number) => { root.querySelector(`[data-ul-stat="${k}"]`)!.textContent = String(v); };
       st('nights', p.nights); st('gifts', p.gifts); st('best', p.best);
       st('light', `${K.lightOf(h, shownPlaced(), levelShown(s), shownFree())}%`);
+      where();
       ul.fire('ul:night', { text: peek ? fill(L.chip || 'Night {n}/7', { n: K.NIGHTS }) : s.first ? L.chipFirst || 'Light my house' : fill(L.chip || 'Night {n}/7', { n: Math.min(s.litTonight ? s.streak : s.night, K.NIGHTS) }), lit: s.litTonight || peek });
     };
     // ---- the story of the nights and tonight's event ------------------------------------------
@@ -782,6 +785,12 @@ const iv: Record<string, string> = c.invite || {};
       if (!/^[a-z0-9]{16,32}$/.test(id)) { id = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 20); ul.store.set(ID_KEY, id); }
       return id;
     };
+    // where the house will stand on the city map: in the district of its street. Said next to every form that puts the
+    // house on the street (here and in the street section), when the page has the map
+    function where() {
+      const name = document.getElementById('city') ? String(cfg.districts[p.family] || '') : '';
+      document.querySelectorAll<HTMLElement>('[data-ul-where]').forEach((el) => { el.hidden = !name; el.textContent = name ? fill(L.where || 'On the city map your house stands in {district}', { district: name }) : ''; });
+    }
     const postNote = $<HTMLElement>('[data-ul-post-note]');
     const form = $<HTMLFormElement>('[data-ul-post]');
     const nameField = form.elements.namedItem('name') as HTMLInputElement;
@@ -965,7 +974,7 @@ const iv: Record<string, string> = c.invite || {};
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-style]'); if (!b) return;
       p.family = b.dataset.style!;
       styleBox.querySelectorAll('[data-style]').forEach((x) => x.setAttribute('aria-pressed', String((x as HTMLElement).dataset.style === p.family)));
-      rebuild();
+      rebuild(); where();
     });
     // Another house: a new random house on the same street (a new seed). The nights, the album and the name stay;
     // decorations on spots of the old house come back to the box, the ones put anywhere stay where they are.

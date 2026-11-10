@@ -38,6 +38,7 @@ const data = JSON.stringify({
       </div>
       <button type="button" class="lt-btn lt-btn-small lt-btn-ghost lt-street-off" data-ul-street-off hidden>{l.takeOff || 'Take my house off the street'}</button>
       <p class="lt-note" data-ul-street-post-note aria-live="polite">{l.postHint || 'Latin letters and numbers. A dark house is lit for tonight first.'}</p>
+      <p class="lt-note lt-where" data-ul-where hidden></p>
     </form>
   </div>
   <dialog class="lt-view" data-ul-view aria-label={l.viewLabel || 'A house on the street'}>
