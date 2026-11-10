@@ -577,13 +577,18 @@ console.log('8 ok: country and city from any host');
     assert.ok(p2.spots.every((q) => Math.hypot(q.x, q.y) > 1.3));
     let min = 9; for (let i = 0; i < p2.spots.length; i++) for (let j = i + 1; j < Math.min(p2.spots.length, i + 300); j++) min = Math.min(min, Math.hypot(p2.spots[i].x - p2.spots[j].x, p2.spots[i].y - p2.spots[j].y));
     assert.ok(min > 1.38, `${n}: houses stand apart (${min})`);
-    // a large city has a district for every style, and every house stands in the district of its style
-    if (n >= 45) { assert.ok(p2.districts.length >= 8); assert.ok(hs.every((q) => q.d === styles[q.i])); assert.equal(p2.avenues.length, new Set(styles).size); }
-    else { assert.equal(p2.districts.length, 0); assert.ok(hs.every((q) => q.d === -1)); }
+    // from the first day the city has a district for every style, with empty lots in it and an avenue on its side,
+    // and every house stands in the district of its style
+    assert.equal(p2.districts.length, 9); assert.equal(p2.avenues.length, 9); assert.ok(hs.every((q) => q.d === styles[q.i]));
+    for (let d = 0; d < 9; d++) assert.ok(p2.spots.filter((q) => q.i < 0 && q.d === d).length >= 2, `${n}: empty lots in district ${d}`);
+    assert.deepEqual(p2.districts.map((q) => q.n), Array.from({ length: 9 }, (_, d) => styles.filter((s) => s === d).length));
+    // the names stand around a small city and inside a large one, never two in one place
+    assert.equal(p2.districts[0].out, n < 300); assert.ok(p2.districts.every((q) => q.out === p2.districts[0].out));
+    for (const q of p2.districts) { const far2 = Math.hypot(q.x / p2.kx, q.y / p2.ky); assert.ok(q.out ? far2 > p2.R + 1 : far2 < p2.R); }
     // a river and ring roads only in a city large enough for them
     assert.equal(Boolean(p2.river), n >= 300); assert.equal(p2.rings.length > 0, n >= 300);
-    // the houses of a city without districts stand in the order they came: the first ones nearest to the middle
-    if (n === 6) assert.deepEqual(hs.map((q) => q.i), [0, 1, 2, 3, 4, 5]);
+    // in a district the houses stand in the order they came: the first ones nearest to the middle
+    for (let d = 0; d < 9; d++) { const mine = hs.filter((q) => q.d === d).map((q) => q.i); assert.deepEqual(mine, [...mine].sort((a, b) => a - b)); }
     // a point on a house finds it; a point far outside finds nothing
     const find2 = C.cityFinder(p2.spots);
     if (p2.spots.length) { assert.equal(find2(p2.spots[5].x + 0.3, p2.spots[5].y - 0.2), 5); assert.equal(find2(p2.R * 3, p2.R * 3), -1); }
@@ -595,6 +600,6 @@ console.log('8 ok: country and city from any host');
   assert.equal(m.no, real.no); assert.equal(m.wall, real.wall); assert.equal(m.windows.length, real.windows.length);
   assert.equal(m.windows.filter((w) => w[4]).length, Math.max(1, Math.round((real.windows.length * 4) / K.NIGHTS)));
   assert.equal(C.miniHouse(7123, 'haveli', 'gold', '', 0).windows.filter((w) => w[4]).length, 0, 'a dark house has no lit windows');
-  console.log('12 ok: the plan of the city, districts, roads, finding a house, the small house');
+  console.log('12 ok: the plan of the city, districts from the first house, roads, finding a house, the small house');
 }
 console.log('street: all ok');

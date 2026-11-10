@@ -183,7 +183,9 @@ const data = JSON.stringify({
     const wx = (px: number) => (px - W / 2) / cam.s + cam.x;
     const wy = (py: number) => (py - H / 2) / cam.s + cam.y;
     const limits = () => {
-      const fit = Math.min(W / (ext.x1 - ext.x0), H / (ext.y1 - ext.y0));
+      let fit = Math.min(W / (ext.x1 - ext.x0), H / (ext.y1 - ext.y0));
+      // a small city has the names of its districts around it: they stay clear of the buttons at the top and the bottom of the map
+      if (plan.districts[0]?.out) fit = Math.min(fit, (H / 2 - 74) / ((plan.R + 1.1) * plan.ky));
       sHome = clamp(W * 0.3, 96, 150) / C.TILE;
       sNear = clamp(Math.min(W, H) * 0.5, 150, 250) / C.TILE;
       sMax = clamp(Math.min(W * 0.92, H * 0.74), 240, 560) / C.TILE;
@@ -409,6 +411,7 @@ const data = JSON.stringify({
       g.globalAlpha = 0.35; g.lineWidth = 6; g.beginPath(); g.arc(x, y, r + 5, 0, 6.3); g.stroke(); g.globalAlpha = 1;
     };
 
+    let buttons: number[][] = [];
     let cost = 0;   // how long the last frame took to draw, in milliseconds (for the tests)
     function tick(now: number) {
       raf = 0; const now0 = performance.now();
@@ -517,50 +520,102 @@ const data = JSON.stringify({
           for (const sp of want) { if (running >= 2) break; if (sp.full || sp.kind === 'sample') picture(sp, pxFor(size)); }
         }
       }
-      // the names of the districts, while the houses are small
-      if (size < 30 && plan.districts.length) {
+      // ---- what lies over the houses: the names of the districts and the marks ----
+      const rOf = Math.max(half + 4, 11);
+      // a label stands under its house, and under the name of the house when names are shown
+      const tagDy = rOf + 20 + (size >= 50 ? 13 : 0);
+      const tagW = (text: string) => { g.font = `800 12.5px ${fontBody}`; return g.measureText(text).width + 24; };
+      // what a house with its ring and a label take on the map, [left, top, right, bottom], and whether two of them meet
+      const houseBox = (x: number, y: number) => [x - rOf - 6, y - rOf - 6, x + rOf + 6, y + rOf + 6];
+      const tagBox = (text: string, x: number, y: number) => { const w = tagW(text), c = clamp(x, w / 2 + 8, W - w / 2 - 8); return [c - w / 2, y - 13, c + w / 2, y + 13]; };
+      const hit = (a: number[], b: number[]) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+      const star = spots.find((sp) => sp.star), me = spots[0];
+      const meAt = me ? [sx(me.x), sy(me.y)] : null, starAt = star ? [sx(star.x), sy(star.y)] : null;
+      const meSeen = Boolean(meAt && meAt[0] > -120 && meAt[0] < W + 120 && meAt[1] > -80 && meAt[1] < H + 80);
+      const starSeen = Boolean(starAt && starAt[0] > -160 && starAt[0] < W + 160 && starAt[1] > -80 && starAt[1] < H + 200);
+      // the visitor's own house when it is not the brightest one itself
+      const meBox = meSeen && me !== star ? houseBox(meAt![0], meAt![1]) : null;
+      // from afar the owl hangs over the brightest house: to the right of it, or to the left when the visitor's own house stands on the right
+      const os = W < 600 ? 84 : 124, away = (W < 600 ? 8 : 26) + os / 2;
+      let side = 1, owlBox: number[] | null = null, starBox: number[] | null = null;
+      // the labels of the two houses: where each stands, or null when there is no free place for it
+      const starText = star ? `${L.cityStar || 'Brightest tonight'} · ${sn4(star.sn)}` : '';
+      const meText = !me ? '' : me.kind === 'you' ? L.yourLotTag || 'Your lot' : `${L.yourHouse || 'Your house'} · ${sn4(me.sn)}`;
+      let starTagAt: number[] | null = null, meTagAt: number[] | null = null, starTagBox: number[] | null = null, meTagBox: number[] | null = null;
+      if (starSeen && !close) {
+        const [x, y] = starAt!;
+        const box = (sd: number) => [x + sd * away - os / 2, y - os * 0.95, x + sd * away + os / 2, y + os * 0.05];
+        side = meBox && hit(box(1), meBox) && !hit(box(-1), meBox) ? -1 : 1;
+        owlBox = box(side); starBox = houseBox(x, y);
+        // the owl's label stands under the house; when the visitor's own house is there, to the left of the house, or over
+        // the owl in a large city. In a small city, with the names of the districts all around, the owl and the ring say it
+        // without a label when there is no free place
+        const over = [x + side * away, Math.max(18, y - os * 0.95 - 16)], wTag = tagW(starText);
+        // over the owl it steps aside from the buttons of the map
+        const beside = buttons.filter((q) => hit(tagBox(starText, over[0], over[1]), q)).map((q) => (q[0] + q[2] < W ? q[2] + wTag / 2 + 2 : q[0] - wTag / 2 - 2));
+        const small = Boolean(plan.districts[0]?.out);
+        const places = [[x, y + tagDy], [x - rOf - 12 - wTag / 2, y], ...(small ? [] : [over, ...beside.map((bx) => [bx, over[1]])])];
+        const free = (c: number[], strict: boolean) => { const b = tagBox(starText, c[0], c[1]); return !hit(b, starBox!) && !(meBox && hit(b, meBox)) && !(strict && buttons.some((q) => hit(b, q))); };
+        starTagAt = places.find((c) => free(c, true)) || (small ? null : places.find((c) => free(c, false))) || null;
+        if (starTagAt) starTagBox = tagBox(starText, starTagAt[0], starTagAt[1]);
+      }
+      if (meSeen && !close && me !== star) {
+        // under the house; next to the brightest house, where it would lie on that house or on its label, over the house
+        const [x, y] = meAt!;
+        const ty = [y + tagDy, y - rOf - 20].find((q) => { const b = tagBox(meText, x, q); return !(starBox && hit(b, starBox)) && !(starTagBox && hit(b, starTagBox)); });
+        if (ty !== undefined) { meTagAt = [x, ty]; meTagBox = tagBox(meText, x, ty); }
+      }
+
+      // the names of the districts: in a large city while the houses are small, around a small city until the map is close
+      const namesTo = plan.districts[0]?.out ? 62 : 30;
+      const nameBoxes: number[][] = [];
+      if (size < namesTo && plan.districts.length) {
         g.font = `${W < 600 ? 13 : 16}px ${fontHead}`; g.textAlign = 'center'; g.textBaseline = 'middle';
-        const a = clamp((30 - size) / 8, 0, 1);
-        for (const dd of plan.districts) {
-          if (dd.n < 6) continue;
-          const x = sx(dd.x), y = sy(dd.y); if (x < 40 || x > W - 40 || y < 30 || y > H - 30) continue;
-          const name = districtName(K.FAMILY_IDS[dd.d]), w = g.measureText(name).width + 16, h = W < 600 ? 21 : 26;
+        const a = clamp((namesTo - size) / 8, 0, 1), h = W < 600 ? 21 : 26;
+        // a name keeps off the owl, the two marked houses, their labels and the buttons of the map: it steps up or down,
+        // and is left out when there is no free place. The largest districts are served first
+        const keepOff = [owlBox, starBox, meBox, starTagBox, meTagBox, ...buttons].filter(Boolean) as number[][];
+        if (!plan.byHouses) plan.byHouses = [...plan.districts].sort((p, q) => q.n - p.n);
+        for (const dd of plan.byHouses) {
+          let x = sx(dd.x), y = sy(dd.y); if (x < 12 || x > W - 12 || y < 14 || y > H - 14) continue;
+          const name = districtName(K.FAMILY_IDS[dd.d]), w = g.measureText(name).width + 16;
+          if (w + 12 < W) x = clamp(x, w / 2 + 6, W - w / 2 - 6);
+          const step = [[0, 0], [0, 1.5], [0, -1.5], [0, 3], [0, -3], [0.8, 0], [-0.8, 0], [0.8, 1.5], [-0.8, 1.5], [0.8, -1.5], [-0.8, -1.5], [0, 4.5], [0, -4.5]].find(([kx2, ky2]) => {
+            const cx2 = x + kx2 * w, cy2 = y + ky2 * h, b = [cx2 - w / 2 - 4, cy2 - h / 2 - 2, cx2 + w / 2 + 4, cy2 + h / 2 + 2];
+            return b[0] >= 2 && b[2] <= W - 2 && b[1] >= 2 && b[3] <= H - 2 && !keepOff.some((q) => hit(b, q)) && !nameBoxes.some((q) => hit(b, q));
+          });
+          if (!step) continue;
+          x += step[0] * w; y += step[1] * h; nameBoxes.push([x - w / 2, y - h / 2, x + w / 2, y + h / 2]);
           g.fillStyle = `rgba(20,12,9,${(0.55 * a).toFixed(2)})`; rr(g, x - w / 2, y - h / 2, w, h, 8); g.fill();
           g.fillStyle = hexA(col.text, 0.8 * a); g.fillText(name, x, y + 1);
         }
       }
+
       // marks that are seen from any distance: the opened house, the house of the night with the owl, the visitor's own house
-      const rOf = Math.max(half + 4, 11);
       if (picked) ring(sx(picked.x), sy(picked.y), rOf + 2, col.primary);
-      const star = spots.find((sp) => sp.star);
-      if (star) {
-        const x = sx(star.x), y = sy(star.y);
-        if (x > -160 && x < W + 160 && y > -80 && y < H + 200) {
-          const bob = ul.calm ? 0 : Math.sin(t * 2.1) * 3;
-          if (close) {
-            drawOwl('fly', x + half * 0.9, y - half + 8 + bob, clamp(size * 0.5, 60, 110));
-            pill(L.cityStar || 'Brightest tonight', x, y - half + size * 0.12, col.primary, col.ink, clamp(size * 0.085, 9, 12));
-          } else {
-            // the owl hangs over the brightest house and shines on it
-            const os = W < 600 ? 84 : 124, ox = x + (W < 600 ? 8 : 26) + os / 2, top = y - os * 0.95 + bob;
-            ring(x, y, rOf + 3, '#FFE9A6');
-            const beam = g.createLinearGradient(ox, top + os * 0.7, x, y); beam.addColorStop(0, 'rgba(255,220,140,0)'); beam.addColorStop(1, 'rgba(255,220,140,.5)');
-            g.fillStyle = beam; g.beginPath(); g.moveTo(ox - os * 0.12, top + os * 0.72); g.lineTo(ox + os * 0.1, top + os * 0.72); g.lineTo(x + rOf, y + 4); g.lineTo(x - rOf, y + 4); g.closePath(); g.fill();
-            drawOwl('fly', ox, top + os, os);
-            tag(`${L.cityStar || 'Brightest tonight'} · ${sn4(star.sn)}`, x, y + rOf + 20, col.primary, col.primary);
-          }
+      if (star && starSeen) {
+        const [x, y] = starAt!;
+        const bob = ul.calm ? 0 : Math.sin(t * 2.1) * 3;
+        if (close) {
+          drawOwl('fly', x + half * 0.9, y - half + 8 + bob, clamp(size * 0.5, 60, 110));
+          pill(L.cityStar || 'Brightest tonight', x, y - half + size * 0.12, col.primary, col.ink, clamp(size * 0.085, 9, 12));
+        } else {
+          // the owl shines on the house
+          const ox = x + side * away, top = y - os * 0.95 + bob;
+          ring(x, y, rOf + 3, '#FFE9A6');
+          const beam = g.createLinearGradient(ox, top + os * 0.7, x, y); beam.addColorStop(0, 'rgba(255,220,140,0)'); beam.addColorStop(1, 'rgba(255,220,140,.5)');
+          g.fillStyle = beam; g.beginPath(); g.moveTo(ox - os * 0.12, top + os * 0.72); g.lineTo(ox + os * 0.1, top + os * 0.72); g.lineTo(x + rOf, y + 4); g.lineTo(x - rOf, y + 4); g.closePath(); g.fill();
+          drawOwl('fly', ox, top + os, os);
+          if (starTagAt) tag(starText, starTagAt[0], starTagAt[1], col.primary, col.primary);
         }
       }
-      const me = spots[0];
-      if (me) {
-        const x = sx(me.x), y = sy(me.y);
-        if (x > -120 && x < W + 120 && y > -80 && y < H + 80) {
-          if (close) pill(me.kind === 'you' ? L.you || 'You' : L.mine || 'Yours', x, y - half + size * 0.12, col.secondary, '#fff', clamp(size * 0.085, 9, 12));
-          else {
-            ring(x, y, rOf + 1, col.secondary);
-            if (!ul.calm) { const pulse = (t * 0.9) % 1; g.strokeStyle = col.secondary; g.lineWidth = 2; g.globalAlpha = 1 - pulse; g.beginPath(); g.arc(x, y, rOf + 6 + pulse * 16, 0, 6.3); g.stroke(); g.globalAlpha = 1; }
-            if (!(star && Math.hypot(sx(star.x) - x, sy(star.y) - y) < 40)) tag(me.kind === 'you' ? L.yourLotTag || 'Your lot' : `${L.yourHouse || 'Your house'} · ${sn4(me.sn)}`, x, y + rOf + 20, col.secondary, '#A9C4FF');
-          }
+      if (me && meSeen) {
+        const [x, y] = meAt!;
+        if (close) pill(me.kind === 'you' ? L.you || 'You' : L.mine || 'Yours', x, y - half + size * 0.12, col.secondary, '#fff', clamp(size * 0.085, 9, 12));
+        else {
+          ring(x, y, rOf + 1, col.secondary);
+          if (!ul.calm) { const pulse = (t * 0.9) % 1; g.strokeStyle = col.secondary; g.lineWidth = 2; g.globalAlpha = 1 - pulse; g.beginPath(); g.arc(x, y, rOf + 6 + pulse * 16, 0, 6.3); g.stroke(); g.globalAlpha = 1; }
+          if (meTagAt) tag(meText, meTagAt[0], meTagAt[1], col.secondary, '#A9C4FF');
         }
       }
       if (picked) { const x = sx(picked.x), y = sy(picked.y); if (x < -20 || x > W + 20 || y < -20 || y > H + 20) closeCard(); else placeCard(); }
@@ -581,6 +636,9 @@ const data = JSON.stringify({
       atlasCell = dpr > 1.4 ? 44 : 28; sheetMax = (atlasCell / dpr) * 1.5;
       // room for the real pictures: less on a phone
       budget = W < 700 ? 6e6 : 16e6;
+      // where the buttons lie on the map, so the names of districts and the labels keep off them
+      buttons = ['[data-ul-city-home]', '.lt-city-tools', '.lt-city-legend'].map((q) => root.querySelector<HTMLElement>(q)?.getBoundingClientRect()).filter((b) => b && b.width > 0)
+        .map((b) => [b!.left - r.left - 6, b!.top - r.top - 6, b!.right - r.left + 6, b!.bottom - r.top + 6]);
       limits(); hold(); paint();
     }
     if ('ResizeObserver' in window) new ResizeObserver(resize).observe(map); else addEventListener('resize', resize);
