@@ -1,370 +1,209 @@
-# Ullu — промты Flow для картинок сайта
+# Ullu ($ULLU) — Flow prompts
 
-Черновик 05.11.2026. Делать после выбора канона. Настройки: Nano Banana Pro, количество `x1`, формат из шага. Ко всем промтам прикладывать выбранный канон `ullu_main.jpg` (из `projects/gurufun/characters/06_ullu/`). Один промт — одна картинка.
+All pictures of the site and the socials were made in Google Flow from the prompts below. Updated 09.11.2026 for the final owl
+(the mustard waistcoat). The early casting prompts (other owls, the truck-art site) are kept in `projects/ullu/_old/`.
 
-Правила из кастинга: удачные картинки сначала скачивать, новые варианты делать новой генерацией, а не правкой (правка ложится стопкой поверх оригинала). Глаза открыты, без мешков под глазами, без красных глаз, одежда чистая.
+The scene prompts were rebuilt from the finished pictures and the hero block: they give the same scenes in the same style.
+Flow never repeats a picture pixel for pixel, so pick the best of each pair.
 
-Если канон — золотой вариант: в каждом промте заменить кусок от `He wears a mustard-yellow` до `wrapped around his legs,` на описание золотого наряда из `ullu.md`.
+## How to use
 
-Куда класть готовые файлы (имена важны, сайт берёт их из конфига):
+- **Format.** Set the format in the Flow settings to the one in the prompt's second line (`1:1`, `3:4`, `16:9`), count `x1`:
+  the prompt itself asks for two images. On the iPhone app the counter stays on `x4`: start the prompt with
+  `One single <format> image with exactly one character` instead of `Generate 2 images.`
+- **Reference.** Attach the clean canon pictures `flow_vest/v4_avatar.jpg` (face and turban) and `flow_vest/v1_fly.jpg`
+  (full body). Do not attach `casting/ullu_vest_main.jpg` or the turnaround: they come from the casting and have a dark
+  patch around one eye, and Flow copies it.
+- **Keep the hero block whole.** Every prompt below already contains the full description of Ullu and the style: copy the whole block as it is. When something is left out, Flow
+  makes it up (a lost brooch, five fingers, shoes).
+- **Edits.** A small fix (a flame, a beauty mark) is done as an edit of the finished picture with the canon attached as a
+  second reference. Download the good picture first: Flow stacks the edit on top of it.
 
-| Шаг | Файл | Где на сайте |
+## The hero block (in every prompt)
+
+```
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+```
+
+## The style block (in every prompt)
+
+```
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+```
+
+For night scenes add: `Warm Diwali night light: orange lamp glow against deep navy and brown shadows, small glowing string lights.`
+
+## Where each picture is used
+
+| No. | File in `flow_vest/` | On the site and socials |
 |---|---|---|
-| 3.1 | `brand/stickers/ullu_fly.png` | сова в небе над домом, наклейка в «Зажги картинку» |
-| 3.2 | `brand/stickers/ullu_landed.png` | сова на крыше на седьмую ночь, подарок-окно, наклейка |
-| 3.3 | `brand/logo/ullu_logo.png` | шапка, подвал, значок вкладки |
-| 3.4 | `brand/banners/ullu_hero.png` | первый экран (арочное окно, кадр 4:5) |
-| 3.5–3.8 | `brand/gallery/ullu_g01.png` … `ullu_g04.png` | галерея и основа в «Зажги картинку» |
+| V1 | `v1_fly.jpg` | sticker `ullu_fly.png` (the owl that follows the cursor, the flying owl) |
+| V2 | `v2_seven.jpg` | sticker `ullu_landed.png` (night 7, the owl on the roof) |
+| V3 | `v3_sleep.jpg` | sticker `ullu_sleep.png` (a missed night) |
+| V4 | `v4_avatar.jpg` | logo `ullu_logo.png`, avatars `ullu_avatar*.png` (X, Telegram, DEX, favicon) |
+| V5 | `v5_hero_diya2.jpg` | first screen `ullu_hero.jpg` |
+| V6–V11 | `v6_night1.jpg` … `v11_seven.jpg` | gallery `ullu_g01.jpg` … `ullu_g06.jpg` |
+| V12 | `v12_banner.jpg` | X header, DEX header, link preview `ullu_og.jpg` (text added in Figma) |
 
-Картинки 3.1 и 3.2 делаются на зелёном фоне: фон уберу кодом и пропишу файлы в конфиг (`house.owl.fly`, `house.owl.landed`). Остальное — просто положить в папки под этими именами, заглушки заменятся сами.
+The stickers `ullu_crying.png`, `ullu_laughing.png` and `ullu_shocked.png` come from the casting emotion sheet; their
+prompts go into the "Emotions" section below.
 
 ---
 
-## 3.1. Сова в полёте — формат 1:1, зелёный фон
+## V1. Flying — sticker (1:1)
 
 ```
-Using the character from the attached reference image, generate one single 1:1 image of the same character, keeping his face, turban, clothes, colours and proportions exactly as in the reference.
-
-Ullu, a fat round barn owl with the heart-shaped white face of a barn owl and a small hooked orange beak, a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits crookedly on his head with a red jewelled brooch and a tall white feather leaning to one side. A black kajal dot sits on his left cheek and his beak is stretched into a wide smug grin. He wears a mustard-yellow sleeveless waistcoat with brass buttons straining open over a blue-and-white striped vest and his round belly, a white dhoti wrapped around his legs, two thick gold chains and a gold ring on one finger, and his feet are bare and orange.
-
-Pose: he is flying toward the viewer at a slight three-quarter angle, his whole body visible and centred with empty space around it. Both wings are spread wide like real owl wings, the long golden-brown flight feathers fanned out, and the cartoon hands at the wing tips are open. In one hand he holds a small closed cloth sack tied with a red string. His tail feathers fan out below the dhoti and his bare orange feet with three toes and a back toe are tucked under his body. Both eyes are open, big, bright and sly, looking down to the side as if he is choosing a house below. His beak is in the same wide smug grin. No sunglasses.
-
-Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, smooth, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, crisp white highlights on the gold, the brooch and the beak.
-
-Background: one flat pure green colour #00FF00 filling the whole image, plain and empty, with no shadow on the ground, no floor and no other objects. Nothing in the picture is green except the background. There are no letters, no numbers, no signs and no logos anywhere in the image.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu flies straight at the viewer with both wings spread wide and high, feathers fanned out like a big golden fan, his body upright, his bare orange feet with talons hanging down below the dhoti. He looks at the viewer with a sly, smug half-smile and slightly lowered eyelids, very pleased with himself.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour from edge to edge, so the owl can be cut out. The whole owl fits inside the frame with space around the wing tips and the feather.
 ```
 
-## 3.2. Сова на крыше, седьмая ночь — формат 1:1, зелёный фон
+## V2. Night 7, landed with the gold — sticker (1:1)
 
 ```
-Using the character from the attached reference image, generate one single 1:1 image of the same character, keeping his face, turban, clothes, colours and proportions exactly as in the reference.
-
-Ullu, a fat round barn owl with the heart-shaped white face of a barn owl and a small hooked orange beak, a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits crookedly on his head with a red jewelled brooch and a tall white feather leaning to one side. A black kajal dot sits on his left cheek and his beak is stretched into a wide smug grin. He wears a mustard-yellow sleeveless waistcoat with brass buttons straining open over a blue-and-white striped vest and his round belly, a white dhoti wrapped around his legs, two thick gold chains and a gold ring on one finger, and his feet are bare and orange.
-
-Pose: he sits squatting low and wide, facing the viewer, as if he has just landed on a roof, his bare orange feet with three toes and a back toe flat on the bottom edge of an invisible floor. He wears round dark sunglasses with thin gold frames over both eyes, because the light below him is far too bright. With one big cartoon hand he hugs a fat burlap sack beside him that is overflowing with shiny gold coins and a few sparkling blue-white diamonds. His other hand gives a relaxed thumbs up. His beak is in a wide, very pleased grin. His whole body and the sack are visible and centred with empty space around them.
-
-Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, smooth, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, crisp white highlights on the gold, the brooch and the beak.
-
-Background: one flat pure green colour #00FF00 filling the whole image, plain and empty, with no shadow on the ground, no floor and no other objects. Nothing in the picture is green except the background. There are no letters, no numbers, no signs and no logos anywhere in the image.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu sits on the ground with his legs stretched out in the white dhoti and his bare orange feet up, wearing black square sunglasses and a big confident grin. One hand gives a thumbs up with a gold ring on the thumb; the other rests on a fat burlap sack full of gold coins tied with a red string, a few coins showing at the top. A soft round shadow sits under him.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour from edge to edge, so the owl can be cut out. The whole owl and the sack fit inside the frame.
 ```
 
-## 3.3. Логотип-аватар — формат 1:1
+## V3. Asleep — sticker (1:1)
 
 ```
-Using the character from the attached reference image, generate one single 1:1 image: a round profile picture of the same character, keeping his face, turban and colours exactly as in the reference.
-
-Ullu, a fat round barn owl with the heart-shaped white face of a barn owl and a small hooked orange beak, a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits crookedly on his head with a red jewelled brooch and a tall white feather leaning to one side. A black kajal dot sits on his left cheek and his beak is stretched into a wide smug grin. He wears a mustard-yellow sleeveless waistcoat with brass buttons straining open over a blue-and-white striped vest and his round belly, a white dhoti wrapped around his legs, two thick gold chains and a gold ring on one finger, and his feet are bare and orange.
-
-Framing: a close-up of his head and the top of his shoulders, the face straight to the viewer and centred, the turban with the feather fully inside the frame. Both eyes are open, bright and sly, and his beak is in the wide smug grin. The two gold chains show at the bottom edge.
-
-Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, smooth, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, crisp white highlights on the gold, the brooch and the beak. Background: one flat saffron orange colour #FF9F1C with a soft lighter glow behind his head, plain and empty. There are no letters, no numbers, no signs and no logos anywhere in the image.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu has fallen asleep sitting on the ground, legs crossed in the white dhoti, his turban tipped to one side so the white feather droops, eyes peacefully closed, beak open in a snore with a small blue drop of drool. One hand rests on his belly, the other on a small brass oil lamp beside him whose flame has gone out, a thin curl of grey smoke rising from its spout. A soft round shadow sits under him.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, a clean smooth face with both eyes gently closed in sleep, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Plain flat bright green background, one even colour from edge to edge, so the owl can be cut out.
 ```
 
-## 3.4. Первый экран — формат 4:5 (если формата нет — 1:1)
-
-Если канон нравится как есть, можно не генерировать: положить канон в `banners/ullu_hero.png`. Этот промт — вариант специально под арочное окно: сова в центре, сверху место под арку.
+## V4. Avatar and logo (1:1)
 
 ```
-Using the character from the attached reference image, generate one single portrait image of the same character, keeping his face, turban, clothes, colours and proportions exactly as in the reference.
-
-Ullu, a fat round barn owl with the heart-shaped white face of a barn owl and a small hooked orange beak, a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits crookedly on his head with a red jewelled brooch and a tall white feather leaning to one side. A black kajal dot sits on his left cheek and his beak is stretched into a wide smug grin. He wears a mustard-yellow sleeveless waistcoat with brass buttons straining open over a blue-and-white striped vest and his round belly, a white dhoti wrapped around his legs, two thick gold chains and a gold ring on one finger, and his feet are bare and orange.
-
-Pose: he squats on a big pile of shiny gold coins, facing the viewer, one eye winking and the other open, his beak in a wide smug grin. In one hand he holds a small clay diya lamp with a bright flame, held up near his face so the warm orange light falls on his cheek and the gold chains. His other hand rests on his belly. His whole body is in the lower two thirds of the image, with empty space above the turban.
-
-Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, smooth, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, crisp white highlights on the gold, the brooch and the beak. Background: a plain night gradient, deep magenta and warm orange glowing behind him and fading to dark navy at the edges, empty, with a few tiny soft stars at the top. There are no letters, no numbers, no signs and no logos anywhere in the image.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: a bust portrait of Ullu from the belly up, centred, facing the viewer, with a sly confident smile and slightly lowered eyelids. He holds a small lit clay diya lamp in one hand in front of his chest; its warm orange flame stands straight up and lights his face and the gold chains from below. The turban, the feather and both shoulders fit inside the frame, so the picture also works cut into a circle.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Background: deep dark brown with a soft warm orange glow around the owl.
 ```
 
-## 3.5. Галерея 1: седьмая ночь на крыше — формат 1:1
+## V5. First screen — the owl with the lamp on the roof (3:4)
 
 ```
-Using the character from the attached reference image, generate one single 1:1 image of the same character, keeping his face, turban, clothes, colours and proportions exactly as in the reference.
-
-Ullu, a fat round barn owl with the heart-shaped white face of a barn owl and a small hooked orange beak, a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits crookedly on his head with a red jewelled brooch and a tall white feather leaning to one side. A black kajal dot sits on his left cheek and his beak is stretched into a wide smug grin. He wears a mustard-yellow sleeveless waistcoat with brass buttons straining open over a blue-and-white striped vest and his round belly, a white dhoti wrapped around his legs, two thick gold chains and a gold ring on one finger, and his feet are bare and orange.
-
-Scene: night. He sits on the flat roof of a small old Indian house painted turquoise, the roof edge covered in strings of coloured fairy lights, paper star lanterns and orange marigold garlands, every window glowing warm yellow below him. He wears round dark sunglasses with thin gold frames because the house is far too bright, and hugs a fat burlap sack overflowing with gold coins. His beak is in a very pleased grin. Behind him a dark navy sky with a thin crescent moon and small stars.
-
-Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, smooth, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, crisp white highlights on the gold, the brooch and the beak. There are no letters, no numbers, no signs and no logos anywhere in the image.
+Generate 2 images.
+Aspect ratio 3:4.
+Using the character from the attached reference images: Ullu stands on the edge of a flat concrete rooftop in an Indian city at night, seen from slightly below, big and proud, one hand on his hip, the other raised to the side holding a small lit clay diya lamp on his open palm. The diya's flame burns straight up, calm and bright, and lights his face. He looks down at the viewer with a smug, knowing smile. Behind him: black plastic water tanks and a satellite dish on the roof, laundry hanging on a line, and the street below lined with old houses with glowing orange windows, strings of small warm lights and marigold garlands between the balconies. Deep navy sky with a few stars and a thin crescent moon in the top right corner. Leave clear sky above the turban.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Warm Diwali night light: orange lamp glow against deep navy and brown shadows, small glowing string lights.
 ```
 
-## 3.6. Галерея 2: выбирает дом — формат 1:1
+The site picture was made from an earlier version with a clay cup of chai, in two edits:
+`Replace the clay cup of chai in his hand with a small lit clay diya lamp on his open palm; its flame burns straight up, calm and bright` and
+`Add one small black kajal beauty mark on his cheek on the left side of the picture`. A new generation from the prompt above
+gives the same result at once.
+
+## V6. Gallery 1 — the first night: one lamp in the window (1:1)
 
 ```
-Using the character from the attached reference image, generate one single 1:1 image of the same character, keeping his face, turban, clothes, colours and proportions exactly as in the reference.
-
-Ullu, a fat round barn owl with the heart-shaped white face of a barn owl and a small hooked orange beak, a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits crookedly on his head with a red jewelled brooch and a tall white feather leaning to one side. A black kajal dot sits on his left cheek and his beak is stretched into a wide smug grin. He wears a mustard-yellow sleeveless waistcoat with brass buttons straining open over a blue-and-white striped vest and his round belly, a white dhoti wrapped around his legs, two thick gold chains and a gold ring on one finger, and his feet are bare and orange.
-
-Scene: night, seen from above and behind him. He flies high over a narrow Indian street of colourful two- and three-storey houses, his wings spread wide, a small cloth sack in one hand. Every house below is lit in its own way: one with a single clay lamp, one with a few fairy lights, one blazing with lights from the roof to the doorstep. He turns his head back toward the viewer with both eyes open and a sly grin, one finger pointing down at the brightest house. Dark navy sky with small stars.
-
-Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, smooth, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, crisp white highlights on the gold, the brooch and the beak. There are no letters, no numbers, no signs and no logos anywhere in the image.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu bursts in through an open window from the night outside, gripping both sides of the old blue wooden window frame with his hands, his body leaning into the room, eyes wide and delighted, beak open in an excited grin. A single small lit clay diya sits on the wooden window sill in front of him; it is the only light, and it warms his face and belly. Behind him, the dark blue night with a few stars and the black silhouettes of rooftops. The room side is in warm brown shadow.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Warm Diwali night light: orange lamp glow against deep navy and brown shadows.
 ```
 
-## 3.7. Галерея 3: одна лампа в окне — формат 1:1
+## V7. Gallery 2 — the Diwali market (1:1)
 
 ```
-Using the character from the attached reference image, generate one single 1:1 image of the same character, keeping his face, turban, clothes, colours and proportions exactly as in the reference.
-
-Ullu, a fat round barn owl with the heart-shaped white face of a barn owl and a small hooked orange beak, a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits crookedly on his head with a red jewelled brooch and a tall white feather leaning to one side. A black kajal dot sits on his left cheek and his beak is stretched into a wide smug grin. He wears a mustard-yellow sleeveless waistcoat with brass buttons straining open over a blue-and-white striped vest and his round belly, a white dhoti wrapped around his legs, two thick gold chains and a gold ring on one finger, and his feet are bare and orange.
-
-Scene: night, close up. He hangs upside down from the top of an arched window of a pink Indian house, holding on with his feet, and peeks into the frame from above. On the window sill stands one small clay diya lamp with a bright flame. He looks at the lamp with both eyes wide open and delighted, his beak in an excited grin, both hands pressed to his cheeks. The rest of the wall is dark. Dark navy night around.
-
-Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, smooth, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, crisp white highlights on the gold, the brooch and the beak. There are no letters, no numbers, no signs and no logos anywhere in the image.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu shops at a busy Diwali market stall at night, carrying far too much: a wobbly tower of painted clay pots and a paper star lantern balanced on his head, a brass oil lamp, a stack of glass bangles and a few clay cups in his arms, while he reaches with his other hand for one more red paper lantern. He looks greedy and happy. The stall has a striped awning, hanging paper lanterns in red, orange, blue and green, strings of small lights, rows of lit clay diyas and brass lamps on the counter, and a grumpy grey cat sitting on the counter, unimpressed.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Warm Diwali night light: orange lamp glow against deep navy and brown shadows, small glowing string lights.
 ```
 
-## 3.8. Галерея 4: запутался в гирлянде — формат 1:1
+## V8. Gallery 3 — the lamp in the rain (1:1)
 
 ```
-Using the character from the attached reference image, generate one single 1:1 image of the same character, keeping his face, turban, clothes, colours and proportions exactly as in the reference.
-
-Ullu, a fat round barn owl with the heart-shaped white face of a barn owl and a small hooked orange beak, a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits crookedly on his head with a red jewelled brooch and a tall white feather leaning to one side. A black kajal dot sits on his left cheek and his beak is stretched into a wide smug grin. He wears a mustard-yellow sleeveless waistcoat with brass buttons straining open over a blue-and-white striped vest and his round belly, a white dhoti wrapped around his legs, two thick gold chains and a gold ring on one finger, and his feet are bare and orange.
-
-Scene: night. He stands in the middle of the image tangled from head to feet in a long string of glowing coloured fairy lights, the wire wrapped around his belly, his wings and his turban, a few bulbs blinking near his beak. He is not upset at all: both eyes open, beak in a wide smug grin, one hand giving a thumbs up as if this was the plan. The glow of the bulbs lights his feathers in pink, cyan and yellow. Dark navy background, plain and empty.
-
-Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, smooth, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, crisp white highlights on the gold, the brooch and the beak. There are no letters, no numbers, no signs and no logos anywhere in the image.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu stands ankle-deep in a puddle on a narrow street in heavy monsoon rain, soaking wet, water dripping from his turban, feather and waistcoat. He holds a lit clay diya close to his chest and shields its small flame with a tiny black umbrella held over the lamp while the rain soaks him. His face is grumpy and stubborn: the lamp stays lit. Old houses with glowing windows and dripping string lights line the street, their light reflected in the wet ground and the rippling puddles.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Rainy night light: cool blue rain and reflections against the warm orange of the diya and the windows.
 ```
 
-## Что смотреть в каждой картинке
-
-- Сова та же, что на каноне: толстая, сердцевидная белая морда сипухи, шафрановый тюрбан набок с красной брошью и белым пером, точка каджала на левой щеке, руки-перья с тремя пальцами и большим.
-- Глаза открыты (кроме 3.4 с подмигиванием), без мешков, без красного.
-- На 3.1 и 3.2 фон чисто зелёный, на сове нет зелёных пятен, ноги и мешок целиком в кадре.
-- Нет букв, цифр и надписей.
-
-## Совы 3 и 4: развороты и эмоции (05.11.2026)
-
-Референс: только главная картинка этой совы (`gurufun/characters/06_ullu/casting/ullu_truck_main.jpg` или `ullu_lungi_main.jpg`). Каждый раз новая генерация, одобренные картинки не правим. Разворот — 16:9, эмоции — 1:1.
-
-### Сова 3 «Трак-арт» — разворот (16:9)
+## V9. Gallery 4 — tangled in the lights (1:1)
 
 ```
-Character turnaround sheet of Ullu, the same owl as in the attached image: keep his face, body proportions, outfit, colours and drawing style exactly as they are. Four full-body views of the same character standing in one row, evenly spaced, all at the same height and the same scale: front view, three-quarter view turned to the left, side profile facing left, back view. Neutral standing pose, wings relaxed at his sides, feet flat on the ground, a soft oval shadow under each figure, nothing in his hands.
-
-Ullu is a short, very fat, round barn owl, almost as wide as he is tall, with a big egg-shaped body, a white heart-shaped face, a small hooked orange beak curled into a lazy smug smile, heavy-lidded sleepy eyes with dark purple circles under them, golden-brown feathered wings that end in feathered hands with three fingers and a thumb, and short orange legs with sharp toes. A huge saffron-orange turban with thick hand-drawn folds sits low and crooked on his head and droops over his left eye, which peeks out half-hidden under its edge; on the side of the turban there is a jewelled brooch of red and green stones and a tall white feather. He wears a baggy lime-green hoodie with white drawstrings and a front pocket, a garland of orange marigolds and a thick gold chain over the hoodie, a red thread bracelet on one wrist, and baggy green shorts with a red tartan check.
-
-Keep him fat and round in every view: do not slim him down, do not make him taller, and do not hide his wings inside the sleeves; the feathered wing-hands come out of the hoodie sleeves in every view. The side profile shows his round belly and short tail. The back view shows the wrapped folds at the back of the turban, the hood hanging on his back and short tail feathers under the hoodie.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, colour laid in with markers and gouache, visible brush strokes and paper texture, warm saturated colours. Background: plain flat sunflower-yellow, with no frame, no painted border, no flowers, no coins, no text, no labels.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu stands on a wooden balcony with a carved railing at night, wrapped from turban to feet in a long string of colourful Christmas-style bulbs, mid-step and off balance, with an embarrassed lopsided grin. A small cheeky brown monkey sits on the railing and pulls the other end of the light string, grinning. A potted tulsi plant stands on the balcony. Behind them, the black silhouettes of houses with a few lit windows against a warm brown night sky.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Warm night light: glowing coloured bulbs against deep brown shadows.
 ```
 
-### Сова 3 «Трак-арт» — эмоции (1:1)
+## V10. Gallery 5 — the rickshaw (1:1)
 
 ```
-Expression sheet of Ullu, the same owl as in the attached image: keep his face, turban, outfit, colours and drawing style exactly as they are. A grid of six equal square panels, three in the top row and three in the bottom row, separated by thin white gutters. Every panel is a chest-up portrait of Ullu facing the viewer, the same size and framing in every panel, on a plain flat sunflower-yellow background.
-
-Top row, left to right:
-1. Smug: heavy-lidded eyes, one brow raised, a slow sly grin.
-2. Laughing: eyes squeezed shut with joy, beak wide open, both wing-hands thrown up.
-3. Cool: black sunglasses, a calm satisfied smile, a warm golden glow around his head, as if lit by a very bright house.
-Bottom row, left to right:
-4. Shocked: eyes wide and perfectly round, beak dropped open, the feathers on top of his head standing straight up, the turban knocked askew.
-5. Crying: eyebrows pulled up in the middle, big blue tears running down both cheeks, a wobbling beak.
-6. Winking: one eye shut in a wink, the other half-closed, a cheeky crooked grin.
-
-In every panel he keeps the huge crooked saffron-orange turban with the red-and-green jewelled brooch and the white feather, the white face with dark purple circles under the eyes, the lime-green hoodie with white drawstrings, the orange marigold garland and the thick gold chain. The turban droops over his left eye as in the reference, but the expression of both eyes stays readable in every panel.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes and paper texture. No chai cup, no coins, no painted border, no flowers, no text, no numbers, no labels.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu drives a black-and-yellow Indian auto-rickshaw fast through a night street, leaning out of the side with a determined smirk and pointing forward with one hand. The rickshaw is decorated for Diwali: orange marigold garlands across the front and the roof, a string of small lights along the roof edge, a small lit diya on the dashboard. The headlight glows, speed lines stream behind, and the shop fronts with warm windows and string lights blur past.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Warm Diwali night light: orange lamp glow against deep brown shadows, small glowing string lights.
 ```
 
-### Сова 4 «Лунги» — разворот (16:9)
+## V11. Gallery 6 — night 7: the brightest roof (1:1)
 
 ```
-Character turnaround sheet of Ullu, the same owl as in the attached image: keep his face, body proportions, outfit, colours and drawing style exactly as they are. Four full-body views of the same character standing in one row, evenly spaced, all at the same height and the same scale: front view, three-quarter view turned to the left, side profile facing left, back view. Neutral standing pose, wings relaxed at his sides, feet flat on the ground, a soft oval shadow under each figure, nothing in his hands.
-
-Ullu is a short, very fat barn owl with a pear-shaped body and a round belly, a cream heart-shaped face, golden-brown wings covered with rows of scalloped feathers that end in big feathered hands with three fingers and a thumb, a small hooked orange beak in a wide smug grin, heavy-lidded half-closed eyes with light purple shadows under them, a black kajal dot on his right cheek, and short orange legs with sharp toes. A saffron-orange turban sits on his head with a round red jewelled brooch at the front and a white feather standing up from it. He wears a plain white sleeveless undershirt vest (a baniyan) stretched tight over his belly, three thin gold chains around his neck, and a green lungi with a red and white check, wrapped around his waist, knotted at the front and falling to his knees.
-
-Keep him fat and round in every view: do not slim him down and do not make him taller. The side profile shows his round belly, the lungi knot and his short tail. The back view shows the wrapped folds at the back of the turban, the back of the white vest, the lungi wrapped around and short tail feathers above it.
-
-Style: the same flat two-dimensional crypto meme mascot cartoon as the reference: thick smooth black outlines of even weight, flat colours with one step of cel shading, small crisp highlights. Background: plain flat turquoise, with no coins, no diamond, no text, no labels.
+Generate 2 images.
+Aspect ratio 1:1.
+Using the character from the attached reference images: Ullu lands on the tiled roof of the brightest house on the street, wings half open, a burlap sack of gold coins slung over his shoulder with a few coins spilling out, adjusting black square sunglasses with one hand and grinning: this house is too bright to look at without them. The house below glows gold from every window, its roof edge lined with lit clay diyas and its balconies wrapped in marigold garlands and small lights. The neighbouring houses stay dark blue. Fireworks burst and floating sky lanterns rise in the warm night sky.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Warm Diwali night light: golden glow of the house against deep navy shadows.
 ```
 
-### Сова 4 «Лунги» — эмоции (1:1)
+## V12. Wide banner — the owl over the rooftops (16:9)
 
 ```
-Expression sheet of Ullu, the same owl as in the attached image: keep his face, turban, outfit, colours and drawing style exactly as they are. A grid of six equal square panels, three in the top row and three in the bottom row, separated by thin white gutters. Every panel is a chest-up portrait of Ullu facing the viewer, the same size and framing in every panel, on a plain flat turquoise background.
-
-Top row, left to right:
-1. Smug: heavy-lidded eyes, one brow raised, a slow sly grin.
-2. Laughing: eyes squeezed shut with joy, beak wide open, both wing-hands thrown up.
-3. Cool: black sunglasses, a calm satisfied smile, a warm golden glow around his head, as if lit by a very bright house.
-Bottom row, left to right:
-4. Shocked: eyes wide and perfectly round, beak dropped open, the feathers on top of his head standing straight up, the turban knocked askew.
-5. Crying: eyebrows pulled up in the middle, big blue tears running down both cheeks, a wobbling beak.
-6. Winking: one eye shut in a wink, the other half-closed, a cheeky crooked grin.
-
-In every panel he keeps the saffron-orange turban with the round red brooch and the white feather, the cream face with the black kajal dot on his right cheek and light purple shadows under the eyes, the white sleeveless undershirt vest and the three thin gold chains.
-
-Style: the same flat two-dimensional crypto meme mascot cartoon as the reference: thick smooth black outlines of even weight, flat colours with one step of cel shading, small crisp highlights. No diamond, no coins, no text, no numbers, no labels.
+Generate 2 images.
+Aspect ratio 16:9.
+Using the character from the attached reference images: Ullu flies over the rooftops of an Indian city on Diwali night, from left to right, wings spread, a burlap sack of gold coins tied over his shoulder, smiling. Behind him a long swirling trail of golden sparkles and falling gold coins sweeps across the left half of the sky. Below, flat rooftops covered in strings of small lights, paper star lanterns and marigold garlands; on the rooftops families with children wave and cheer, holding lit diyas. Floating sky lanterns, small fireworks and a thin crescent moon in the deep navy sky. The owl sits in the right half; the upper left part of the picture stays calm sky for a logo and text.
+Ullu, a fat round barn owl with the heart-shaped white face of a barn owl, two clear bright amber eyes of the same size, a clean smooth face, and a small hooked orange beak; a cream chest and golden-brown back and wings, each wing ending in a big cartoon hand with three thick feather fingers and a thumb. A big saffron turban sits on his head with a red jewelled brooch at the front and a tall curled white feather. One small black kajal beauty mark sits on his cheek on the left side of the picture. He wears a mustard-yellow sleeveless waistcoat with brass buttons, open over a blue-and-white striped vest and his round bare belly, white dhoti trousers gathered at the ankles, two thick gold chains and gold rings on his fingers, and his feet are bare and orange.
+Style: a smooth, high-resolution two-dimensional cartoon illustration with clean, confident black outlines of even weight, flat saturated colours with soft cel shading in one darker tone, and crisp white highlights on the gold, the brooch and the beak.
+Warm Diwali night light: golden sparkle and lamp glow against deep navy sky.
 ```
 
-## Сайт на «Трак-арте»: все картинки (05.11.2026)
+The X header and the DEX header (1500×500) and the link preview (1200×630) are crops of this picture with the name added in Figma.
 
-Референс для всех промтов: `gurufun/characters/06_ullu/casting/ullu_truck_ref.jpg` (сова без фона и рамки). Прикладывать только его, один. Nano Banana Pro, каждый раз новая генерация, по 4 варианта, выбираем лучший. Готовые картинки класть в `gurufun/characters/06_ullu/flow_truck/` под именами из таблицы, на сайт их ставлю я (вырезаю фон, подгоняю размер).
+---
 
-| № | Что | Формат | Файл | Где на сайте |
-|---|---|---|---|---|
-| T1 | Сова в полёте | 1:1 | `t1_fly.jpg` | в небе над домом с 1-й по 6-ю ночь, наклейка, полёт за курсором |
-| T2 | Сова на крыше, седьмая ночь | 1:1 | `t2_roof.jpg` | на крыше на 7-ю ночь, окно подарков, наклейка |
-| T3 | Сонная сова | 1:1 | `t3_sleep.jpg` | засыпает в углу, если посетитель долго ничего не делает |
-| T4 | Логотип-значок | 1:1 | `t4_logo.jpg` | шапка, подвал, значок вкладки, аватар X и Telegram |
-| T5 | Надпись ULLU | 16:9 | `t5_wordmark.jpg` | шапка сайта, баннеры |
-| T6 | Первый экран | 4:5 (если нет — 3:4) | `t6_hero.jpg` | большая картинка в арке наверху |
-| T7–T10 | 4 сцены галереи | 1:1 | `t7_roof.jpg` … `t10_seven.jpg` | галерея и фоны в «Зажги картинку» |
-| T11 | Широкий баннер | 16:9 | `t11_banner.jpg` | шапка X (обрежу до 3:1) и обложка ссылок (1200×630) |
-| T12 | Полоса росписи | 16:9 | `t12_border.jpg` | разделители между блоками сайта и подвал |
+## What to check in every picture
 
-T1, T2, T3, T4 и T5 делаются на ровном синем фоне: синего в сове нет, поэтому фон уберётся чисто (зелёный не подходит: худи лаймовое).
+- Both eyes are clear and the same, amber; the skin around the eyes is clean (no dark patch).
+- One black beauty mark, on the left side of the picture.
+- The turban has the red brooch at the front and the white feather; the waistcoat is mustard yellow with the striped vest under it.
+- Three feather fingers and a thumb on each hand; bare orange feet.
+- Diya flames stand straight and calm.
+- Stickers: an even green background, nothing of the owl cut by the frame.
 
-### T1. Сова в полёте (1:1)
+## Emotions
 
-```
-Ullu, the same owl as in the attached image, flying. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
+To be added: the emotion set (for stickers and the site moods) in the same style, both eyes clear.
 
-Ullu is a short, very fat, round barn owl with a big egg-shaped body, a white heart-shaped face, a small hooked orange beak curled into a lazy smug smile, heavy-lidded sleepy eyes with dark purple circles under them, golden-brown feathered wings and short orange legs with sharp toes. A huge saffron-orange turban with thick hand-drawn folds sits low and crooked over his left eye, with a jewelled brooch of red and green stones and a tall white feather. He wears a baggy lime-green hoodie with white drawstrings and a front pocket, a garland of orange marigolds, a thick gold chain, a red thread bracelet on one wrist, and baggy green shorts with a red tartan check.
+## Extra pictures
 
-Pose: he flies towards the viewer at a slight angle, both wings spread wide open like a big feathered cape, the long wing feathers fanned out, the hoodie and the marigold garland fluttering back in the wind, legs tucked up with the orange feet dangling. He looks down with lazy, smug curiosity, as if searching for the brightest house below. His whole body is in the frame with empty space around him; the wings do not touch the edges.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, colour laid in with markers and gouache, visible brush strokes and paper texture, warm saturated colours.
-
-Background: plain flat solid cobalt-blue, one even colour from edge to edge, no gradient, no texture, no clouds, no shadow. No frame, no flowers, no text, no letters.
-```
-
-### T2. Сова на крыше, седьмая ночь (1:1)
-
-```
-Ullu, the same owl as in the attached image, on night seven, sitting on a roof he picked. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
-
-Ullu is a short, very fat, round barn owl with a big egg-shaped body, a white heart-shaped face, a small hooked orange beak, golden-brown feathered wings that end in feathered hands with three fingers and a thumb, and short orange legs with sharp toes. A huge saffron-orange turban with thick hand-drawn folds sits crooked on his head, with a jewelled brooch of red and green stones and a tall white feather. He wears a baggy lime-green hoodie with white drawstrings, a garland of orange marigolds, a thick gold chain, a red thread bracelet and baggy green shorts with a red tartan check.
-
-Pose: he sits facing the viewer with his legs stretched forward, very pleased with himself. He wears black sunglasses and grins a wide, smug, satisfied grin. In one hand he holds a small clay kulhad cup of steaming chai. Beside him stands a heavy burlap sack tied with red string, open at the top and spilling gold coins onto the ground in front of him. The bottom of the picture is a flat line where he sits, as if on the edge of a roof, but the roof itself is not drawn. The whole owl, the sack and the coins are in the frame with empty space above the turban.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes and paper texture, warm saturated colours.
-
-Background: plain flat solid cobalt-blue, one even colour, no gradient, no texture, no shadow. No frame, no flowers, no text, no letters.
-```
-
-### T3. Сонная сова (1:1)
-
-```
-Ullu, the same owl as in the attached image, fast asleep. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
-
-Ullu is a short, very fat, round barn owl with a white heart-shaped face, a small hooked orange beak, golden-brown feathered wings and short orange legs. A huge saffron-orange turban with a jewelled brooch of red and green stones and a tall white feather has slid down over both of his eyes. He wears a baggy lime-green hoodie with white drawstrings, a garland of orange marigolds, a thick gold chain and baggy green shorts with a red tartan check.
-
-Pose: he sits slumped with his round belly forward and his head tilted to one side, fast asleep, beak slightly open, one wing-hand resting on his belly and the other still loosely holding an empty clay kulhad cup. Peaceful, a little silly. The whole owl is in the frame with empty space around him.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes and paper texture.
-
-Background: plain flat solid cobalt-blue, one even colour, no gradient, no texture, no shadow. No frame, no flowers, no text, no letters, no "Z" signs.
-```
-
-### T4. Логотип-значок (1:1)
-
-```
-A round badge logo with Ullu, the same owl as in the attached image. Keep his face, turban and drawing style exactly as in the reference.
-
-In the centre: the head and shoulders of Ullu, a fat barn owl with a white heart-shaped face, a small hooked orange beak in a lazy smug smile, heavy-lidded sleepy eyes with dark purple circles, a huge saffron-orange turban sitting crooked over his left eye with a jewelled brooch of red and green stones and a tall white feather, a lime-green hoodie and an orange marigold garland. He looks straight at the viewer.
-
-The badge: a thick circular frame painted in Indian truck-art style, with rings of red and royal blue, rows of small white dots and tiny painted flowers, and a flat lemon-yellow circle inside behind the owl. The head fills most of the circle; the feather may overlap the frame a little. Everything is centred, with the full circle inside the picture and a small margin around it.
-
-Style: hand-drawn Indian truck art: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes, warm saturated colours. It must read clearly when shown very small, as a round avatar.
-
-Background outside the circle: plain flat solid cobalt-blue, one even colour. No text, no letters.
-```
-
-### T5. Надпись ULLU (16:9)
-
-```
-The word "ULLU" painted as a sign in Indian truck-art lettering, exactly these four letters, spelled U-L-L-U, in one line in the centre of the picture.
-
-The letters are chunky, slightly curvy hand-painted capitals, like the painted names on the back of an Indian lorry. Each letter is filled with lime green, has a thick black outline, a bold red drop shadow to the lower right and small white highlight strokes. Small painted marigolds and white dots decorate the gaps between the letters, and a thin row of tiny bells hangs under the word.
-
-Style: hand-painted Indian truck art, markers and gouache, visible brush strokes, slightly uneven lines.
-
-Background: plain flat solid cobalt-blue, one even colour. Nothing else in the picture: no owl, no other words, no frame.
-```
-
-### T6. Первый экран (4:5, если формата нет — 3:4)
-
-```
-Ullu, the same owl as in the attached image, sitting on the parapet of a flat Indian rooftop at night. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
-
-Ullu is a short, very fat, round barn owl with a white heart-shaped face, a small hooked orange beak in a lazy smug smile, heavy-lidded sleepy eyes with dark purple circles, golden-brown feathered wings and short orange legs. A huge saffron-orange turban sits low and crooked over his left eye, with a jewelled brooch of red and green stones and a tall white feather. He wears a baggy lime-green hoodie with white drawstrings, an orange marigold garland, a thick gold chain, a red thread bracelet and baggy green shorts with a red tartan check. He holds a clay kulhad cup of steaming chai and looks at the viewer as if he has found the brightest house in the city.
-
-Scene: a clay diya lamp burns on the parapet next to him and lights his face and hoodie with warm golden light. Behind and below him, a narrow Indian street at night: old houses with balconies, strings of fairy lights, marigold garlands and lit windows, softly out of focus. The sky is deep violet with a few stars and a thin crescent moon.
-
-Composition: the owl sits in the centre and fills the lower two thirds; the top third is sky with space around his turban, because the top of the picture will be cut into a rounded arch.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes and paper texture, warm saturated colours; lime green, marigold orange and lemon yellow glowing against the violet night. No text, no frame.
-```
-
-### T7. Галерея 1: «Он выбрал эту крышу» (1:1)
-
-```
-Ullu, the same owl as in the attached image, sitting proudly on the only lit rooftop of a dark Indian street at night. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
-
-Ullu is a short, very fat barn owl with a white heart-shaped face, a small hooked orange beak, heavy-lidded sleepy eyes, a huge crooked saffron-orange turban with a jewelled brooch and a white feather, a lime-green hoodie, an orange marigold garland, a gold chain and green tartan shorts.
-
-Scene: all the rooftops around are dark; only his roof glows with clay diyas along the edge and a string of warm fairy lights. He sits in the middle of it with his arms folded, looking pleased. Deep violet night sky, a few stars. The owl is in the centre of the picture.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes, warm saturated colours. No text, no frame.
-```
-
-### T8. Галерея 2: «Вся улица ждёт» (1:1)
-
-```
-Ullu, the same owl as in the attached image, flying high over an Indian street at night, wings spread wide, looking down at the houses. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
-
-Ullu is a fat barn owl with a white heart-shaped face, a huge crooked saffron-orange turban with a jewelled brooch and a white feather, a lime-green hoodie, an orange marigold garland and green tartan shorts.
-
-Scene: below him a long street of old Indian houses, every one lit up and trying hard: clay diyas on every sill, fairy lights, paper lanterns, marigold garlands over the doors, a tea cart with a glowing lamp. The houses look up at him like they are waiting. Deep violet night sky. The owl is in the upper middle of the picture, the street fills the lower half.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes, warm saturated colours. No people, no text, no frame.
-```
-
-### T9. Галерея 3: «Первая ночь. Одной лампы хватит» (1:1)
-
-```
-Night one: a small old Indian house at night with one single clay diya burning on a windowsill, and Ullu, the same owl as in the attached image, perched on the electric wire in front of the house, leaning towards the little flame with sleepy curiosity. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
-
-Ullu is a fat barn owl with a white heart-shaped face, heavy-lidded sleepy eyes with dark purple circles, a huge crooked saffron-orange turban with a jewelled brooch and a white feather, a lime-green hoodie, an orange marigold garland and green tartan shorts.
-
-Scene: the rest of the house and the street are dark blue and violet; the only warm light is the diya and its glow on the wall and on the owl's face. Calm and quiet. The diya and the owl are in the centre of the picture.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes. No text, no frame.
-```
-
-### T10. Галерея 4: «Седьмая ночь. Без очков не смотреть» (1:1)
-
-```
-Night seven: an old Indian house covered in lights from the roof to the doorstep, and Ullu, the same owl as in the attached image, sitting on its roof in black sunglasses next to an open burlap sack spilling gold coins. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
-
-Ullu is a fat barn owl with a white heart-shaped face, a huge crooked saffron-orange turban with a jewelled brooch and a white feather, a lime-green hoodie, an orange marigold garland, a gold chain and green tartan shorts. He grins a wide smug grin.
-
-Scene: the house blazes with fairy lights, clay diyas on every step, paper lanterns, marigold garlands, a neon heart and a glowing star in the windows; small fireworks burst in the deep violet sky behind the owl. The house is so bright it lights up the whole street. The house and the owl are in the centre of the picture.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes, warm saturated colours. No text, no frame.
-```
-
-### T11. Широкий баннер (16:9)
-
-```
-A wide night panorama of an old Indian street seen from the rooftops, with Ullu, the same owl as in the attached image, flying in from the right side with his wings spread wide. Keep his face, body, outfit, colours and drawing style exactly as in the reference.
-
-Ullu is a fat barn owl with a white heart-shaped face, a huge crooked saffron-orange turban with a jewelled brooch and a white feather, a lime-green hoodie, an orange marigold garland, a gold chain and green tartan shorts. He holds a small clay kulhad of chai in one hand while he flies.
-
-Scene: rows of flat rooftops and old houses lit with clay diyas, fairy lights and paper lanterns stretch across the whole width; the sky is deep violet with stars and a thin crescent moon. The left half of the sky is calm and empty, with space for words.
-
-Composition: everything important, the owl and the lit rooftops, stays inside the middle horizontal band of the picture; the top quarter is only sky and the bottom quarter is only dark rooftops, because the picture will be cut into a long thin strip.
-
-Style: the same hand-drawn Indian truck-art illustration as the reference: bold, slightly uneven black ink outlines, markers and gouache, visible brush strokes, warm saturated colours. No text, no frame.
-```
-
-### T12. Полоса росписи (16:9)
-
-```
-A long horizontal decorative border band in Indian truck-art style, running across the whole width of the picture through its middle: a repeating row of painted orange marigolds, small pink roses and green leaves on a red ribbon, with a row of tiny golden bells and short chains hanging below it.
-
-The pattern repeats evenly from the left edge to the right edge so that it can be tiled side by side without a visible seam. The band takes the middle third of the picture.
-
-Style: hand-painted Indian truck art, markers and gouache, bold black outlines, visible brush strokes, saturated colours.
-
-Background above and below the band: plain flat solid deep violet, one even colour. No owl, no text, no letters.
-```
+To be added when new pictures are made.
