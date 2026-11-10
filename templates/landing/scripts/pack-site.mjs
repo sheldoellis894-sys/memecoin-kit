@@ -45,6 +45,8 @@ function take(rel) {
   }
 }
 const functions = config.server?.functions || [];
+// the city map of all houses (layout lights): the README names it in the numbers and in the checks after launch
+const city = built.includes('data-ul-city-map');
 for (const name of functions) {
   if (!fs.existsSync(`api/${name}.js`)) { console.error(`api/${name}.js not found`); process.exit(1); }
   take(`api/${name}.js`);
@@ -163,7 +165,7 @@ ${street ? `- \`STREET_SALT\` - a long random string (for example \`openssl rand
 - ` : ''}\`DATA_DIR=./data\` - the folder with the site's data${street ? ' (the street: houses, bans, the moderation log)' : ''}. Back it up; never delete it on updates
 - \`TRUST_PROXY\` - leave empty when nginx runs on the same server (as below)
 ` : ''}${functions.includes('admin') ? `
-The moderator page is \`https://your-domain.com/admin\` (password = \`ADMIN_PASSWORD\`)${functions.includes('stats') ? ': Numbers - visits, game starts, shares, saves, Buy clicks and contract copies by day, with a CSV file (no cookies, no personal data)' : ''}${street ? `${functions.includes('stats') ? '; ' : ': '}Street - remove a house, ban a browser, lift a ban (the house comes back), the log of actions` : ''}. Without \`ADMIN_PASSWORD\` the page is off.
+The moderator page is \`https://your-domain.com/admin\` (password = \`ADMIN_PASSWORD\`)${functions.includes('stats') ? `: Numbers - visits, game starts, shares, saves, Buy clicks${city ? ', city map opens' : ''} and contract copies by day, with a CSV file (no cookies, no personal data)` : ''}${street ? `${functions.includes('stats') ? '; ' : ': '}Street - remove a house, ban a browser, lift a ban (the house comes back), the log of actions` : ''}. Without \`ADMIN_PASSWORD\` the page is off.
 ` : ''}
 ## 3. Keep it running (systemd)
 
@@ -238,7 +240,7 @@ docker run -d --restart unless-stopped -p 127.0.0.1:3000:3000 -v ${project}-data
 
 ## Check after launch
 
-- \`https://your-domain.com\` opens${street ? '; the street loads; a house can be put on the street' : ''}
+- \`https://your-domain.com\` opens${street ? `; the street loads; a house can be put on the street${city ? ' and appears on the city map' : ''}` : ''}
 ${functions.includes('admin') ? '- `https://your-domain.com/admin` opens with the password\n' : ''}- a link to the site pasted into X or Telegram shows the preview picture
 
 ## Update
