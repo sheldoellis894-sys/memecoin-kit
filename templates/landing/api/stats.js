@@ -57,10 +57,14 @@ export function cleanReport(e) {
 // in memory and the newer of the two is used (the same as the street)
 const written = new WeakMap();
 
-/** The stats file: { days: { 'YYYY-MM-DD': { visit, visitor, … } }, rev, updated }. */
-export async function readStats(env, store) {
+/**
+ * The stats file: { days: { 'YYYY-MM-DD': { visit, visitor, … } }, rev, updated }.
+ * opts.strict: a file that cannot be read or is damaged is an error (a report must not start the numbers again from an
+ * empty file); without it the moderator page simply shows no numbers.
+ */
+export async function readStats(env, store, opts = {}) {
   let j = null;
-  try { const t = await store.read(env, pathOf(env.PROJECT)); j = t ? JSON.parse(t) : null; } catch { j = null; }
+  try { const t = await store.read(env, pathOf(env.PROJECT)); j = t ? JSON.parse(t) : null; } catch (e) { if (opts.strict) throw e; j = null; }
   const mem = written.get(store);
   if (mem && mem.path === pathOf(env.PROJECT) && (!j || (mem.j.rev || 0) > (j.rev || 0))) j = mem.j;
   const days = j && j.days && typeof j.days === 'object' ? j.days : {};
@@ -69,7 +73,7 @@ export async function readStats(env, store) {
 
 async function addReport(env, store, report, now) {
   return serial(pathOf(env.PROJECT), async () => {
-    const st = await readStats(env, store);
+    const st = await readStats(env, store, { strict: true });
     const d = day(now);
     const row = st.days[d] || {};
     for (const [k, v] of Object.entries(report)) row[k] = (row[k] || 0) + v;

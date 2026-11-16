@@ -489,6 +489,18 @@ console.log('8 ok: country and city from any host');
   assert.equal(JSON.parse(files.get('ullu/stats.json')).days['2026-11-05'].share, before + 40);
   { const j = JSON.parse(files.get('ullu/stats.json')); for (let i = 0; i < 420; i++) j.days[`2025-01-${String(i).padStart(3, '0')}`] = { visit: 1 }; files.set('ullu/stats.json', JSON.stringify(j));
     await send({ e: { visit: 1 } }, '4.4.4.7'); assert.equal(Object.keys(JSON.parse(files.get('ullu/stats.json')).days).length, 400); }
+  // a store that cannot be read this time (a network error, a file the server may not read, a damaged file) keeps the
+  // numbers it has: the report is refused, it never starts the numbers again from an empty file
+  {
+    const keep = files.get('ullu/stats.json'); const w0 = writes;
+    const sick = { read: async () => { throw new Error('read failed'); }, write: store.write };
+    assert.equal((await stats(sreq({ e: { visit: 1 } }, '4.4.4.8'), AENV, { now, store: sick })).status, 503);
+    files.set('ullu/stats.json', '{"days": {"2026-11-05": {"visit": 3'); const torn = files.get('ullu/stats.json');
+    assert.equal(await send({ e: { visit: 1 } }, '4.4.4.9'), 503);
+    assert.equal(files.get('ullu/stats.json'), torn, 'a damaged file is left for the owner to look at');
+    assert.equal(writes, w0, 'nothing is written over the numbers');
+    files.set('ullu/stats.json', keep);
+  }
   // the moderator page gets the numbers, newest day first, with the street
   const areq = (method, body, env = AENV) => admin(new Request('https://x/api/admin', { method, headers: { authorization: `Bearer ${AENV.ADMIN_PASSWORD}`, 'x-forwarded-for': '5.5.5.9', 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }), env, { now, store });
   const g = await (await areq('GET')).json();
