@@ -1,0 +1,30 @@
+{
+  "project": "horsecorp",
+  "archives": [
+    {
+      "name": "mrma-brand-kit",
+      "readme": "projects/horsecorp/handover/brand_kit_README.md",
+      "folders": {
+        "01_brand_book": ["projects/horsecorp/brand/docs/mrma_brandbook.pdf"],
+        "02_logo": ["projects/horsecorp/brand/logo/*.png"],
+        "03_social": ["projects/horsecorp/brand/exports/*.png"],
+        "05_emotions": ["projects/horsecorp/brand/emotions/*.jpg"],
+        "06_poses": ["projects/horsecorp/brand/poses/*.jpg"],
+        "07_original_art": [
+          "projects/horsecorp/brand/references/mrma_main.jpg",
+          { "src": "projects/horsecorp/brand/banners/mrma_banner.jpg", "as": "banner.jpg" }
+        ],
+        "08_prompts": ["projects/horsecorp/brand/docs/horsecorp_flow_prompts.md"],
+        "09_texts": ["projects/horsecorp/brand/docs/horsecorp_listing.md"],
+        "10_figma": ["projects/horsecorp/brand/figma/mrma_brand_kit.fig"]
+      }
+    },
+    {
+      "name": "mrma-site",
+      "readme": "projects/horsecorp/handover/site_README.md",
+      "folders": {
+        "site": [{ "src": "../horsecorp-repo/horsecorp-site", "tree": true }]
+      }
+    }
+  ]
+}
