@@ -203,6 +203,7 @@ const iv: Record<string, string> = c.invite || {};
 
 <script>
   import * as K from '../../lib/lights-kit.js';
+  import { solveProof } from '../../lib/street-proof.js';
 
   const root = document.querySelector<HTMLElement>('[data-ul-house]');
   const ul: any = (window as any).ul;
@@ -806,8 +807,21 @@ const iv: Record<string, string> = c.invite || {};
       if (!p.nights || s.streak < 1) { postNote.textContent = L.postDark || 'Light up tonight first: a dark house cannot go on the street.'; return { ok: false, error: 'dark' }; }
       postNote.textContent = L.posting || 'Carrying the house to the street…';
       try {
-        const res = await fetch(cfg.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: visitorId(), name: clean, code: K.encodeHouse(p.seed, ownPlaced(), p.family, p.wish, { free: ownFree(), paint: ownPaint() }), nights: p.nights, gifts: p.gifts, best: p.best, landings: p.landings, streak: s.streak }) });
-        const out = await res.json().catch(() => ({}));
+        const id = visitorId();
+        const body = { id, name: clean, code: K.encodeHouse(p.seed, ownPlaced(), p.family, p.wish, { free: ownFree(), paint: ownPaint() }), nights: p.nights, gifts: p.gifts, best: p.best, landings: p.landings, streak: s.streak };
+        // a house that is not on the street yet answers the street's check first (src/lib/street-proof.js): about a second
+        // of work for the phone, hidden behind the words above. A house already there is just updated
+        const proofOf = async () => {
+          const c = await (await fetch(`${cfg.endpoint}?challenge=1`, { cache: 'no-store' })).json();
+          return c && c.bits > 0 && typeof c.challenge === 'string' ? { challenge: c.challenge, nonce: await solveProof(c.challenge, id, c.bits) } : undefined;
+        };
+        const send = async (proof?: { challenge: string; nonce: string }) => {
+          const res = await fetch(cfg.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(proof ? { ...body, proof } : body) });
+          return { res, out: await res.json().catch(() => ({})) };
+        };
+        let { res, out } = await send(ul.store.get(STREET_KEY) ? undefined : await proofOf().catch(() => undefined));
+        // the street did not know this house (taken off, or this browser had no note of it): the check, then once more
+        if (out.error === 'proof') ({ res, out } = await send(await proofOf()));
         if (!res.ok || !out.ok) { postNote.textContent = cfg.streetErrors[out.error] || cfg.streetErrors.failed || 'The street did not take the house. Try later.'; return { ok: false, error: out.error || 'failed' }; }
         postNote.textContent = L.posted || 'Your house is on the street. Scroll down to see it.';
         ul.store.set(STREET_KEY, clean);

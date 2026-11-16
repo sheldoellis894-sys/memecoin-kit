@@ -7,6 +7,9 @@
 //                    numbers by day (api/stats.js). A project without a street gets only the numbers (street: false)
 // POST { action: 'remove', sn }  → takes house #sn off the street (the visitor may put a house there again)
 // POST { action: 'ban', sn }     → takes it off and bans its browser: that visitor cannot put a house on the street again
+// POST { action: 'remove', from, to } → takes every house numbered from..to off the street (after a flood of new houses:
+//                                  they come one after another, so their numbers make one run). Not a ban: a flood comes
+//                                  from fresh browsers anyway, and a ban list that long would only make the street file big
 // POST { action: 'unban', sn }   → lifts the ban that was given with house #sn and puts that house back on the street with
 //                                  its number (unless its owner has another house there now, or another visitor's lit house
 //                                  has the same picture). An undo for a ban given by mistake
@@ -79,7 +82,9 @@ export async function handle(request, env = process.env, deps = {}) {
 
   let b; try { b = JSON.parse(await request.text()); } catch { return json({ error: 'bad' }, 400, noindex); }
   const action = b && b.action, sn = b && b.sn;
-  if (!['remove', 'ban', 'unban'].includes(action) || !Number.isInteger(sn) || sn < 1) return json({ error: 'bad' }, 400, noindex);
+  const one = Number.isInteger(sn) && sn >= 1;
+  const run = action === 'remove' && b && b.sn === undefined && Number.isInteger(b.from) && Number.isInteger(b.to) && b.from >= 1 && b.to >= b.from && b.to - b.from < 100000;
+  if (!['remove', 'ban', 'unban'].includes(action) || !(one || run)) return json({ error: 'bad' }, 400, noindex);
   try {
     return await serial(pathOf(env.PROJECT), async () => {
       const st = await readStreet(env, store);
@@ -96,6 +101,15 @@ export async function handle(request, env = process.env, deps = {}) {
         st.log.push({ at, action, sn, name: ban.name, ip });
         await writeStreet(env, store, st, at);
         return json({ ok: true, restored: Boolean(free) && st.houses.includes(h) }, 200, noindex);
+      } else if (run) {
+        // a run of numbers: one line in the log for all of them
+        const hs = st.houses.filter((x) => x.sn >= b.from && x.sn <= b.to);
+        if (!hs.length) return json({ error: 'no_house' }, 404, noindex);
+        const gone = new Set(hs);
+        st.houses = st.houses.filter((x) => !gone.has(x));
+        st.log.push({ at, action, sn: b.from, to: b.to, name: `${hs.length} ${hs.length === 1 ? 'house' : 'houses'}`, ip });
+        await writeStreet(env, store, st, at);
+        return json({ ok: true, removed: hs.length }, 200, noindex);
       } else {
         const h = st.houses.find((x) => x.sn === sn);
         if (!h) return json({ error: 'no_house' }, 404, noindex);

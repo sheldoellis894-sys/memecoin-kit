@@ -2,7 +2,8 @@
 // The moderator page /admin. Two tabs:
 //   Numbers  visits, game starts, shares, saves, Buy clicks and contract copies by day (api/stats.js), with a CSV file
 //   Street   every house on the street with its number (#0001), picture, name, signs and nights, and two buttons:
-//            "Remove" (off the street) and "Ban" (off the street, and that browser cannot post again); bans and the log
+//            "Remove" (off the street) and "Ban" (off the street, and that browser cannot post again); a run of numbers
+//            taken off at once (after a flood of new houses); bans and the log
 // Built for a project whose server has the admin function (config "server.functions"); the Street tab only with "street".
 // Other projects get no /admin page at all. The password is the server's ADMIN_PASSWORD (api/admin.js); the page
 // keeps it only in this browser tab while it is open. Not linked from the site and closed to search engines.
@@ -59,6 +60,7 @@ const ticker = config.ticker;
     .tabs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #000; }
     .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
     .bar input { flex: 1 1 220px; max-width: 360px; }
+    .bar.run input { flex: 0 0 96px; width: 96px; min-width: 0; }
     .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     @media (min-width: 1100px) { .tiles { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); } }
     .tile { background: var(--card); border: 1px solid #ffffff1f; border-radius: 14px; padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
@@ -120,6 +122,14 @@ const ticker = config.ticker;
               <input type="search" placeholder="Find: #12, a name, a sign" data-adm-find />
               <select data-adm-show><option value="all">All houses</option><option value="hidden">Hidden by the filter</option><option value="lit">Lit now</option></select>
             </div>
+            <form class="bar run" data-adm-run>
+              <span class="note">Take a run of houses off the street, from</span>
+              <input type="number" min="1" step="1" inputmode="numeric" placeholder="#" aria-label="From number" data-adm-from required />
+              <span class="note">to</span>
+              <input type="number" min="1" step="1" inputmode="numeric" placeholder="#" aria-label="To number" data-adm-to required />
+              <button type="submit" data-adm-runbtn>Remove</button>
+              <span class="note" data-adm-runcount></span>
+            </form>
             <p class="note" data-adm-count></p>
             <div class="grid" data-adm-grid></div>
             <p data-adm-morebox hidden><button type="button" data-adm-more>Show more houses</button></p>
@@ -147,7 +157,7 @@ const ticker = config.ticker;
       return { status: res.status, out };
     };
     const showLogin = (msg = '') => { $('[data-adm-login]').hidden = false; $('[data-adm-app]').hidden = true; $('[data-adm-loginerr]').textContent = msg; };
-    const ERR: Record<string, string> = { password: 'Wrong password.', wait: 'Too many tries. Wait a minute.', not_found: 'The admin is off: set ADMIN_PASSWORD (16+ characters) on the server.', off: 'The street has no storage.', storage: 'The storage did not answer. Try again.' };
+    const ERR: Record<string, string> = { password: 'Wrong password.', wait: 'Too many tries. Wait a minute.', not_found: 'The admin is off: set ADMIN_PASSWORD (16+ characters) on the server.', off: 'The street has no storage.', storage: 'The storage did not answer. Try again.', no_house: 'No houses with these numbers.', bad: 'Check the numbers.' };
     async function load() {
       const r = await api('GET');
       if (r.status !== 200) { if (r.out.error === 'password') { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} } showLogin(ERR[r.out.error] || `Error ${r.status}`); return; }
@@ -188,7 +198,7 @@ const ticker = config.ticker;
           <div class="acts"><button type="button" data-act="remove">Remove</button><button type="button" class="is-red" data-act="ban">Ban</button></div>
         </article>`).join('') || '<p class="note">No houses.</p>';
       $('[data-adm-bans]').innerHTML = data.bans.length ? data.bans.map((b: any) => `<tr><td>${sn4(b.sn)}</td><td>${esc(b.name)}</td><td>${when(b.at)}</td><td><button type="button" data-unban="${b.sn}">Unban</button></td></tr>`).join('') : '<tr><td class="note">Nobody is banned.</td></tr>';
-      $('[data-adm-log]').innerHTML = data.log.length ? data.log.map((e: any) => `<tr><td>${when(e.at)}</td><td>${esc(e.action)}</td><td>${sn4(e.sn)}</td><td>${esc(e.name)}</td><td class="note">${esc(e.ip || '')}</td></tr>`).join('') : '<tr><td class="note">Nothing yet.</td></tr>';
+      $('[data-adm-log]').innerHTML = data.log.length ? data.log.map((e: any) => `<tr><td>${when(e.at)}</td><td>${esc(e.action)}</td><td>${sn4(e.sn)}${e.to ? ` to ${sn4(e.to)}` : ''}</td><td>${esc(e.name)}</td><td class="note">${esc(e.ip || '')}</td></tr>`).join('') : '<tr><td class="note">Nothing yet.</td></tr>';
     }
     // a button asks once more before it acts: the first tap turns it into "Sure?"
     async function act(btn: HTMLButtonElement, body: any) {
@@ -197,6 +207,8 @@ const ticker = config.ticker;
       const r = await api('POST', body);
       if (r.status !== 200) alert(ERR[r.out.error] || `Error: ${r.out.error || r.status}`);
       await load();
+      // the buttons of the list are drawn again; a button that stays on the page (the run) is made ready again
+      btn.disabled = false; btn.classList.remove('is-sure'); btn.textContent = btn.dataset.label || btn.textContent;
     }
     if (street) {
       $('[data-adm-grid]').addEventListener('click', (e) => {
@@ -211,6 +223,22 @@ const ticker = config.ticker;
       $('[data-adm-find]').addEventListener('input', () => { shown = PAGE; if (data) draw(); });
       $('[data-adm-show]').addEventListener('change', () => { shown = PAGE; if (data) draw(); });
       $('[data-adm-more]').addEventListener('click', () => { shown += PAGE; draw(); });
+      // a run of numbers: says how many houses it holds, then the button asks "Sure?" as the others do
+      const runOf = () => ({ from: Number($<HTMLInputElement>('[data-adm-from]').value), to: Number($<HTMLInputElement>('[data-adm-to]').value) });
+      const runCount = () => {
+        const { from, to } = runOf();
+        const n = data && Number.isInteger(from) && Number.isInteger(to) && from >= 1 && to >= from ? data.houses.filter((h: any) => h.sn >= from && h.sn <= to).length : 0;
+        $('[data-adm-runcount]').textContent = data && from && to ? `${n} ${n === 1 ? 'house' : 'houses'} in this run` : '';
+        return n;
+      };
+      $('[data-adm-run]').addEventListener('input', () => { const b = $<HTMLButtonElement>('[data-adm-runbtn]'); b.classList.remove('is-sure'); b.textContent = 'Remove'; runCount(); });
+      $('[data-adm-run]').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const { from, to } = runOf();
+        if (!Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to < from) { alert(ERR.bad); return; }
+        if (!runCount()) { alert(ERR.no_house); return; }
+        act($<HTMLButtonElement>('[data-adm-runbtn]'), { action: 'remove', from, to }).then(runCount);
+      });
     }
 
     // ---- the tabs: Numbers and Street (the last one opened is remembered in this tab)

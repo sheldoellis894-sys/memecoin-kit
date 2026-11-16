@@ -3,8 +3,11 @@
 // GET ?map=1 → { live, count, star, houses } — the city map (section lightsCity): every house as a short row
 //      [sn, name, seed, style, wish, paint, light, streak, hours since it was lit], oldest number first; star = number of the house of the night.
 // GET ?sn=3,17,40 → { houses } — the same houses in full (with their codes), asked for when the map comes close to them.
+// GET ?challenge=1 → { challenge, bits } — the browser check a new house needs (src/lib/street-proof.js); bits 0 = no check.
 // POST { id, name, code, nights, gifts, best, landings, streak } → { ok, house } — puts the visitor's house on the street,
 //      or updates it (one house per visitor id). The id is a random string kept in the visitor's browser.
+//      A house that is not on the street yet also sends proof: { challenge, nonce } — the answer to the browser check.
+//      Without it the answer is { ok: false, error: 'proof' }: the page then asks for a challenge and posts again.
 // POST { id, remove: true } → { ok, removed } — takes the visitor's own house off the street (only the browser that
 //      put it there has the id).
 // Every house gets a serial number (sn: 1, 2, 3 …) the first time it goes on the street; it is shown on the street as #0001
@@ -15,7 +18,9 @@
 //   BLOB_READ_WRITE_TOKEN — on Vercel: added when a Blob store is connected to the project
 //                           (new stores add BLOB_STORE_ID instead; the Blob package then signs in with Vercel OIDC)
 //   STORE=file, DATA_DIR  — on an own server: the folder for the file (the client's hosting)
-//   STREET_SALT           — optional: any long random string; visitor ids are stored only as hashes with it
+//   STREET_SALT           — optional: any long random string; visitor ids are stored only as hashes with it,
+//                           and the challenges of the browser check are signed with it
+//   STREET_PROOF_BITS     — optional: how hard the browser check is (default 16, about a second on a phone; 0 = off)
 //   STREET_BLOCK          — optional: more words that may not be in a name or on a sign, comma separated
 //                           (swearing, slurs, hate, links, promo and mocked holy names are blocked anyway: src/lib/lights-filter.js)
 //
@@ -23,7 +28,15 @@
 // numbers agree with each other, draws the house from its code itself and computes its light itself, so a visitor
 // can lie about how many nights they kept, but cannot post a house that the site would not have drawn.
 // It answers only for projects listed in STREETS (env PROJECT).
-import { createHash } from 'node:crypto';
+//
+// Against a flood of new houses (a script posting thousands of them from fresh ids):
+//   - a new house needs the browser check, and a challenge is good for one house and ten minutes;
+//   - new houses have their own limits: NEW_PER_IP a day from one address, NEW_PER_MINUTE for the whole street.
+//     Updates of houses already on the street do not count there, so a flood never stops the owners from lighting theirs;
+//   - a new house never pushes a lit house off a full street: the house that went dark longest ago makes room,
+//     and when every house is lit the new one waits (error 'full');
+//   - the moderator takes a whole run of numbers off the street at once (api/admin.js).
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { storeFor, storeKind, serial } from './_agent/store.js';
 import { ipKey } from './_agent/ip.js';
 import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGHTS, FAMILY_IDS, WISH_IDS } from '../src/lib/lights-kit.js';
@@ -31,9 +44,12 @@ import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGH
 export const STREETS = { ullu: { keep: 2000, ticker: 'ULLU' } };   // keep = houses the street holds (the city map shows them all)
 const SHOW = 60;                         // houses sent to the street row of the page
 const CODES_MAX = 40;                    // houses one request may ask for in full (?sn=)
-const PER_IP = 40;                       // posts a day from one address (kept in memory: a soft limit; mobile networks put many
-                                         // phones behind one address, so it is not small)
-const PER_MINUTE = 120;                  // posts a minute for the whole street
+const PER_IP = 40;                       // posts a day from one address, updates too (kept in memory: a soft limit; mobile
+                                         // networks put many phones behind one address, so it is not small)
+const NEW_PER_IP = 20;                   // new houses a day from one address
+const NEW_PER_MINUTE = 60;               // new houses a minute for the whole street (updates are not counted)
+const PROOF_BITS = 16;                   // the browser check: zero bits the answer's hash starts with (env STREET_PROOF_BITS)
+const PROOF_MINUTES = 10;                // a challenge is good for this long
 const MAX_BODY = 9000;                   // bytes in a post
 const STAR_HOURS = 36;                   // the house of the night is chosen among houses lit in the last hours
 const DARK_HOURS = 48;                   // a house not lit for this long is shown dark on the street
@@ -44,21 +60,63 @@ const json = (body, status = 200, extra = {}) => new Response(JSON.stringify(bod
 const pathOf = (project) => `${project}/street.json`;
 const int = (v, max = 100000) => (Number.isInteger(v) && v >= 0 && v <= max ? v : null);
 
-const memory = { ip: new Map(), minute: { at: 0, n: 0 } };
-export const resetLimits = () => { memory.ip.clear(); memory.minute = { at: 0, n: 0 }; };
+const memory = { ip: new Map(), fresh: new Map(), minute: { at: 0, n: 0 }, used: new Map() };
+export const resetLimits = () => { memory.ip.clear(); memory.fresh.clear(); memory.minute = { at: 0, n: 0 }; memory.used.clear(); };
 
+/** Every post from one address counts here (a soft limit, per server instance). */
 function limited(ip, now) {
-  const day = Math.floor(now / 86400000);
-  const m = Math.floor(now / 60000);
-  if (memory.minute.at !== m) memory.minute = { at: m, n: 0 };
-  if (memory.minute.n >= PER_MINUTE) return true;
-  const key = `${day}:${ip}`;
+  const key = `${Math.floor(now / 86400000)}:${ip}`;
   const n = memory.ip.get(key) || 0;
   if (n >= PER_IP) return true;
   if (memory.ip.size > 5000) memory.ip.clear();
-  memory.ip.set(key, n + 1); memory.minute.n += 1;
+  memory.ip.set(key, n + 1);
   return false;
 }
+/** Only new houses count here: a day from one address and a minute for the whole street. */
+function newLimited(ip, now) {
+  const m = Math.floor(now / 60000);
+  if (memory.minute.at !== m) memory.minute = { at: m, n: 0 };
+  const key = `${Math.floor(now / 86400000)}:${ip}`;
+  const n = memory.fresh.get(key) || 0;
+  if (memory.minute.n >= NEW_PER_MINUTE || n >= NEW_PER_IP) return true;
+  if (memory.fresh.size > 5000) memory.fresh.clear();
+  memory.fresh.set(key, n + 1); memory.minute.n += 1;
+  return false;
+}
+
+// ---- the browser check (src/lib/street-proof.js). A challenge is "v1.time.random.bits.signature": the server keeps nothing
+// until it is answered, and the signature (made with STREET_SALT) shows it came from this street and was not changed.
+const proofBits = (env) => {
+  const t = String(env.STREET_PROOF_BITS ?? '').trim(); const v = Number(t);   // empty (as in .env.example) = the default
+  return t !== '' && Number.isInteger(v) && v >= 0 && v <= 24 ? v : PROOF_BITS;
+};
+const signOf = (env, body) => createHmac('sha256', `proof:${env.STREET_SALT || 'street'}`).update(`${env.PROJECT}.${body}`).digest('base64url').slice(0, 22);
+function challengeOf(env, now) {
+  const body = `v1.${now}.${randomBytes(8).toString('hex')}.${proofBits(env)}`;
+  return `${body}.${signOf(env, body)}`;
+}
+/** Is this a right answer to a challenge from this street, still fresh and as hard as the street asks now? */
+function proofValid(env, proof, id, now) {
+  if (!proof || typeof proof !== 'object' || typeof proof.challenge !== 'string' || typeof proof.nonce !== 'string') return false;
+  if (proof.challenge.length > 120 || !/^[0-9a-z]{1,12}$/.test(proof.nonce)) return false;
+  const parts = proof.challenge.split('.');
+  if (parts.length !== 5 || parts[0] !== 'v1') return false;
+  const [, t, rand, bitsText, sig] = parts;
+  const at = Number(t), bits = Number(bitsText);
+  if (!/^\d{13}$/.test(t) || !/^[0-9a-f]{16}$/.test(rand) || !/^\d{1,2}$/.test(bitsText) || bits < proofBits(env)) return false;
+  if (now - at > PROOF_MINUTES * 60000 || at - now > 60000) return false;
+  const want = Buffer.from(signOf(env, parts.slice(0, 4).join('.'))), got = Buffer.from(sig);
+  if (want.length !== got.length || !timingSafeEqual(want, got)) return false;
+  const hash = createHash('sha256').update(`${proof.challenge}.${id}.${proof.nonce}`).digest();
+  let zero = 0; for (const byte of hash) { if (byte === 0) { zero += 8; continue; } zero += Math.clz32(byte) - 24; break; }
+  return zero >= bits;
+}
+/** An answered challenge is good for one house: kept until it would be too old anyway. */
+const proofUsed = (proof, now) => {
+  for (const [c, until] of memory.used) if (until < now) memory.used.delete(c);
+  return memory.used.has(proof.challenge);
+};
+const useProof = (proof, now) => { if (memory.used.size > 20000) memory.used.clear(); memory.used.set(proof.challenge, now + (PROOF_MINUTES + 1) * 60000); };
 
 // Vercel Blob in public mode is read through its CDN, which may give the file as it was up to a minute ago. Then two posts
 // in a row would undo each other. So the last file this instance wrote is kept in memory, and the newer of the two is used.
@@ -144,6 +202,10 @@ export async function handle(request, env = process.env, deps = {}) {
 
   if (request.method === 'GET') {
     if (!live) return json({ live, houses: [], star: null, count: 0 });
+    if (new URL(request.url).searchParams.has('challenge')) {
+      const bits = proofBits(env);
+      return json({ challenge: bits ? challengeOf(env, now) : '', bits });
+    }
     try {
       const seenNow = visibleOf(await readStreet(env, store), env, conf);
       const houses = seenNow.map((x) => x.h);
@@ -212,6 +274,10 @@ export async function handle(request, env = process.env, deps = {}) {
 
   const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
   if (limited(ip, now)) return json({ ok: false, error: 'busy' }, 429);
+  // a wrong answer to the browser check is turned away before the street is read
+  const bits = proofBits(env);
+  const proofGood = bits > 0 && b.proof !== undefined ? proofValid(env, b.proof, b.id, now) : false;
+  if (bits > 0 && b.proof !== undefined && !proofGood) return json({ ok: false, error: 'proof' }, 403);
 
   const h = houseOfP(got);
   const level = Math.min(NIGHTS, streak);
@@ -233,10 +299,22 @@ export async function handle(request, env = process.env, deps = {}) {
     const others = houses.filter((x) => x.key !== key && !same(x));
     // the house keeps its number while it is on the street (an update, a move); a new house gets the next one
     const mine = houses.find((x) => x.key === key);
+    // a new house: the browser check (one house per challenge) and the limits of new houses
+    if (!mine && bits > 0 && (!proofGood || proofUsed(b.proof, now))) return json({ ok: false, error: 'proof' }, 403);
     let lastSn = st.lastSn;
     entry.sn = mine && Number.isInteger(mine.sn) ? mine.sn : ++lastSn;
-    const next = [entry, ...others].sort((a, b2) => (a.updated < b2.updated ? 1 : -1)).slice(0, conf.keep);
+    let next = [entry, ...others].sort((a, b2) => (a.updated < b2.updated ? 1 : -1));
+    // a full street: the houses that went dark longest ago make room. A new house never pushes a lit one off;
+    // when there is no dark house to replace, it waits
+    if (next.length > conf.keep) {
+      const extra = next.length - conf.keep;
+      const gone = new Set(next.filter((x) => x !== entry && isDark(x, now)).slice(-extra));
+      if (gone.size < extra && !mine) return json({ ok: false, error: 'full' }, 503);
+      next = next.filter((x) => !gone.has(x)).slice(0, conf.keep);
+    }
+    if (!mine && newLimited(ip, now)) return json({ ok: false, error: 'busy' }, 429);
     await writeStreet(env, store, { ...st, houses: next, lastSn }, entry.updated);
+    if (!mine && bits > 0) useProof(b.proof, now);
     return json({ ok: true, house: publicOf(entry, now) });
     });
   } catch {

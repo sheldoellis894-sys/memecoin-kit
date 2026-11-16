@@ -12,7 +12,8 @@ const memoryStore = () => {
     async write(env, path, body) { if (state.fail) throw new Error('down'); state.path = path; state.text = body; state.writes += 1; },
   };
 };
-const ENV = { PROJECT: 'ullu', BLOB_READ_WRITE_TOKEN: 'b', STREET_SALT: 'salt', STREET_BLOCK: 'rug' };
+// the browser check for new houses is off here (STREET_PROOF_BITS 0); section 13 checks it
+const ENV = { PROJECT: 'ullu', BLOB_READ_WRITE_TOKEN: 'b', STREET_SALT: 'salt', STREET_BLOCK: 'rug', STREET_PROOF_BITS: '0' };
 let clock = Date.parse('2026-11-05T20:00:00Z');
 const now = () => clock;
 const req = (method, body, ip = '1.1.1.1') => new Request('https://ullu.vercel.app/api/street', {
@@ -320,9 +321,23 @@ console.log('4 ok: names, signs, codes, numbers, sizes, old houses, methods');
 
 // ---- 5. limits, storage problems, no store
 resetLimits();
-for (let i = 0; i < 40; i++) assert.ok((await call('POST', { ...good, id: `limit${String(i).padStart(2, '0')}aaaaaaaaaaaa`, code: K.encodeHouse(1000 + i, {}) }, { store }, ENV, '5.5.5.5')).out.ok, `post ${i + 1} of 40 a day from one address`);
+// twenty new houses a day from one address; the owners behind it can still update theirs, up to forty posts in all
+for (let i = 0; i < 20; i++) assert.ok((await call('POST', { ...good, id: `limit${String(i).padStart(2, '0')}aaaaaaaaaaaa`, code: K.encodeHouse(1000 + i, {}) }, { store }, ENV, '5.5.5.5')).out.ok, `new house ${i + 1} of 20 a day from one address`);
 res = await call('POST', { ...good, id: 'limit9aaaaaaaaaaaaa', code: K.encodeHouse(2000, {}) }, { store }, ENV, '5.5.5.5');
-assert.equal(res.status, 429); assert.equal(res.out.error, 'busy');
+assert.equal(res.status, 429); assert.equal(res.out.error, 'busy', 'the 21st new house from one address waits');
+for (let i = 0; i < 19; i++) assert.ok((await call('POST', { ...good, id: `limit${String(i).padStart(2, '0')}aaaaaaaaaaaa`, code: K.encodeHouse(1000 + i, {}), name: `Upd ${i}` }, { store }, ENV, '5.5.5.5')).out.ok, `update ${i + 1}: post ${i + 22} of 40`);
+res = await call('POST', { ...good, id: 'limit00aaaaaaaaaaaa', code: K.encodeHouse(1000, {}) }, { store }, ENV, '5.5.5.5');
+assert.equal(res.status, 429); assert.equal(res.out.error, 'busy', 'the 41st post of the day from one address waits');
+// sixty new houses a minute for the whole street; an owner lighting a house already there is never stopped by them
+resetLimits();
+for (let i = 0; i < 60; i++) assert.ok((await call('POST', { ...good, id: `flood${String(i).padStart(2, '0')}bbbbbbbbbbbb`, name: `Fl ${i}`, code: K.encodeHouse(3000 + i, {}) }, { store }, ENV, `7.7.${i}.1`)).out.ok, `new house ${i + 1} of 60 this minute`);
+res = await call('POST', { ...good, id: 'flood99bbbbbbbbbbbb', name: 'Fl late', code: K.encodeHouse(3100, {}) }, { store }, ENV, '7.8.0.1');
+assert.equal(res.status, 429); assert.equal(res.out.error, 'busy', 'the 61st new house this minute waits');
+res = await call('POST', { ...good, id: 'limit00aaaaaaaaaaaa', code: K.encodeHouse(1000, {}), name: 'Owner' }, { store }, ENV, '7.9.0.1');
+assert.ok(res.out.ok, 'an update goes through while new houses wait');
+clock += 60000;
+assert.ok((await call('POST', { ...good, id: 'flood99bbbbbbbbbbbb', name: 'Fl late', code: K.encodeHouse(3100, {}) }, { store }, ENV, '7.8.0.1')).out.ok, 'a minute later new houses come again');
+clock -= 60000;
 store.state.fail = true;
 res = await call('GET', null, { store }); assert.equal(res.status, 200); assert.equal(res.out.error, 'storage');
 res = await call('POST', { ...good, id: 'other1aaaaaaaaaaaaaa' }, { store }, ENV, '6.6.6.6'); assert.equal(res.status, 503); assert.equal(res.out.error, 'storage');
@@ -333,7 +348,7 @@ res = await call('POST', good, { store }, { PROJECT: 'ullu' }); assert.equal(res
 resetLimits();
 {
   const v6 = await Promise.all(Array.from({ length: 41 }, (_, i) => call('POST', { ...good, id: `vsixvsixvsixvsix${String(i).padStart(2, '0')}0`, name: `Six ${i}`, code: K.encodeHouse(7000 + i, {}) }, { store }, ENV, `2001:db8:aa:bb::${i + 1}`)));
-  assert.deepEqual(v6.map((x) => x.status), [...Array(40).fill(200), 429]);
+  assert.deepEqual(v6.map((x) => x.status), [...Array(20).fill(200), ...Array(21).fill(429)]);
 }
 // Blob in public mode reads through a CDN that may give the old file: posts one after another are not lost
 resetLimits();
@@ -361,7 +376,7 @@ console.log('6 ok: dark houses, house of the night, a moved house takes a dark o
 // ---- 7. the same street on an own server: files on disk instead of Vercel Blob, parallel posts are not lost
 const os = await import('node:os'); const fsp = await import('node:fs/promises'); const pth = await import('node:path');
 const dir = await fsp.mkdtemp(pth.join(os.tmpdir(), 'street-'));
-const FENV = { PROJECT: 'ullu', STORE: 'file', DATA_DIR: dir };
+const FENV = { PROJECT: 'ullu', STORE: 'file', DATA_DIR: dir, STREET_PROOF_BITS: '0' };
 resetLimits(); clock = Date.parse('2026-11-05T20:00:00Z');
 res = await call('GET', null, {}, FENV); assert.equal(res.out.live, true); assert.deepEqual(res.out.houses, []);
 const posts = await Promise.all(Array.from({ length: 5 }, (_, i) => call('POST', { ...good, id: `para${i}aaaaaaaaaaaaaa`, name: `Para ${i}`, code: K.encodeHouse(3000 + i, {}, 'haveli') }, {}, FENV, `7.7.7.${i}`)));
@@ -570,9 +585,19 @@ console.log('8 ok: country and city from any host');
   const t1 = performance.now(); await getBig('?map=1'); await getBig(''); await getBig('?sn=5,6,7');
   assert.ok(performance.now() - t1 < 400, 'the second look at the same file does not read every code again');
   assert.equal((await getBig('')).houses.length, 60, 'the street row still shows sixty');
-  r = await call('POST', mk(77), { store: big }, ENV, '10.1.1.1'); assert.ok(r.out.ok); assert.equal(r.out.house.sn, 2001);
-  all = await getBig('?map=1'); assert.equal(all.houses.length, 2000); assert.equal(all.houses[0][0], 2, 'house 1 was lit longest ago and left'); assert.equal(all.houses[1999][0], 2001);
-  console.log('11 ok: the city map, full houses on request, word filter, dark houses, two thousand houses');
+  // every house is lit: a new one does not push any of them off, it waits; the owners still update theirs
+  const w0 = big.state.writes;
+  r = await call('POST', mk(77), { store: big }, ENV, '10.1.1.1'); assert.equal(r.status, 503); assert.equal(r.out.error, 'full');
+  assert.equal(big.state.writes, w0, 'a full street is not written');
+  r = await call('POST', { ...mk(78), id: 'k5notavisitorid', name: 'x' }, { store: big }, ENV, '10.1.1.2'); assert.equal(r.out.error, 'bad');
+  // houses 1 and 2 went dark: the next new house takes the place of the one that went dark longest ago, the lit ones stay
+  { const j = JSON.parse(big.state.text); j.houses[0].updated = new Date(t0 - 4 * 86400000).toISOString(); j.houses[1].updated = new Date(t0 - 3 * 86400000).toISOString(); big.state.text = JSON.stringify(j); }
+  r = await call('POST', mk(77), { store: big }, ENV, '10.1.1.1'); assert.ok(r.out.ok, JSON.stringify(r.out)); assert.equal(r.out.house.sn, 2001);
+  all = await getBig('?map=1'); assert.equal(all.houses.length, 2000); assert.equal(all.houses[0][0], 2, 'house 1 was dark longest and left'); assert.equal(all.houses[1999][0], 2001);
+  r = await call('POST', mk(81), { store: big }, ENV, '10.1.1.3'); assert.ok(r.out.ok, JSON.stringify(r.out)); assert.equal(r.out.house.sn, 2002);
+  all = await getBig('?map=1'); assert.equal(all.houses.length, 2000); assert.equal(all.houses[0][0], 3, 'then house 2');
+  r = await call('POST', mk(82), { store: big }, ENV, '10.1.1.4'); assert.equal(r.out.error, 'full', 'no dark house left');
+  console.log('11 ok: the city map, full houses on request, word filter, dark houses, two thousand houses, a full street');
 }
 
 // ---- 12. where the houses of the city stand (src/lib/lights-city.js)
@@ -613,5 +638,80 @@ console.log('8 ok: country and city from any host');
   assert.equal(m.windows.filter((w) => w[4]).length, Math.max(1, Math.round((real.windows.length * 4) / K.NIGHTS)));
   assert.equal(C.miniHouse(7123, 'haveli', 'gold', '', 0).windows.filter((w) => w[4]).length, 0, 'a dark house has no lit windows');
   console.log('12 ok: the plan of the city, districts from the first house, roads, finding a house, the small house');
+}
+// ---- 13. against a flood of new houses: the browser check (src/lib/street-proof.js) and removing a run of numbers
+{
+  const P = await import(new URL('../src/lib/street-proof.js', import.meta.url));
+  const { createHash } = await import('node:crypto');
+  // the browser's sha256 is the same as node's, for texts of every length around the block edges
+  for (let n = 0; n < 150; n++) { const t = Array.from({ length: n }, (_, i) => String.fromCharCode(33 + ((i * 7 + n) % 90))).join(''); assert.equal(P.sha256Hex(t), createHash('sha256').update(t).digest('hex'), `sha256 of ${n} characters`); }
+  resetLimits(); clock = Date.parse('2026-11-16T12:00:00Z');
+  const PENV = { ...ENV, STREET_PROOF_BITS: '8' };
+  let reads = 0; const st = memoryStore(); const rd = st.read; st.read = async (...a) => { reads += 1; return rd(...a); };
+  const challenge = async (env = PENV) => (await handle(new Request('https://ullu.vercel.app/api/street?challenge=1'), env, { now, store: st })).json();
+  const c0 = await challenge(); assert.equal(c0.bits, 8); assert.match(c0.challenge, /^v1\.\d{13}\.[0-9a-f]{16}\.8\.[A-Za-z0-9_-]{22}$/);
+  assert.equal((await challenge(ENV)).challenge, '', 'bits 0: no check'); assert.equal((await challenge({ ...ENV, STREET_PROOF_BITS: undefined })).bits, 16, 'sixteen bits when nothing is set');
+  assert.equal((await challenge({ ...ENV, STREET_PROOF_BITS: '99' })).bits, 16, 'a wrong setting falls back to sixteen');
+  assert.equal((await challenge({ ...ENV, STREET_PROOF_BITS: '' })).bits, 16, 'an empty line in .env is not 0');
+  assert.equal((await challenge({ ...ENV, STREET_PROOF_BITS: ' 12 ' })).bits, 12);
+  const hp = (i, more = {}) => ({ id: `proofvisitor${String(i).padStart(8, '0')}`, name: `Proof ${i}`, code: K.encodeHouse(8800 + i, {}), nights: 3, gifts: 3, best: 3, landings: 0, streak: 3, ...more });
+  const solved = async (i, env = PENV) => { const c = await challenge(env); return { challenge: c.challenge, nonce: await P.solveProof(c.challenge, hp(i).id, c.bits) }; };
+  // a new house without the answer is turned away and nothing is written; the page then asks for a challenge
+  let r = await call('POST', hp(1), { store: st }, PENV, '8.8.1.1'); assert.equal(r.status, 403); assert.equal(r.out.error, 'proof'); assert.equal(st.state.writes, 0);
+  const pr1 = await solved(1);
+  assert.ok(P.proofOk(pr1.challenge, hp(1).id, pr1.nonce, 8));
+  r = await call('POST', hp(1, { proof: pr1 }), { store: st }, PENV, '8.8.1.1'); assert.ok(r.out.ok, JSON.stringify(r.out)); assert.equal(r.out.house.sn, 1);
+  // the owner updates the house without any check
+  r = await call('POST', hp(1, { name: 'Proof one', nights: 4, gifts: 4, best: 4, streak: 4 }), { store: st }, PENV, '8.8.1.1'); assert.ok(r.out.ok); assert.equal(r.out.house.sn, 1);
+  // an answer is for one browser id and one house
+  r = await call('POST', hp(2, { proof: pr1 }), { store: st }, PENV, '8.8.1.2'); assert.equal(r.out.error, 'proof', 'not for another id');
+  { const j = JSON.parse(st.state.text); j.houses = []; st.state.text = JSON.stringify(j); }
+  r = await call('POST', hp(1, { proof: pr1 }), { store: st }, PENV, '8.8.1.1'); assert.equal(r.out.error, 'proof', 'not twice');
+  // wrong answers are turned away before the street is read
+  const pr2 = await solved(2);
+  const [v, t, rand, bits, sig] = pr2.challenge.split('.');
+  const bad = [
+    null, 'x', {}, { challenge: pr2.challenge }, { challenge: pr2.challenge, nonce: 5 }, { challenge: pr2.challenge, nonce: 'NOPE' }, { challenge: pr2.challenge, nonce: 'a'.repeat(13) },
+    { challenge: pr2.challenge + 'x', nonce: pr2.nonce }, { challenge: 'v'.repeat(121), nonce: pr2.nonce },
+    { challenge: [v, t, rand, bits, sig.slice(0, -1) + (sig.endsWith('A') ? 'B' : 'A')].join('.'), nonce: pr2.nonce },
+    { challenge: [v, t, rand.replace(/^./, (ch) => (ch === '0' ? '1' : '0')), bits, sig].join('.'), nonce: pr2.nonce },
+    { challenge: [v, String(Number(t) + 1), rand, bits, sig].join('.'), nonce: pr2.nonce },
+    { challenge: [v, t, rand, '30', sig].join('.'), nonce: pr2.nonce },
+  ];
+  // a nonce that does not give the zero bits
+  { let n = 0; while (P.proofOk(pr2.challenge, hp(2).id, n.toString(36), 8)) n += 1; bad.push({ challenge: pr2.challenge, nonce: n.toString(36) }); }
+  const r0 = reads;
+  for (const proof of bad) { const x = await call('POST', hp(2, { proof }), { store: st }, PENV, '8.8.1.2'); assert.equal(x.status, 403, JSON.stringify(proof)); assert.equal(x.out.error, 'proof'); }
+  assert.equal(reads, r0, 'no wrong answer reads the street');
+  // a challenge signed with another salt, an easier one, a stale one
+  const other = await solved(2, { ...PENV, STREET_SALT: 'other' });
+  assert.equal((await call('POST', hp(2, { proof: other }), { store: st }, PENV, '8.8.1.2')).out.error, 'proof', 'another street');
+  const easy = await solved(2, { ...PENV, STREET_PROOF_BITS: '4' });
+  assert.equal((await call('POST', hp(2, { proof: easy }), { store: st }, PENV, '8.8.1.2')).out.error, 'proof', 'easier than the street asks now');
+  const old = await solved(2); clock += 11 * 60000;
+  assert.equal((await call('POST', hp(2, { proof: old }), { store: st }, PENV, '8.8.1.2')).out.error, 'proof', 'older than ten minutes');
+  r = await call('POST', hp(2, { proof: await solved(2) }), { store: st }, PENV, '8.8.1.2'); assert.ok(r.out.ok, 'a fresh one is fine');
+  // the real difficulty: one house, solved the way a browser does it
+  { const t0 = performance.now(); const real = await solved(3, { ...ENV, STREET_PROOF_BITS: undefined }); const ms = performance.now() - t0;
+    r = await call('POST', hp(3, { proof: real }), { store: st }, { ...ENV, STREET_PROOF_BITS: undefined }, '8.8.1.3'); assert.ok(r.out.ok, JSON.stringify(r.out));
+    console.log(`   sixteen bits found in ${Math.round(ms)} ms here`); }
+  // the moderator takes a run of numbers off the street at once (a flood comes as one run); one line in the log
+  const { handle: admin } = await import(new URL('../api/admin.js', import.meta.url));
+  const AENV = { ...ENV, ADMIN_PASSWORD: 'a-long-moderator-password-123' };
+  const acall = async (body) => { const x = await admin(new Request('https://x/api/admin', { method: 'POST', headers: { authorization: `Bearer ${AENV.ADMIN_PASSWORD}`, 'x-forwarded-for': '5.5.5.9' }, body: JSON.stringify(body) }), AENV, { now, store: st }); return { status: x.status, out: await x.json() }; };
+  resetLimits();
+  for (let i = 10; i < 20; i++) assert.ok((await call('POST', hp(i), { store: st }, ENV, `8.8.2.${i}`)).out.ok);
+  const sns = () => JSON.parse(st.state.text).houses.map((x) => x.sn).sort((a2, b2) => a2 - b2);
+  const before = sns(); assert.equal(before.length, 12);
+  for (const body of [{ action: 'remove', from: 5, to: 4 }, { action: 'remove', from: 0, to: 4 }, { action: 'remove', from: 1, to: 200000 }, { action: 'ban', from: 5, to: 9 },
+    { action: 'unban', from: 5, to: 9 }, { action: 'remove', from: '5', to: 9 }, { action: 'remove', from: 5 }])
+    assert.equal((await acall(body)).status, 400, JSON.stringify(body));
+  assert.equal((await acall({ action: 'remove', from: 500, to: 600 })).status, 404, 'no houses with these numbers');
+  const lo = before[4], hi = before[9];
+  r = await acall({ action: 'remove', from: lo, to: hi }); assert.ok(r.out.ok); assert.equal(r.out.removed, 6);
+  assert.deepEqual(sns(), before.filter((n) => n < lo || n > hi));
+  const log = JSON.parse(st.state.text).log.at(-1); assert.deepEqual([log.action, log.sn, log.to, log.name], ['remove', lo, hi, '6 houses']);
+  assert.equal(JSON.parse(st.state.text).bans.length, 0, 'a run is removed, not banned');
+  console.log('13 ok: the browser check for new houses, wrong and used answers, removing a run of numbers');
 }
 console.log('street: all ok');

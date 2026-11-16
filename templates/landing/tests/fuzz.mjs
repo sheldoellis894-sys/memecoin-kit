@@ -86,15 +86,34 @@ writeFileSync((process.argv[2] || (await import('node:os')).tmpdir()) + '/ullu-s
 // 5. the street API with random bodies, methods and headers
 resetLimits();
 const store = { t: null, async read() { return this.t; }, async write(e, p, b) { this.t = b; } };
-const ENV = { PROJECT: 'ullu', BLOB_READ_WRITE_TOKEN: 'b', STREET_BLOCK: 'rug' };
+// every other request with the browser check on (random answers to it), the rest with it off, so houses get through too
+const ENV = { PROJECT: 'ullu', BLOB_READ_WRITE_TOKEN: 'b', STREET_BLOCK: 'rug', STREET_PROOF_BITS: '0' };
+const PENV = { ...ENV, STREET_PROOF_BITS: '8' };
 for (let i = 0; i < 4000; i++) {
-  const body = R() < 0.5 ? { id: pick(['abcdefghijklmnop' + i, any()]), name: pick(['Raju', any()]), code: pick([real, any()]), nights: pick([9, any()]), gifts: pick([9, any()]), best: pick([7, any()]), landings: pick([1, any()]), streak: pick([2, any()]) } : any();
+  const body = R() < 0.5 ? { id: pick(['abcdefghijklmnop' + i, any()]), name: pick(['Raju', any()]), code: pick([real, any()]), nights: pick([9, any()]), gifts: pick([9, any()]), best: pick([7, any()]), landings: pick([1, any()]), streak: pick([2, any()]), ...(R() < 0.5 ? { proof: pick([any(), { challenge: pick([any(), 'v1.' + str(any()) + '.0.8.x']), nonce: pick([any(), 'a1']) }]) } : {}) } : any();
   const text = R() < 0.9 ? JSON.stringify(body) ?? 'x' : str(any());
   const req = new Request('https://x/api/street', { method: pick(['POST', 'POST', 'GET', 'PUT', 'DELETE', 'OPTIONS']), headers: { 'x-forwarded-for': str(pick(['1.1.1.' + (i % 250), any(), '::1', 'zzz'])).replace(/[^\x20-\x7e]/g, '').slice(0, 300) }, body: ['GET'].includes(pick(['GET'])) && false ? undefined : undefined });
   const req2 = new Request('https://x/api/street', { method: req.method, headers: req.headers, ...(req.method === 'GET' ? {} : { body: text }) });
-  let res; try { res = await handle(req2, ENV, { store, now: () => Date.parse('2026-11-05T20:00:00Z') + i * 1000 }); } catch (e) { fails.push('street threw: ' + e.message); continue; }
+  let res; try { res = await handle(req2, i % 2 ? PENV : ENV, { store, now: () => Date.parse('2026-11-05T20:00:00Z') + i * 1000 }); } catch (e) { fails.push('street threw: ' + e.message); continue; }
   ok(res.status < 500 || res.status === 503, 'street status ' + res.status);
   const out = await res.json().catch(() => null); ok(out && typeof out === 'object', 'street json');
+}
+// a right house with random answers to the browser check: turned away, never a crash
+{
+  const P = await import(new URL('../src/lib/street-proof.js', import.meta.url));
+  const t = Date.parse('2026-11-05T20:00:00Z');
+  const real = (await (await handle(new Request('https://x/api/street?challenge=1'), PENV, { store, now: () => t })).json()).challenge;
+  const cut = (c) => { const p = c.split('.'); p[Math.floor(R() * p.length)] = str(any()).slice(0, 30); return p.join('.'); };
+  for (let i = 0; i < 1500; i++) {
+    const proof = pick([any(), { challenge: pick([str(any()), real, cut(real)]), nonce: pick([any(), str(any()), 'a1', 'zz']) }, { challenge: cut(real), nonce: '0' }]);
+    const body = { id: `fuzzproof${String(i).padStart(8, '0')}`, name: 'Raju', code: K.encodeHouse(60000 + i, {}), nights: 9, gifts: 9, best: 7, landings: 1, streak: 2, proof };
+    const req = new Request('https://x/api/street', { method: 'POST', headers: { 'x-forwarded-for': `3.3.${i % 250}.${i % 7}` }, body: JSON.stringify(body) });
+    let res; try { res = await handle(req, PENV, { store, now: () => t + i }); } catch (e) { fails.push('proof threw: ' + e.message); continue; }
+    const out = await res.json().catch(() => null);
+    // a random nonce for the real challenge is a right answer once in 256 tries (8 bits): that one is taken, rightly
+    const lucky = typeof proof?.challenge === 'string' && typeof proof?.nonce === 'string' && P.proofOk(proof.challenge, body.id, proof.nonce, 8) && proof.challenge === real;
+    ok(lucky ? res.status === 200 : res.status === 403 && out?.error === 'proof', 'random proof ' + res.status + ' ' + out?.error);
+  }
 }
 const g = await handle(new Request('https://x/api/street'), ENV, { store, now: () => Date.now() });
 const gj = await g.json(); ok(Array.isArray(gj.houses) && gj.houses.every((x) => K.decodeHouse(x.code) && !('key' in x)), 'street GET clean');
