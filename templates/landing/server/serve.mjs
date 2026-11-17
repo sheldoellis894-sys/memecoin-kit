@@ -20,6 +20,13 @@ try {
     if (m && !line.trim().startsWith('#') && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2');
   }
 } catch { /* no .env file */ }
+// a relative DATA_DIR is the folder next to package.json, wherever the server is started from
+if (process.env.DATA_DIR && !path.isAbsolute(process.env.DATA_DIR)) process.env.DATA_DIR = path.resolve(root, process.env.DATA_DIR);
+// the street ties every house to its owner with STREET_SALT: houses posted without it would be lost the day it is set
+if (fs.existsSync(path.join(root, 'api', 'street.js')) && String(process.env.STREET_SALT || '').trim().length < 16) {
+  console.error('STREET_SALT is missing or shorter than 16 characters: put a long random string into .env (for example the output of openssl rand -hex 32). Set it once and never change it');
+  process.exit(1);
+}
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
@@ -27,6 +34,8 @@ const DIST = path.join(root, 'dist');
 const MAX_BODY = 64 * 1024;
 // sent with every file: the browser must not guess file types, and other sites learn only the domain the visitor came from
 const SAFE = { 'x-content-type-options': 'nosniff', 'referrer-policy': 'strict-origin-when-cross-origin' };
+// the moderator page never opens inside another site's frame
+const NO_FRAME = { 'x-frame-options': 'DENY', 'content-security-policy': "frame-ancestors 'none'" };
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp',
@@ -94,7 +103,8 @@ function serveFile(req, res) {
   const ext = path.extname(file).toLowerCase();
   // files with a hash in the name never change; pages and project pictures may
   const cache = p.startsWith('/_astro/') ? 'public, max-age=31536000, immutable' : ext === '.html' ? 'no-cache' : 'public, max-age=3600';
-  res.writeHead(200, { 'content-type': TYPES[ext] || 'application/octet-stream', 'cache-control': cache, ...SAFE });
+  const admin = path.relative(DIST, file).split(path.sep)[0].replace(/\.html$/, '') === 'admin';
+  res.writeHead(200, { 'content-type': TYPES[ext] || 'application/octet-stream', 'cache-control': cache, ...SAFE, ...(admin ? NO_FRAME : {}) });
   if (req.method === 'HEAD') { res.end(); return; }
   fs.createReadStream(file).on('error', () => { if (!res.headersSent) res.writeHead(500); res.end(); }).pipe(res);
 }

@@ -376,9 +376,15 @@ console.log('6 ok: dark houses, house of the night, a moved house takes a dark o
 // ---- 7. the same street on an own server: files on disk instead of Vercel Blob, parallel posts are not lost
 const os = await import('node:os'); const fsp = await import('node:fs/promises'); const pth = await import('node:path');
 const dir = await fsp.mkdtemp(pth.join(os.tmpdir(), 'street-'));
-const FENV = { PROJECT: 'ullu', STORE: 'file', DATA_DIR: dir, STREET_PROOF_BITS: '0' };
+const FENV = { PROJECT: 'ullu', STORE: 'file', DATA_DIR: dir, STREET_PROOF_BITS: '0', STREET_SALT: 'file-street-salt-0123' };
 resetLimits(); clock = Date.parse('2026-11-05T20:00:00Z');
 res = await call('GET', null, {}, FENV); assert.equal(res.out.live, true); assert.deepEqual(res.out.houses, []);
+// without STREET_SALT the street is read but nothing is written (houses tied to no salt would be lost once it is set)
+for (const salt of [undefined, '', '   ']) {
+  res = await call('POST', { ...good, id: 'nosaltaaaaaaaaaaaaa', name: 'No salt', code: K.encodeHouse(2999, {}, 'haveli') }, {}, { ...FENV, STREET_SALT: salt }, '7.7.6.1');
+  assert.equal(res.status, 503); assert.equal(res.out.error, 'off');
+}
+await assert.rejects(fsp.readFile(pth.join(dir, 'ullu', 'street.json'), 'utf8'), 'no file written without a salt');
 const posts = await Promise.all(Array.from({ length: 5 }, (_, i) => call('POST', { ...good, id: `para${i}aaaaaaaaaaaaaa`, name: `Para ${i}`, code: K.encodeHouse(3000 + i, {}, 'haveli') }, {}, FENV, `7.7.7.${i}`)));
 assert.ok(posts.every((x) => x.out.ok), JSON.stringify(posts.map((x) => x.out)));
 const onDisk = JSON.parse(await fsp.readFile(pth.join(dir, 'ullu', 'street.json'), 'utf8'));
@@ -712,6 +718,21 @@ console.log('8 ok: country and city from any host');
   assert.deepEqual(sns(), before.filter((n) => n < lo || n > hi));
   const log = JSON.parse(st.state.text).log.at(-1); assert.deepEqual([log.action, log.sn, log.to, log.name], ['remove', lo, hi, '6 houses']);
   assert.equal(JSON.parse(st.state.text).bans.length, 0, 'a run is removed, not banned');
-  console.log('13 ok: the browser check for new houses, wrong and used answers, removing a run of numbers');
+  // a weak moderator password keeps the page off: 16 characters of one or two letters are not enough
+  const { resetAdminLimits } = await import(new URL('../api/admin.js', import.meta.url));
+  const aget = async (pass, ip, env = AENV, at = now) => (await admin(new Request('https://x/api/admin', { headers: { authorization: `Bearer ${pass}`, 'x-forwarded-for': ip } }), env, { now: at, store: st })).status;
+  resetAdminLimits();
+  for (const weak of ['aaaaaaaaaaaaaaaa', 'abababababababababab', 'abcdefgabcdefgabcdefg']) assert.equal(await aget(weak, '5.6.0.1', { ...ENV, ADMIN_PASSWORD: weak }), 404, weak);
+  assert.equal(await aget('abcdefghabcdefgh', '5.6.0.1', { ...ENV, ADMIN_PASSWORD: 'abcdefghabcdefgh' }), 200, 'eight different characters');
+  // wrong passwords from thousands of addresses do not wipe the count of the first one
+  resetAdminLimits();
+  for (let i = 0; i < 5; i++) assert.equal(await aget('wrong-password-xyz', '5.6.1.1'), 401);
+  assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.1.1'), 429, 'sixth try waits');
+  for (let i = 0; i < 5010; i++) await aget('wrong-password-xyz', `2001:db8:aaaa:${i.toString(16)}::1`);
+  assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.1.1'), 429, 'still waits after 5010 other addresses');
+  assert.equal(await aget('wrong-password-xyz', '5.6.9.9'), 429, 'a new address waits too while the minute is full');
+  assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.1.1', AENV, () => clock + 60000), 200, 'the next minute the moderator comes in');
+  resetAdminLimits();
+  console.log('13 ok: the browser check for new houses, wrong and used answers, removing a run of numbers, admin password limits');
 }
 console.log('street: all ok');

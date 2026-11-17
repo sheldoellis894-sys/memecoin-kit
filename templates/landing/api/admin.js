@@ -1,5 +1,5 @@
 // Vercel Function or own-server function behind the moderator page /admin (section lightsStreet of the layout "lights").
-// One password for the moderator: env ADMIN_PASSWORD, at least 16 characters. Without it the page and this function are off.
+// One password for the moderator: env ADMIN_PASSWORD, at least 16 characters and 8 different ones. Without it the page and this function are off.
 // The password goes in every request as "Authorization: Bearer <password>"; nothing else is needed (no accounts, no cookies).
 //
 // GET              → { street, houses, bans, log, stats } — every house on the street with its number, name, signs and nights,
@@ -32,15 +32,20 @@ function passOk(env, request) {
   const got = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
   return timingSafeEqual(sha(want), sha(got)) && got.length > 0;
 }
+const ADDRESSES = 5000;   // addresses with wrong passwords kept for the current minute
 function tooMany(ip, now) {
   const m = Math.floor(now / 60000); const f = fails.get(ip);
-  return Boolean(f && f.at === m && f.n >= TRIES);
+  if (f && f.at === m) return f.n >= TRIES;
+  // wrong passwords from thousands of addresses in one minute: no new address is checked until the minute is over
+  if (fails.size >= ADDRESSES) for (const [k, x] of fails) if (x.at !== m) fails.delete(k);
+  return fails.size >= ADDRESSES;
 }
 function failed(ip, now) {
   const m = Math.floor(now / 60000); const f = fails.get(ip);
-  if (fails.size > 5000) fails.clear();
   fails.set(ip, f && f.at === m ? { at: m, n: f.n + 1 } : { at: m, n: 1 });
 }
+/** A password the page opens with: 16 characters or more and not one or two letters repeated. */
+const strong = (p) => p.length >= 16 && new Set(p).size >= 8;
 
 /** What the moderator sees of a house: everything but the key. */
 function adminOf(h, now, conf, block, bans) {
@@ -57,7 +62,7 @@ function adminOf(h, now, conf, block, bans) {
 export async function handle(request, env = process.env, deps = {}) {
   const conf = STREETS[env.PROJECT];
   const noindex = { 'x-robots-tag': 'noindex, nofollow' };
-  if (!env.PROJECT || String(env.ADMIN_PASSWORD || '').length < 16) return json({ error: 'not_found' }, 404, noindex);
+  if (!env.PROJECT || !strong(String(env.ADMIN_PASSWORD || ''))) return json({ error: 'not_found' }, 404, noindex);
   if (!storeKind(env)) return json({ error: 'off' }, 503, noindex);
   const now = (deps.now || Date.now)();
   const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);

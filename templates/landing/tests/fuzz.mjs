@@ -87,7 +87,7 @@ writeFileSync((process.argv[2] || (await import('node:os')).tmpdir()) + '/ullu-s
 resetLimits();
 const store = { t: null, async read() { return this.t; }, async write(e, p, b) { this.t = b; } };
 // every other request with the browser check on (random answers to it), the rest with it off, so houses get through too
-const ENV = { PROJECT: 'ullu', BLOB_READ_WRITE_TOKEN: 'b', STREET_BLOCK: 'rug', STREET_PROOF_BITS: '0' };
+const ENV = { PROJECT: 'ullu', BLOB_READ_WRITE_TOKEN: 'b', STREET_BLOCK: 'rug', STREET_PROOF_BITS: '0', STREET_SALT: 'fuzz-street-salt-0123' };
 const PENV = { ...ENV, STREET_PROOF_BITS: '8' };
 for (let i = 0; i < 4000; i++) {
   const body = R() < 0.5 ? { id: pick(['abcdefghijklmnop' + i, any()]), name: pick(['Raju', any()]), code: pick([real, any()]), nights: pick([9, any()]), gifts: pick([9, any()]), best: pick([7, any()]), landings: pick([1, any()]), streak: pick([2, any()]), ...(R() < 0.5 ? { proof: pick([any(), { challenge: pick([any(), 'v1.' + str(any()) + '.0.8.x']), nonce: pick([any(), 'a1']) }]) } : {}) } : any();

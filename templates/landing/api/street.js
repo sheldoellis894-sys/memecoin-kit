@@ -18,7 +18,7 @@
 //   BLOB_READ_WRITE_TOKEN — on Vercel: added when a Blob store is connected to the project
 //                           (new stores add BLOB_STORE_ID instead; the Blob package then signs in with Vercel OIDC)
 //   STORE=file, DATA_DIR  — on an own server: the folder for the file (the client's hosting)
-//   STREET_SALT           — optional: any long random string; visitor ids are stored only as hashes with it,
+//   STREET_SALT           — required for posting: any long random string; visitor ids are stored only as hashes with it,
 //                           and the challenges of the browser check are signed with it
 //   STREET_PROOF_BITS     — optional: how hard the browser check is (default 16, about a second on a phone; 0 = off)
 //   STREET_BLOCK          — optional: more words that may not be in a name or on a sign, comma separated
@@ -229,6 +229,8 @@ export async function handle(request, env = process.env, deps = {}) {
 
   if (request.method !== 'POST') return json({ error: 'method' }, 405, { allow: 'GET, POST' });
   if (!live) return json({ ok: false, error: 'off' }, 503);
+  // without STREET_SALT nothing is written: houses tied to no salt would be lost the day it is set
+  if (!String(env.STREET_SALT || '').trim()) return json({ ok: false, error: 'off' }, 503);
   if (Number(request.headers.get('content-length') || 0) > MAX_BODY) return json({ ok: false, error: 'big' }, 413);
   let b;
   try {

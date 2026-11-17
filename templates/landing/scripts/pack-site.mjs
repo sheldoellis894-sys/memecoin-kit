@@ -73,7 +73,7 @@ fs.writeFileSync(path.join(out, '.env.example'), [
     'STORE=file',
     'DATA_DIR=./data',
     ...(street ? [
-      '# any long random string; visitor ids are stored only as hashes made with it. Never change it after launch',
+      '# required: a long random string, 16 characters or more (the server does not start without it); visitor ids are stored only as hashes made with it. Never change it after launch',
       'STREET_SALT=',
       '# optional: words not allowed in names on the street, comma separated',
       'STREET_BLOCK=',
@@ -86,7 +86,7 @@ fs.writeFileSync(path.join(out, '.env.example'), [
     'TRUST_PROXY=',
   ] : []),
   ...(functions.includes('admin') ? [
-    '# the moderator page /admin: one password, at least 16 characters: Latin letters, digits and symbols (without it the page is off). Keep it secret',
+    '# the moderator page /admin: one password, at least 16 characters and at least 8 different ones: Latin letters, digits and symbols (without it the page is off). Keep it secret',
     'ADMIN_PASSWORD=',
   ] : []),
   // settings of this project's own functions: config "server.env": [{ "key": "NAME", "note": "what it is" }]
@@ -166,8 +166,8 @@ sudo mkdir -p data && sudo chown www-data:www-data data
 ${functions.length ? `
 Fill in \`.env\`:
 
-${street ? `- \`STREET_SALT\` - a long random string (for example \`openssl rand -hex 32\`). Set it once and never change it: every house on the street is tied to it
-` : ''}${(config.server?.env || []).map((e) => `- \`${e.key}\` - ${e.note || ''}\n`).join('')}- ${functions.includes('admin') ? `\`ADMIN_PASSWORD\` - the password of the moderator page, 16 characters or more, only Latin letters, digits and symbols (for example \`openssl rand -base64 24\`)
+${street ? `- \`STREET_SALT\` - a long random string (for example \`openssl rand -hex 32\`). Required: the server does not start without it. Set it once and never change it: every house on the street is tied to it
+` : ''}${(config.server?.env || []).map((e) => `- \`${e.key}\` - ${e.note || ''}\n`).join('')}- ${functions.includes('admin') ? `\`ADMIN_PASSWORD\` - the password of the moderator page, 16 characters or more (at least 8 different ones), only Latin letters, digits and symbols (for example \`openssl rand -base64 24\`)
 - ` : ''}\`DATA_DIR=./data\` - the folder with the site's data${street ? ' (the street: houses, bans, the moderation log)' : ''}. Back it up; never delete it on updates
 - \`TRUST_PROXY\` - leave empty when nginx runs on the same server (as below)
 ` : ''}${functions.includes('admin') ? `
