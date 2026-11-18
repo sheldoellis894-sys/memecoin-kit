@@ -59,12 +59,18 @@ assert.equal((await post('0OIl' + 'a'.repeat(40))).status, 400);
 assert.equal((await post(WALLET, { ...ENV, PROJECT: 'tenkeys' })).status, 404);
 assert.equal((await post(WALLET, { PROJECT: 'chefrekt' })).status, 503);
 assert.equal((await post(WALLET, ENV, { origin: 'https://evil.example' })).status, 403);
+assert.equal((await post(WALLET, ENV, { origin: '' })).status, 403, 'no Origin = not a browser on this site');
+assert.equal((await post(WALLET, ENV, { origin: 'null' })).status, 403);
 const g = await handle(new Request('https://x/api/inspect'), ENV); assert.equal((await g.json()).live, true);
 const g2 = await handle(new Request('https://x/api/inspect'), { PROJECT: 'chefrekt' }); assert.equal((await g2.json()).live, false);
 const lim = { ...ENV, AGENT_PER_IP: '2' };
 const h = { 'x-forwarded-for': '9.9.9.9' };
 // the streams are read to the end: an unread stream keeps running and would eat the answers of the next scenario
 for (const want of [200, 200, 429]) { const res = await post(WALLET, lim, h); assert.equal(res.status, want); await res.text(); }
+// one IPv6 visitor counts as one /64 block; the daily cap of the whole site
+for (const want of [200, 200, 429]) { const res = await post(WALLET, lim, { 'x-forwarded-for': `2001:db8:1:2::${want}${Math.random().toString(16).slice(2, 5)}` }); assert.equal(res.status, want); await res.text(); }
+{ const res = await post(WALLET, { ...ENV, AGENT_DAILY_CAP: '1' }, { 'x-forwarded-for': '9.9.8.2' });
+  assert.equal(res.status, 429); assert.equal((await res.json()).error, 'full', 'the whole site is full for today'); }
 console.log('6 ok: guards and limits');
 
 // 7. The first entry comes back unfinished (as on the first live run): it is sent back once and the rewrite is used

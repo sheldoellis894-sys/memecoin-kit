@@ -1,6 +1,7 @@
 // Checks the street of houses (api/street.js) and the rules of the nights (src/lib/lights-kit.js) without any keys:
 // storage lives in memory. Run inside templates/landing:  node tests/street.test.mjs
 import assert from 'node:assert/strict';
+console.info = () => {}; console.warn = () => {};   // the [admin] lines of the server log
 const { handle, resetLimits } = await import(new URL('../api/street.js', import.meta.url));
 const K = await import(new URL('../src/lib/lights-kit.js', import.meta.url));
 
@@ -350,18 +351,44 @@ resetLimits();
   const v6 = await Promise.all(Array.from({ length: 41 }, (_, i) => call('POST', { ...good, id: `vsixvsixvsixvsix${String(i).padStart(2, '0')}0`, name: `Six ${i}`, code: K.encodeHouse(7000 + i, {}) }, { store }, ENV, `2001:db8:aa:bb::${i + 1}`)));
   assert.deepEqual(v6.map((x) => x.status), [...Array(20).fill(200), ...Array(21).fill(429)]);
 }
-// Blob in public mode reads through a CDN that may give the old file: posts one after another are not lost
+// Vercel: two copies of the function change the street at the same moment. A write goes through only when the file has
+// not changed since it was read (ETag); otherwise the street is read again and the change made again. Nothing is lost
 resetLimits();
 {
-  const cdn = memoryStore(); let stale = null;
-  cdn.read = async () => stale;                       // always the file as it was before (the CDN copy)
-  const w = cdn.write; cdn.write = async (e, p, body) => { await w(e, p, body); };
-  for (let i = 0; i < 3; i++) assert.ok((await call('POST', { ...good, id: `cdncdncdncdncdn${i}000`, name: `Cdn ${i}`, code: K.encodeHouse(7100 + i, {}) }, { store: cdn }, ENV, `10.2.${i}.1`)).out.ok);
-  assert.equal(JSON.parse(cdn.state.text).houses.length, 3, 'all three posts kept');
-  stale = cdn.state.text;
-  assert.equal((await call('GET', null, { store: cdn })).out.count, 3);
+  const tagged = (text = '{"houses":[],"bans":[],"log":[],"lastSn":0}') => {
+    const state = { text, ver: 0, writes: 0, conflicts: 0 };
+    return { state,
+      async read() { return state.text; },
+      async readTagged() { return { text: state.text, etag: state.text === null ? '' : `"v${state.ver}"` }; },
+      async write(e, p, body, opts = {}) {
+        if (opts.ifMatch && opts.ifMatch !== `"v${state.ver}"`) { state.conflicts += 1; throw Object.assign(new Error('changed'), { code: 'conflict' }); }
+        state.text = body; state.ver += 1; state.writes += 1;
+      } };
+  };
+  const race = tagged();
+  // another copy of the function writes the street between our read and our write, twice
+  let left = 2; const rt = race.readTagged.bind(race);
+  race.readTagged = async (...a) => {
+    const got = await rt(...a);
+    if (left-- > 0) { const st = JSON.parse(race.state.text || '{"houses":[],"bans":[],"log":[]}'); st.houses.push({ key: `other${left}`, code: K.encodeHouse(7300 + left, {}), name: `Other ${left}`, seed: 7300 + left, family: 'mumbai', sn: 900 + left, updated: new Date(clock).toISOString(), light: 1, lightDark: 1, streak: 1 }); race.state.text = JSON.stringify(st); race.state.ver += 1; }
+    return got;
+  };
+  const r = await call('POST', { ...good, id: 'racerracerracer0000', name: 'Racer', code: K.encodeHouse(7200, {}) }, { store: race }, ENV, '10.3.0.1');
+  assert.ok(r.out.ok, JSON.stringify(r.out));
+  assert.equal(race.state.conflicts, 2, 'two writes were turned away');
+  assert.deepEqual(JSON.parse(race.state.text).houses.map((x) => x.name).sort(), ['Other 0', 'Other 1', 'Racer'], 'every house is kept');
+  // a file that keeps changing all the time: the post gives up with "busy" instead of writing over it
+  const storm = tagged(); storm.readTagged = async () => { storm.state.ver += 1; return { text: storm.state.text, etag: `"v${storm.state.ver - 1}"` }; };
+  const busy = await call('POST', { ...good, id: 'stormstormstorm0000', name: 'Storm', code: K.encodeHouse(7201, {}) }, { store: storm }, ENV, '10.3.0.2');
+  assert.equal(busy.status, 503); assert.equal(busy.out.error, 'busy'); assert.equal(storm.state.writes, 0);
+  // fifty posts at once on two "copies": every house arrives, numbers are never given twice
+  const many = tagged(null);
+  const all = await Promise.all(Array.from({ length: 50 }, (_, i) => call('POST', { ...good, id: `manymanymany${String(i).padStart(4, '0')}`, name: `Many ${i}`, code: K.encodeHouse(7400 + i, {}) }, { store: many }, ENV, `10.4.${i}.1`)));
+  assert.ok(all.every((x) => x.out.ok), JSON.stringify(all.find((x) => !x.out.ok)?.out));
+  const sns = JSON.parse(many.state.text).houses.map((x) => x.sn);
+  assert.equal(sns.length, 50); assert.equal(new Set(sns).size, 50);
 }
-console.log('5 ok: limits, IPv6 blocks, storage down, no store, stale CDN reads');
+console.log('5 ok: limits, IPv6 blocks, storage down, no store, two writers at once');
 
 // ---- 6. a house not lit for two days is dark on the street; the star is a fresh house
 clock += 3 * 86400000;
@@ -730,9 +757,55 @@ console.log('8 ok: country and city from any host');
   assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.1.1'), 429, 'sixth try waits');
   for (let i = 0; i < 5010; i++) await aget('wrong-password-xyz', `2001:db8:aaaa:${i.toString(16)}::1`);
   assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.1.1'), 429, 'still waits after 5010 other addresses');
-  assert.equal(await aget('wrong-password-xyz', '5.6.9.9'), 429, 'a new address waits too while the minute is full');
-  assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.1.1', AENV, () => clock + 60000), 200, 'the next minute the moderator comes in');
+  assert.equal(await aget('wrong-password-xyz', '5.6.9.9'), 401, 'wrong tries from other addresses never lock a new address');
+  assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.9.8'), 200, 'the moderator from another address comes in at once');
+  assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.1.1', AENV, () => clock + 60000), 200, 'after a minute the address comes in');
+  // the wait grows: after a right password it starts again; 5 wrong → 1 minute, the 6th → 2 minutes, the 7th → 4
+  resetAdminLimits();
+  for (let i = 0; i < 5; i++) assert.equal(await aget('wrong-password-xyz', '5.6.2.1'), 401);
+  assert.equal(await aget('wrong-password-xyz', '5.6.2.1', AENV, () => clock + 61000), 401, 'the sixth wrong one after the wait');
+  assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.2.1', AENV, () => clock + 61000 + 90000), 429, 'now the wait is two minutes');
+  assert.equal(await aget(AENV.ADMIN_PASSWORD, '5.6.2.1', AENV, () => clock + 61000 + 121000), 200, 'and it ends');
+  // signing in: the page keeps a token, never the password
+  const post = async (body, auth, env = AENV, extra = {}) => { const x = await admin(new Request('https://x/api/admin', { method: 'POST', headers: { authorization: `Bearer ${auth}`, 'x-forwarded-for': '5.6.3.1', ...extra }, body: JSON.stringify(body) }), env, { now, store: st }); return { status: x.status, out: await x.json() }; };
+  const login = await post({ action: 'login' }, AENV.ADMIN_PASSWORD);
+  assert.equal(login.status, 200); assert.match(login.out.token, /^adm1\./); assert.ok(!login.out.token.includes(AENV.ADMIN_PASSWORD));
+  const tok = login.out.token;
+  assert.equal(await aget(tok, '5.6.3.1'), 200, 'the token opens the page');
+  assert.equal(await aget(tok, '5.6.3.1', { ...AENV, ADMIN_PASSWORD: 'a-new-moderator-password-456' }), 401, 'a new password ends the old tokens');
+  assert.equal(await aget(tok, '5.6.3.1', AENV, () => clock + 13 * 3600000), 401, 'a token ends after 12 hours');
+  assert.equal(await aget(tok.slice(0, -2) + (tok.endsWith('AA') ? 'BB' : 'AA'), '5.6.3.1'), 401, 'a changed token is refused');
+  assert.equal(await aget(`adm1.zzzzzzzz.0.${'A'.repeat(43)}`, '5.6.3.1'), 401, 'a made-up token is refused');
+  // a token is never held back by wrong passwords from the same address
+  resetAdminLimits();
+  for (let i = 0; i < 6; i++) await aget('wrong-password-xyz', '5.6.3.1');
+  assert.equal(await aget(tok, '5.6.3.1'), 200, 'the signed-in moderator keeps working');
+  // log out everywhere: every token given so far ends; a new sign-in works
+  assert.equal((await post({ action: 'logout-all' }, tok)).status, 200);
+  assert.equal(await aget(tok, '5.6.3.2'), 401, 'the old token is over');
+  const again = await post({ action: 'login' }, AENV.ADMIN_PASSWORD, AENV, { 'x-forwarded-for': '5.6.3.3' });
+  assert.equal(again.status, 200); assert.equal(await aget(again.out.token, '5.6.3.3'), 200);
+  // another site's page cannot act here; a big or broken body is refused
+  assert.equal((await post({ action: 'remove', sn: 1 }, again.out.token, AENV, { origin: 'https://evil.example' })).status, 403);
+  assert.equal((await post({ action: 'remove', sn: 1, pad: 'x'.repeat(5000) }, again.out.token)).status, 413);
+  for (const body of [[], 'x', null, { action: 'login2' }]) assert.equal((await post(body, again.out.token)).status, body === null ? 400 : 400, JSON.stringify(body));
   resetAdminLimits();
   console.log('13 ok: the browser check for new houses, wrong and used answers, removing a run of numbers, admin password limits');
 }
+// ---- 14. hostile names: the street keeps only plain Latin names, so look-alikes and tricks never reach a page
+{
+  const hostile = ['', ' ', 'a', 'x'.repeat(19), 'x'.repeat(5000), 'Raju 😀', 'Ra\u200Bju', 'Ra\u200Dju', '\u202EujaR', 'R\u0430ju' /* Cyrillic a */, 'Rɑju',
+    'Ｒａｊｕ', 'Raju\u0000', '<b>Raju</b>', 'Raju"><svg>', 'Ra\u0301ju', 'Raju.com', 'www.raju', 't.me Raju', '@raju'];
+  for (const n of hostile) assert.equal(K.cleanName(n), '', JSON.stringify(n));
+  assert.equal(K.cleanName('  Raju   Kumar '), 'Raju Kumar', 'spaces are tidied'); assert.equal(K.cleanName('Raju\n'), 'Raju'); assert.equal(K.cleanName(' Raju'), 'Raju');
+  const st = memoryStore(); resetLimits();
+  for (const [i, name] of hostile.entries()) {
+    const r = await call('POST', { ...good, id: `hostilehostile${String(i).padStart(4, '0')}`, name, code: K.encodeHouse(8800 + i, {}) }, { store: st }, ENV, `9.8.${i}.1`);
+    assert.equal(r.status, 400, JSON.stringify(name)); assert.ok(['name', 'bad'].includes(r.out.error), JSON.stringify(r.out));
+  }
+  assert.equal(st.state.writes, 0, 'nothing was written');
+  // a name that is not a string at all
+  for (const name of [123, null, ['Raju'], { toString: () => 'Raju' }]) assert.equal((await call('POST', { ...good, id: 'objnameobjname0000', name }, { store: st }, ENV, '9.8.99.1')).status, 400);
+}
+console.log('14 ok: hostile names: emoji, invisible and right-to-left characters, look-alike letters, tags, links');
 console.log('street: all ok');

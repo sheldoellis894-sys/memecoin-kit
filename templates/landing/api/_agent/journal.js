@@ -1,22 +1,35 @@
 // Where the issues are kept: one small JSON file in Vercel Blob, rewritten once a day.
 // The token BLOB_READ_WRITE_TOKEN is added to the Vercel project when a Blob store is connected to it.
-// The store is expected to be public. For a private store set BLOB_ACCESS=private in the Vercel project.
-// The kind of store is never guessed: a wrong guess would read "no file yet" and the next write would erase the archive.
-import { get, put } from '@vercel/blob';
+// The store is expected to be private (Vercel: Storage → Blob → Access "Private"). A public store must say so:
+// BLOB_ACCESS=public in the Vercel project. The kind of store is never guessed: a wrong guess would read "no file yet"
+// and the next write would erase the archive. Private is the default, so a store set up without the variable never
+// puts the files (moderation log, bans) at an address anyone can open.
+import { get, put, BlobPreconditionFailedError } from '@vercel/blob';
 
 const KEEP = 90;                       // issues kept in the file
-const accessOf = (env) => (env.BLOB_ACCESS === 'private' ? 'private' : 'public');
+const accessOf = (env) => (String(env.BLOB_ACCESS || '').trim().toLowerCase() === 'public' ? 'public' : 'private');
 const empty = () => ({ count: 0, issues: [] });
 
 export const blobStore = {
   /** Text of the file, or null when it does not exist yet. */
   async read(env, path) {
-    const res = await get(path, { access: accessOf(env), token: env.BLOB_READ_WRITE_TOKEN, useCache: false });
-    if (!res || res.statusCode !== 200 || !res.stream) return null;
-    return new Response(res.stream).text();
+    return (await this.readTagged(env, path)).text;
   },
-  async write(env, path, body) {
-    await put(path, body, { access: accessOf(env), token: env.BLOB_READ_WRITE_TOKEN, addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json; charset=utf-8', cacheControlMaxAge: 60 });
+  /** { text, etag } of the file, read from the storage itself (not from a cache); text null when there is no file yet. */
+  async readTagged(env, path) {
+    const res = await get(path, { access: accessOf(env), token: env.BLOB_READ_WRITE_TOKEN, useCache: false });
+    if (!res || res.statusCode !== 200 || !res.stream) return { text: null, etag: '' };
+    return { text: await new Response(res.stream).text(), etag: res.blob?.etag || res.headers?.get?.('etag') || '' };
+  },
+  /** opts.ifMatch: write only if the file still has this ETag (else an error with code 'conflict'). */
+  async write(env, path, body, opts = {}) {
+    try {
+      await put(path, body, { access: accessOf(env), token: env.BLOB_READ_WRITE_TOKEN, addRandomSuffix: false, allowOverwrite: true,
+        contentType: 'application/json; charset=utf-8', cacheControlMaxAge: 60, ...(opts.ifMatch ? { ifMatch: opts.ifMatch } : {}) });
+    } catch (e) {
+      if (e instanceof BlobPreconditionFailedError) throw Object.assign(new Error('changed since read'), { code: 'conflict' });
+      throw e;
+    }
   },
 };
 

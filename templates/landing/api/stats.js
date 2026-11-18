@@ -12,14 +12,15 @@
 // Kept: one JSON file `${PROJECT}/stats.json` in the same store as the street (api/_agent/store.js), days in UTC,
 // the last 400 days. Honest limits: these are counts a browser reports, so they are approximate. Known bots (by the
 // browser name) are not counted, one address may report 400 times an hour, and one report adds little, so numbers
-// cannot be pushed far; on Vercel two reports at the same moment on two copies of the function may lose one of them.
-import { storeFor, storeKind, serial } from './_agent/store.js';
+// cannot be pushed far. Two reports at the same moment never undo each other (api/_agent/store.js update()).
+import { storeFor, storeKind, update } from './_agent/store.js';
 import { ipKey } from './_agent/ip.js';
+import { count } from './_agent/limits.js';
 
 export const EVENTS = ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca', 'city'];
 const MAX = { visit: 1, visitor: 1 };    // per report; the rest up to 30
-const PER_HOUR = 400;                    // reports an hour from one address (kept in memory: a soft limit; mobile networks put
-                                         // many phones behind one address, so it is not small)
+const PER_HOUR = 400;                    // reports an hour from one address (mobile networks put many phones behind one
+                                         // address, so it is not small). Counted in api/_agent/limits.js
 const KEEP_DAYS = 400;
 const MAX_BODY = 1000;
 const BOT = /bot|crawl|spider|slurp|headless|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|curl|wget|python|node-fetch|go-http|java\//i;
@@ -28,16 +29,8 @@ const pathOf = (project) => `${project}/stats.json`;
 const none = (status = 204, extra = {}) => new Response(null, { status, headers: { 'cache-control': 'no-store', ...extra } });
 const day = (now) => new Date(now).toISOString().slice(0, 10);
 
-const hits = new Map();                  // `${hour}:${ip}` → reports
-export const resetStatsLimits = () => hits.clear();
-function limited(ip, now) {
-  const key = `${Math.floor(now / 3600000)}:${ip}`;
-  const n = hits.get(key) || 0;
-  if (n >= PER_HOUR) return true;
-  if (hits.size > 20000) hits.clear();
-  hits.set(key, n + 1);
-  return false;
-}
+export { resetMemory as resetStatsLimits } from './_agent/limits.js';
+const limited = async (env, ip, now, deps) => (await count(env, `stats:${Math.floor(now / 3600000)}:${ip}`, 3700, deps)) > PER_HOUR;
 
 /** The numbers sent by the page, cleaned: only known names, whole numbers within the limits. Null when there is nothing. */
 export function cleanReport(e) {
@@ -53,36 +46,33 @@ export function cleanReport(e) {
   return any ? out : null;
 }
 
-// Vercel Blob in public mode may answer with the file as it was a minute ago: the copy this instance wrote last is kept
-// in memory and the newer of the two is used (the same as the street)
-const written = new WeakMap();
-
-/**
- * The stats file: { days: { 'YYYY-MM-DD': { visit, visitor, … } }, rev, updated }.
- * opts.strict: a file that cannot be read or is damaged is an error (a report must not start the numbers again from an
- * empty file); without it the moderator page simply shows no numbers.
- */
-export async function readStats(env, store, opts = {}) {
-  let j = null;
-  try { const t = await store.read(env, pathOf(env.PROJECT)); j = t ? JSON.parse(t) : null; } catch (e) { if (opts.strict) throw e; j = null; }
-  const mem = written.get(store);
-  if (mem && mem.path === pathOf(env.PROJECT) && (!j || (mem.j.rev || 0) > (j.rev || 0))) j = mem.j;
-  const days = j && j.days && typeof j.days === 'object' ? j.days : {};
+/** The stats file as text → { days: { 'YYYY-MM-DD': { visit, visitor, … } }, rev, updated }. Throws on a damaged file. */
+function parseStats(t) {
+  const j = t ? JSON.parse(t) : null;
+  const days = j && j.days && typeof j.days === 'object' && !Array.isArray(j.days) ? j.days : {};
   return { days, rev: Number.isInteger(j?.rev) ? j.rev : 0, updated: j?.updated || null };
 }
 
-async function addReport(env, store, report, now) {
-  return serial(pathOf(env.PROJECT), async () => {
-    const st = await readStats(env, store, { strict: true });
+/**
+ * The stats file for the moderator page. opts.strict: a file that cannot be read or is damaged is an error;
+ * without it the page simply shows no numbers.
+ */
+export async function readStats(env, store, opts = {}) {
+  try { return parseStats(await store.read(env, pathOf(env.PROJECT))); }
+  catch (e) { if (opts.strict) throw e; return parseStats(null); }
+}
+
+// a report must never start the numbers again from an empty file: a damaged file is left for the owner to look at
+function addReport(env, store, report, now) {
+  return update(env, store, pathOf(env.PROJECT), async (text) => {
+    const st = parseStats(text);
     const d = day(now);
     const row = st.days[d] || {};
     for (const [k, v] of Object.entries(report)) row[k] = (row[k] || 0) + v;
     st.days[d] = row;
     const keys = Object.keys(st.days).sort();
     for (const k of keys.slice(0, Math.max(0, keys.length - KEEP_DAYS))) delete st.days[k];
-    const file = { days: st.days, rev: st.rev + 1, updated: new Date(now).toISOString() };
-    await store.write(env, pathOf(env.PROJECT), JSON.stringify(file));
-    written.set(store, { path: pathOf(env.PROJECT), j: file });
+    return { text: JSON.stringify({ days: st.days, rev: st.rev + 1, updated: new Date(now).toISOString() }), result: null };
   });
 }
 
@@ -100,7 +90,7 @@ export async function handle(request, env = process.env, deps = {}) {
   if (!report) return none(400);
   const now = (deps.now || Date.now)();
   const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
-  if (limited(ip, now)) return none(429);
+  if (await limited(env, ip, now, deps)) return none(429);
   try { await addReport(env, deps.store || (await storeFor(env)), report, now); }
   catch { return none(503); }
   return none();

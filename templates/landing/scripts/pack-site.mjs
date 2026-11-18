@@ -56,11 +56,11 @@ take('server/serve.mjs');
 const deps = {};
 for (const p of packages) deps[p] = pkg.dependencies?.[p] || pkg.devDependencies?.[p] || '*';
 fs.writeFileSync(path.join(out, 'package.json'), JSON.stringify({
-  name: `${project}-site`, private: true, type: 'module', engines: { node: '>=20' },
+  name: `${project}-site`, private: true, type: 'module', engines: { node: '>=22' },
   scripts: { start: 'node server/serve.mjs' }, dependencies: deps,
   // @vercel/blob brings an old zod through Vercel's sign-in helper; `npm audit` reports it. The newer zod is taken instead
   // (the helper runs only on Vercel; a site on its own server keeps its data in files and never loads it)
-  ...(packages.has('@vercel/blob') ? { overrides: { zod: '^4.6.6' } } : {}),
+  ...(packages.has('@vercel/blob') ? { overrides: { zod: '^4.6.7' } } : {}),
 }, null, 2) + '\n');
 
 const street = functions.includes('street');
@@ -98,17 +98,35 @@ fs.writeFileSync(path.join(out, '.env.example'), [
 fs.writeFileSync(path.join(out, '.dockerignore'), ['.env', 'data', 'node_modules', '*.log', ''].join('\n'));
 
 fs.writeFileSync(path.join(out, 'Dockerfile'), [
-  'FROM node:22-alpine',
+  'FROM node:24-alpine',
   'WORKDIR /app',
   'COPY package.json ./',
   'RUN npm install --omit=dev',
   'COPY . .',
+  '# the site runs as the unprivileged user "node"; only the data folder is writable for it',
+  'RUN mkdir -p /data && chown node:node /data',
+  'USER node',
   'ENV HOST=0.0.0.0 PORT=3000 STORE=file DATA_DIR=/data',
   'VOLUME /data',
   'EXPOSE 3000',
   'CMD ["node", "server/serve.mjs"]',
   '',
 ].join('\n'));
+
+// the page nginx shows while the site's process is down or restarting (step 4 of the README): the 404 page of the site
+// with other words, so it looks like the site
+{
+  const nf = path.join(out, 'dist', '404.html');
+  if (fs.existsSync(nf)) {
+    const se = { title: 'Back in a minute', text: 'The site is restarting. Try again in a minute', button: 'Try again', ...(config.serverError || {}) };
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    const nfw = { title: 'Page not found', text: 'This address is not on the site', button: 'Back to the home page', ...(config.notFound || {}) };
+    let page = fs.readFileSync(nf, 'utf8');
+    for (const k of ['title', 'text', 'button']) page = page.split(`>${esc(nfw[k])}<`).join(`>${esc(se[k])}<`);
+    page = page.replace(/<title>[^<]*<\/title>/, `<title>${esc(se.title)} · ${esc(config.name)}</title>`).replace('>404<', '>&#8635;<');
+    fs.writeFileSync(path.join(out, 'dist', '50x.html'), page);
+  }
+}
 
 const siteUrl = (config.url || '').replace(/\/+$/, '');
 const domain = siteUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '') || 'example.com';
@@ -140,7 +158,8 @@ console.log(\`\${old} -> \${arg}: \${hits} places in \${files} files\`);
 
 fs.writeFileSync(path.join(out, 'README.md'), `# ${config.name} ($${config.ticker}) - website
 
-A built website that runs on any Linux server with Node.js 20 or newer (or Docker). No build step is needed on the server.
+A built website that runs on any Linux server with Node.js 22 or newer (24 LTS recommended), or with Docker. No build step is needed on the server.
+Run exactly **one** process of the site: the limits and the queue of writes to the data files live inside that process.
 
 ## What is inside
 
@@ -151,8 +170,19 @@ ${functions.length ? `- \`api/\` - server functions: ${functions.map((f) => `\`/
 
 ## 1. Server
 
-Any Linux VPS (Ubuntu 22.04 or 24.04): 1 CPU, 1 GB RAM, 10 GB disk is plenty. Install Node.js 20 or newer, nginx and certbot.
-Point your domain (DNS record A) to the server's IP.
+Any Linux VPS (Ubuntu 22.04 or 24.04): 1 CPU, 1 GB RAM, 10 GB disk is plenty. Install Node.js 22 or newer (24 LTS recommended), nginx and certbot.
+Node.js 20 gets no security fixes since April 2026: do not use it. Point your domain (DNS record A) to the server's IP.
+
+Before anything else, close the server (once):
+
+\`\`\`
+sudo apt update && sudo apt -y upgrade && sudo apt -y install ufw fail2ban unattended-upgrades
+sudo ufw allow OpenSSH && sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw --force enable   # only SSH, HTTP and HTTPS are open
+sudo dpkg-reconfigure -plow unattended-upgrades                                                          # security updates install themselves
+sudo systemctl enable --now fail2ban                                                                     # bans addresses that guess SSH passwords
+\`\`\`
+
+Log in with an SSH key, then turn password logins off: in \`/etc/ssh/sshd_config\` set \`PasswordAuthentication no\` and \`PermitRootLogin prohibit-password\`, then \`sudo systemctl restart ssh\`. Keep the site's port (3000) closed to the internet: it listens on 127.0.0.1 only, nginx is the door.
 
 ## 2. Install
 
@@ -160,8 +190,8 @@ Point your domain (DNS record A) to the server's IP.
 sudo mkdir -p /srv/${project} && sudo cp -r ./* ./.env.example ./.dockerignore /srv/${project}/ && cd /srv/${project}
 sudo node set-domain.mjs https://your-domain.com   # the pages are built for ${siteUrl || 'another address'}; this swaps it for yours
 sudo npm install --omit=dev
-sudo cp .env.example .env && sudo chmod 600 .env   # then fill in .env (below): sudo nano .env
-sudo mkdir -p data && sudo chown www-data:www-data data
+sudo cp .env.example .env && sudo chown root:root .env && sudo chmod 600 .env   # then fill in .env (below): sudo nano .env
+sudo mkdir -p data && sudo chown www-data:www-data data && sudo chmod 700 data   # only the site's process reads and writes its data
 \`\`\`
 ${functions.length ? `
 Fill in \`.env\`:
@@ -211,6 +241,14 @@ server {
   server_name your-domain.com;
   server_tokens off;
   client_max_body_size 64k;
+  # security headers for every answer (the site sends most of them too; nginx keeps them when the site is down)
+  add_header Strict-Transport-Security "max-age=31536000" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+  # the page shown while the site restarts (dist/50x.html)
+  error_page 502 503 504 /50x.html;
+  location = /50x.html { root /srv/${project}/dist; internal; }
   location / {
     proxy_pass http://127.0.0.1:3000;
     proxy_set_header Host $host;
@@ -222,6 +260,23 @@ server {
 
 \`sudo nginx -t && sudo systemctl reload nginx && sudo certbot --nginx -d your-domain.com\` - certbot adds HTTPS and the redirect from http.
 Keep the site's port on 127.0.0.1 (as above): the server trusts X-Forwarded-For only from this machine or the private network.
+The site compresses pages, styles and scripts itself (brotli or gzip), so nginx needs no gzip settings.
+${functions.includes('admin') ? `
+A second lock on the moderator page (recommended): only the moderator's own address may open it. Put this inside the same \`server { }\`, above \`location /\`, with the moderator's IP:
+
+\`\`\`
+  location ~ ^/(admin|api/admin) {
+    allow 203.0.113.7;     # the moderator's IP; one line per address
+    deny all;
+    proxy_pass http://127.0.0.1:3000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+\`\`\`
+
+When the moderator has no fixed address, use a second password instead of \`allow\`/\`deny\`: \`sudo apt -y install apache2-utils && sudo htpasswd -c /etc/nginx/${project}-admin moderator\`, then \`auth_basic "Moderator"; auth_basic_user_file /etc/nginx/${project}-admin;\` in that location.
+` : ''}
 
 Behind Cloudflare or another CDN nginx sees the CDN's addresses, not the visitors', and the limits that count by address (${street ? 'houses a day, ' : ''}wrong admin passwords) would take many visitors for one. Give nginx the visitor's address: in \`http { }\` add \`real_ip_header CF-Connecting-IP;\` and one \`set_real_ip_from <range>;\` line for every range listed on https://www.cloudflare.com/ips/
 ${functions.includes('geo') ? `
@@ -244,10 +299,30 @@ docker run -d --restart unless-stopped -p 127.0.0.1:3000:3000 -v ${project}-data
 
 (\`-e HOST\` and \`-e DATA_DIR\` win over the same lines in \`.env\`: the site listens inside the container and keeps its data in the volume.) nginx in front as in step 4.
 
+## Back up the data${street ? ' (the street)' : ''}
+
+Everything the visitors made lives in \`data/\`. A copy every night, kept 14 days:
+
+\`\`\`
+sudo mkdir -p /var/backups/${project}
+echo '15 3 * * * root tar -czf /var/backups/${project}/data-$(date +\\%F).tgz -C /srv/${project} data && find /var/backups/${project} -name "data-*.tgz" -mtime +14 -delete' | sudo tee /etc/cron.d/${project}-backup
+\`\`\`
+
+Copy the files somewhere off the server too (another machine, cloud storage). Check once that a copy really comes back:
+
+\`\`\`
+mkdir -p /tmp/restore-check && tar -xzf /var/backups/${project}/data-YYYY-MM-DD.tgz -C /tmp/restore-check && ls -la /tmp/restore-check/data
+\`\`\`
+
+To restore: \`sudo systemctl stop ${project}\`, put the \`data\` folder from the copy in place of \`/srv/${project}/data\` (owner \`www-data\`), \`sudo systemctl start ${project}\`.
+
 ## Check after launch
 
 - \`https://your-domain.com\` opens${street ? `; the street loads; a house can be put on the street${city ? ' and appears on the city map' : ''}` : ''}
 ${functions.includes('admin') ? '- `https://your-domain.com/admin` opens with the password\n' : ''}- a link to the site pasted into X or Telegram shows the preview picture
+- \`https://your-domain.com/no-such-page\` shows the site's own "not found" page
+- \`curl -I https://your-domain.com\` shows \`strict-transport-security\` and \`x-content-type-options\`; \`http://\` redirects to \`https://\`
+- from outside, \`http://your-domain.com:3000\` does not open (the port is closed)
 
 ## Update
 

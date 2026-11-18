@@ -9,33 +9,32 @@
 //   SOLANA_RPC_URL   — optional: any Solana RPC address, used instead of the parsed history
 //   LLM_MODEL        — optional: model id
 //   AGENT_PER_IP     — optional: inspections per visitor a day (default 5)
-//   AGENT_DAILY_CAP  — optional: inspections a day for the whole site, per running instance (default 300)
+//   AGENT_DAILY_CAP  — optional: inspections a day for the whole site (default 300)
+// The two limits are counted in api/_agent/limits.js: shared by every copy of the function when the project has a Redis
+// (KV_REST_API_URL + KV_REST_API_TOKEN), else per copy. The real wall is the spending limit set at the model provider.
 import { personas } from './_agent/persona.js';
 import { inspect } from './_agent/agent.js';
+import { ipKey } from './_agent/ip.js';
+import { count } from './_agent/limits.js';
 
-const BUILD = 3;                 // raised with every change of the agent, so a deployment can be told apart from outside
+const BUILD = 4;                 // raised with every change of the agent, so a deployment can be told apart from outside
 const DAY = 86400000;
-const seen = new Map();          // ip → [timestamps]. Lives as long as the instance does: a brake, not a wall.
-let total = { day: 0, n: 0 };
 
 const json = (body, status = 200, extra = {}) => new Response(JSON.stringify(body), {
   status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...extra },
 });
 const isAddress = (s) => typeof s === 'string' && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s);
 
-function allow(ip, env) {
-  const now = Date.now(), perIp = Number(env.AGENT_PER_IP) || 5, cap = Number(env.AGENT_DAILY_CAP) || 300;
+/** '' when the inspection may run, 'limit' for this visitor today, 'full' for the whole site today. */
+async function allow(ip, env, deps) {
+  const now = (deps.now || Date.now)(), perIp = Number(env.AGENT_PER_IP) || 5, cap = Number(env.AGENT_DAILY_CAP) || 300;
   const day = Math.floor(now / DAY);
-  if (total.day !== day) total = { day, n: 0 };
-  if (total.n >= cap) return 'full';
-  const list = (seen.get(ip) || []).filter((t) => now - t < DAY);
-  if (list.length >= perIp) { seen.set(ip, list); return 'limit'; }
-  list.push(now); seen.set(ip, list); total.n++;
-  if (seen.size > 5000) for (const [k, v] of seen) if (!v.some((t) => now - t < DAY)) seen.delete(k);
+  if ((await count(env, `inspect:${day}:${ip}`, 90000, deps)) > perIp) return 'limit';
+  if ((await count(env, `inspect-all:${day}`, 90000, deps)) > cap) return 'full';
   return '';
 }
 
-export async function handle(request, env = process.env) {
+export async function handle(request, env = process.env, deps = {}) {
   const persona = personas[env.PROJECT];
   if (!persona) return json({ error: 'not_found' }, 404);
   const live = Boolean(env.LLM_API_KEY && (env.HELIUS_API_KEY || env.SOLANA_RPC_URL));
@@ -43,10 +42,13 @@ export async function handle(request, env = process.env) {
   if (request.method === 'GET') return json({ live, build: BUILD });
   if (request.method !== 'POST') return json({ error: 'method' }, 405, { allow: 'GET, POST' });
 
-  // Same-site requests only: the keys behind this function are paid for by the project.
+  // Same-site requests only: the keys behind this function are paid for by the project. A browser sends Origin with every
+  // POST, so a request without it (a script) is turned away too.
   const origin = request.headers.get('origin');
-  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
-  if (origin && host) { try { if (new URL(origin).host !== host) return json({ error: 'origin' }, 403); } catch { return json({ error: 'origin' }, 403); } }
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || new URL(request.url).host;
+  let same = false;
+  try { same = Boolean(origin) && new URL(origin).host === host; } catch { same = false; }
+  if (!same) return json({ error: 'origin' }, 403);
 
   if (!live) return json({ error: 'closed' }, 503);
 
@@ -59,8 +61,8 @@ export async function handle(request, env = process.env) {
   const wallet = body?.address;
   if (!isAddress(wallet)) return json({ error: 'address' }, 400);
 
-  const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
-  const blocked = allow(ip, env);
+  const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
+  const blocked = await allow(ip, env, deps);
   if (blocked) return json({ error: blocked }, 429);
 
   const enc = new TextEncoder();

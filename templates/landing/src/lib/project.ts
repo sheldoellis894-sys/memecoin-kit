@@ -213,7 +213,34 @@ export const theme = readJson<Theme>(path.resolve('src/themes', `${config.theme}
 export const layout = readJson<Layout>(path.resolve('src/layouts', `${config.layout}.json`), `layout "${config.layout}"`);
 
 /** URL of a project image (paths in the config are relative to projects/<name>/brand/) */
-export const asset = (p?: string) => (p ? `/project/${p.toLowerCase()}` : '');
+// "images": { "webp": true } in project.config.json: pictures are served as WebP copies made by scripts/sync-assets.mjs
+// (a third of the weight). asset(p, false) keeps the original file: the link preview picture and the tab icon, which
+// some apps and browsers read only as PNG or JPEG.
+const webp = Boolean((config as any).images?.webp);
+const WEBP_SKIP = /^(exports|figma|references|video)\//;
+/**
+ * srcset for a picture with a small copy (images.webp; scripts/sync-assets.mjs writes .w640.webp next to pictures wider
+ * than 760 px and their widths to .astro/webp-sizes.json). '' when there is none: the plain src is enough then.
+ */
+let webpSizes: Record<string, number> | null = null;
+export const srcsetOf = (p?: string) => {
+  if (!p || !webp) return '';
+  if (webpSizes === null) { try { webpSizes = JSON.parse(fs.readFileSync(path.resolve('.astro/webp-sizes.json'), 'utf8')); } catch { webpSizes = {}; } }
+  const full = asset(p).replace(/^\/project\//, '');
+  const w = webpSizes![full];
+  if (!w || w <= 760) return '';
+  return `/project/${full.replace(/\.webp$/, '.w640.webp')} 640w, /project/${full} ${w}w`;
+};
+/** The tab icon: with "images.webp" a 96 px copy of it (made by scripts/sync-assets.mjs), else the file itself. */
+export const faviconPath = () => {
+  const f = String(config.assets.favicon || config.assets.logo || '').toLowerCase();
+  return f && webp && /\.(png|jpe?g)$/.test(f) ? `/project/${f.replace(/\.(png|jpe?g)$/, '.icon.png')}` : f ? `/project/${f}` : '';
+};
+export const asset = (p?: string, asWebp = true) => {
+  if (!p) return '';
+  const f = p.toLowerCase();
+  return `/project/${webp && asWebp && !WEBP_SKIP.test(f) && /\.(png|jpe?g)$/.test(f) ? f.replace(/\.(png|jpe?g)$/, '.webp') : f}`;
+};
 
 /** Project wording with defaults (the defaults are what Molty shipped with) */
 export const ui: UI = {

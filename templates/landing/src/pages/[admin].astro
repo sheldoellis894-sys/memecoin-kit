@@ -6,8 +6,9 @@
 //            taken off at once (after a flood of new houses); bans and the log
 // Built for a project whose server has the admin function (config "server.functions"); the Street tab only with "street".
 // Other projects get no /admin page at all. The password is the server's ADMIN_PASSWORD (api/admin.js); the page
-// keeps it only in this browser tab while it is open. Not linked from the site and closed to search engines.
-import { config, theme, asset } from '../lib/project';
+// trades it for a token that lives 12 hours and keeps only the token, in this browser tab. Not linked from the site and
+// closed to search engines.
+import { config, theme, asset, faviconPath } from '../lib/project';
 export function getStaticPaths() {
   const fns: string[] = config.server?.functions || [];
   return fns.includes('admin') ? [{ params: { admin: 'admin' } }] : [];
@@ -23,7 +24,7 @@ const ticker = config.ticker;
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
   <title>{config.name} · admin</title>
-  <link rel="icon" href={asset(config.assets.favicon || config.assets.logo)} />
+  <link rel="icon" href={faviconPath()} />
   <style set:html={`
     :root { --bg:${c.bg}; --card:${c.surface}; --text:${c.text}; --muted:${c.muted}; --accent:${c.primary}; --red:#E8343B; --green:#3DBE6B; }
     * { box-sizing: border-box; }
@@ -90,7 +91,7 @@ const ticker = config.ticker;
       <input type="password" autocomplete="current-password" placeholder="Admin password" data-adm-pass required />
       <button class="is-red" type="submit">Open</button>
       <p class="note err" data-adm-loginerr></p>
-      <p class="note">The password is the ADMIN_PASSWORD setting of the server. It is kept only in this tab.</p>
+      <p class="note">The password is the ADMIN_PASSWORD setting of the server. It is not kept: this tab keeps a sign-in for 12 hours.</p>
     </form>
     <div data-adm-app hidden>
       <header>
@@ -102,6 +103,7 @@ const ticker = config.ticker;
         <span class="updated" data-adm-updated aria-live="polite"></span>
         <button type="button" data-adm-reload>Refresh</button>
         <button type="button" data-adm-logout>Log out</button>
+        <button type="button" data-adm-logout-all title="Ends the sign-in on every phone and computer">Log out everywhere</button>
       </header>
       <main>
         <section class="panel" data-adm-panel="stats">
@@ -143,8 +145,10 @@ const ticker = config.ticker;
   <script>
     import * as K from '../lib/lights-kit.js';
     const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
-    const KEY = 'ul-admin-pass';
+    const KEY = 'ul-admin-token';
     const ticker = $('[data-adm]').dataset.admTicker || '';
+    try { sessionStorage.removeItem('ul-admin-pass'); } catch { /* the password kept by the older page */ }
+    // pass = the sign-in token (or, for a moment while signing in, the password)
     let pass = ''; try { pass = sessionStorage.getItem(KEY) || ''; } catch { /* private mode */ }
     let data: any = null;
     const street = Boolean(document.querySelector('[data-adm-grid]'));
@@ -157,10 +161,14 @@ const ticker = config.ticker;
       return { status: res.status, out };
     };
     const showLogin = (msg = '') => { $('[data-adm-login]').hidden = false; $('[data-adm-app]').hidden = true; $('[data-adm-loginerr]').textContent = msg; };
-    const ERR: Record<string, string> = { password: 'Wrong password.', wait: 'Too many tries. Wait a minute.', not_found: 'The admin is off: set ADMIN_PASSWORD (16+ characters) on the server.', off: 'The street has no storage.', storage: 'The storage did not answer. Try again.', no_house: 'No houses with these numbers.', bad: 'Check the numbers.' };
+    const ERR: Record<string, string> = { password: 'Wrong password, or the sign-in has ended. Enter the password again', wait: 'Too many wrong tries from here. Wait a little', origin: 'Open this page on the site itself', busy: 'The street was busy. Try again', not_found: 'The admin is off: set ADMIN_PASSWORD (16+ characters) on the server.', off: 'The street has no storage.', storage: 'The storage did not answer. Try again.', no_house: 'No houses with these numbers.', bad: 'Check the numbers.' };
     async function load() {
       const r = await api('GET');
-      if (r.status !== 200) { if (r.out.error === 'password') { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} } showLogin(ERR[r.out.error] || `Error ${r.status}`); return; }
+      if (r.status !== 200) {
+        if (r.out.error === 'password') { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} }
+        const wait = r.out.error === 'wait' && r.out.seconds ? ` (${Math.ceil(r.out.seconds / 60)} min)` : '';
+        showLogin((ERR[r.out.error] || `Error ${r.status}`) + wait); return;
+      }
       data = r.out; $('[data-adm-loginerr]').textContent = ''; $<HTMLInputElement>('[data-adm-pass]').value = ''; $('[data-adm-login]').hidden = true; $('[data-adm-app]').hidden = false;
       drawStats(); if (data.street && street) draw();
       $('[data-adm-updated]').textContent = `Updated ${new Date().toLocaleTimeString('en-GB')}`;
@@ -295,8 +303,25 @@ const ticker = config.ticker;
       try { await Promise.all([load(), new Promise((r) => setTimeout(r, 450))]); } finally { b.disabled = false; b.textContent = 'Refresh'; }
     });
     $('[data-adm-logout]').addEventListener('click', () => { pass = ''; try { sessionStorage.removeItem(KEY); } catch {} showLogin(); });
-    $('[data-adm-login]').addEventListener('submit', (e) => {
-      e.preventDefault(); pass = $<HTMLInputElement>('[data-adm-pass]').value;
+    // ends every sign-in (this tab too): for a lost phone or a password seen by someone else. Asks once more first
+    $('[data-adm-logout-all]').addEventListener('click', async () => {
+      const b = $<HTMLButtonElement>('[data-adm-logout-all]');
+      if (!b.classList.contains('is-sure')) { b.dataset.label = b.textContent || ''; b.textContent = 'Sure? Every device'; b.classList.add('is-sure'); setTimeout(() => { b.classList.remove('is-sure'); b.textContent = b.dataset.label || 'Log out everywhere'; }, 4000); return; }
+      const r = await api('POST', { action: 'logout-all' });
+      pass = ''; try { sessionStorage.removeItem(KEY); } catch {}
+      showLogin(r.status === 200 ? 'Signed out on every device' : ERR[r.out.error] || `Error ${r.status}`);
+    });
+    $('[data-adm-login]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const field = $<HTMLInputElement>('[data-adm-pass]');
+      pass = field.value; field.value = '';
+      const r = await api('POST', { action: 'login' });
+      if (r.status !== 200 || typeof r.out.token !== 'string') {
+        pass = '';
+        const wait = r.out.error === 'wait' && r.out.seconds ? ` (${Math.ceil(r.out.seconds / 60)} min)` : '';
+        showLogin((ERR[r.out.error] || `Error ${r.status}`) + wait); return;
+      }
+      pass = r.out.token;
       try { sessionStorage.setItem(KEY, pass); } catch {}
       load();
     });

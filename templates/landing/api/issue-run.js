@@ -3,9 +3,13 @@
 //
 // One issue per UTC day: when today's issue is already in the journal, nothing is written and the model is not called,
 // so opening this address by hand costs nothing. Before the scheduled hour it answers "early".
-//   CRON_SECRET     — optional. When set, Vercel sends it with every scheduled call and the function refuses calls without it.
-//                     With the secret (?key=…) the function also runs before the hour, and ?force=1 rewrites today's issue.
+//   CRON_SECRET     — optional. When set, Vercel sends it with every scheduled call ("Authorization: Bearer …") and the
+//                     function refuses calls without it. With the secret the function also runs before the hour, and
+//                     ?force=1 rewrites today's issue. By hand: the same header (curl -H "Authorization: Bearer …"), or ?key=…
+//                     in the address bar (it stays in the browser history: only on the owner's own computer).
+//                     The secret is compared in constant time.
 //   ISSUE_HOUR_UTC  — optional. The hour of the schedule in vercel.json (default 6).
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { oracles, writeIssue } from './_agent/oracle.js';
 import { readJournal, saveIssue, openJournal } from './_agent/journal.js';
 import { BUILD, HOUR } from './issue.js';
@@ -21,7 +25,8 @@ export async function handle(request, env = process.env, deps = {}) {
   const url = new URL(request.url);
   const secret = env.CRON_SECRET || '';
   const given = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '') || url.searchParams.get('key') || '';
-  const trusted = Boolean(secret) && given === secret;
+  const sha = (t) => createHash('sha256').update(String(t)).digest();
+  const trusted = Boolean(secret) && given.length > 0 && timingSafeEqual(sha(given), sha(secret));
   if (secret && !trusted) return json({ error: 'forbidden' }, 401);
   if (!env.LLM_API_KEY || !env.BLOB_READ_WRITE_TOKEN) return json({ ok: false, error: 'closed', build: BUILD }, 503);
 

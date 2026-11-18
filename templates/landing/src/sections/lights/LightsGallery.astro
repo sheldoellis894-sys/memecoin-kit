@@ -1,6 +1,6 @@
 ---
 // Pictures of the owl in arched windows of a night house; a tap opens the picture large.
-import { config, asset } from '../../lib/project';
+import { config, asset, srcsetOf } from '../../lib/project';
 import { lights } from '../../lib/lights';
 import LtHead from './LtHead.astro';
 const g = lights.gallery || {};
@@ -20,7 +20,7 @@ const rows = ribbon ? [items, items] : [items];
         {rows.map((row, r) => row.map((it, i) => (
           <li style={`--i:${i}`} aria-hidden={r > 0 ? 'true' : undefined} data-ul-dup={r > 0 ? '' : undefined}>
             <button type="button" class="lt-window" data-ul-pic-open={i} tabindex={r > 0 ? -1 : undefined} aria-label={`${g.open || 'Open'}: ${it.alt}`}>
-              <img src={asset(it.src)} alt={r > 0 ? '' : it.alt} width="640" height="640" loading="lazy" decoding="async" />
+              <img src={asset(it.src)} srcset={srcsetOf(it.src) || undefined} sizes={srcsetOf(it.src) ? '(max-width: 760px) 70vw, 420px' : undefined} alt={r > 0 ? '' : it.alt} width="640" height="640" loading="lazy" decoding="async" />
             </button>
             {it.note && <p class="lt-window-note">{it.note}</p>}
           </li>

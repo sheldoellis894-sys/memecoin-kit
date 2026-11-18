@@ -4,7 +4,7 @@
 // Every light makes the picture brighter; at 100% the owl lands on the picture, wearing sunglasses.
 // Save as a picture or share on X. Everything happens in the browser; nothing is uploaded.
 // Wording comes from config.picture. Test hook: element.picture (see the end of the script).
-import { config, asset } from '../../lib/project';
+import { config, asset, theme } from '../../lib/project';
 import { pictureCfg, houseCfg, owlImages, itemNames, nightCtx } from '../../lib/lights';
 import { ITEM_IDS, ITEMS } from '../../lib/lights-kit.js';
 import LtHead from './LtHead.astro';
@@ -13,6 +13,9 @@ const l: Record<string, string> = c.labels || {};
 const bases: { src: string; label: string }[] = (c.bases || []).map((b: any) => ({ src: asset(b.src), label: b.label || '' }));
 const extra: { id: string; src: string; label: string }[] = (c.stickers || []).map((s: any, i: number) => ({ id: s.id || `x${i}`, src: asset(s.src), label: s.label || '' }));
 const captions: string[] = c.captions || [];
+// the four extra fonts come from the site itself when the theme keeps them (theme "fonts.local"), else from Google Fonts
+const localFams = new Set(((theme.fonts as any).local || []).map((f: any) => f && f.family));
+const googleExtra = !['Rozha One', 'Kalam', 'Bungee', 'Pacifico'].every((f) => localFams.has(f));
 // the words on the picture: six fonts (loaded only for this tool), eight colours, an outline and a shadow
 const FONTS = [{ name: 'Yatra One', label: 'Yatra' }, { name: 'Baloo 2', label: 'Baloo' }, { name: 'Rozha One', label: 'Rozha' }, { name: 'Kalam', label: 'Kalam' }, { name: 'Bungee', label: 'Bungee' }, { name: 'Pacifico', label: 'Pacifico' }];
 const COLORS = ['#FFF3C4', '#FFFFFF', '#FFD21F', '#FF8A1F', '#E8343B', '#FF4FA3', '#B8E62E', '#5EC8F2'];
@@ -23,7 +26,7 @@ const data = JSON.stringify({
   ticker: config.ticker, file: config.ticker.toLowerCase(), houseKey: `ul-house-${config.ticker.toLowerCase()}`, full: c.fullAt || 100,
 });
 ---
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Kalam:wght@700&family=Bungee&family=Pacifico&display=swap" />
+{googleExtra && <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Kalam:wght@700&family=Bungee&family=Pacifico&display=swap" />}
 <section id="picture" class="lt-sec lt-pic-sec" data-ul-pic={data}>
   <div class="lt-in">
     <LtHead kicker={c.kicker} title={c.title} lead={c.lead} />

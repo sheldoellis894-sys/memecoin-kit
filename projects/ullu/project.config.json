@@ -847,7 +847,8 @@
   ],
   "disclaimer": "$ULLU is a meme coin with no promise of value or profit. The house, the nights and the owl's gifts are a game on this website, not rewards. Crypto is risky: only use money you can afford to lose. Nothing here is financial advice",
   "images": {
-    "optimize": true
+    "optimize": true,
+    "webp": true
   },
   "effects": {
     "reveal": false,
@@ -862,5 +863,8 @@
       "admin",
       "stats"
     ]
-  }
+  },
+  "notFound": { "title": "Wrong street", "text": "No house stands at this address. Yours is still on the street", "button": "Back to the street" },
+  "seo": { "canonical": true, "sitemap": true },
+  "security": { "csp": true }
 }

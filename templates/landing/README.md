@@ -56,7 +56,7 @@ Environment variables of the Vercel project: `LLM_API_KEY` (language model API k
 
 One issue per UTC day: when today's issue exists the model is not called, so opening `/api/issue-run` by hand costs nothing. Before the scheduled hour it answers `early`. Before an issue is stored, code checks every field (`flawedFields` in `api/_agent/oracle.js`): a field that states the score, gives advice, speaks about the future, or an entry that does not name the planet the chart blames for its sign goes back to the model once; a field that fails twice is replaced by a plain sentence written from the numbers. A failure answers with a short `error` code (`busy`, `model`, `market`, `storage`, `failed`) and a `detail` word such as `http_401_authentication_error`, `never_filed` or `TimeoutError`; the provider's own sentence about a refusal goes to the function log only.
 
-Environment variables of the Vercel project: `LLM_API_KEY`; `BLOB_READ_WRITE_TOKEN` (added by Vercel when a Blob store is connected to the project); optional `BLOB_ACCESS=private`, `CRON_SECRET`, `ISSUE_HOUR_UTC`, `LLM_MODEL`.
+Environment variables of the Vercel project: `LLM_API_KEY`; `BLOB_READ_WRITE_TOKEN` (added by Vercel when a Blob store is connected to the project); optional `BLOB_ACCESS` (the store is private by default; `public` only for a public store), `CRON_SECRET` (compared in constant time; Vercel sends it as `Authorization: Bearer`, by hand the same header or `?key=`), `ISSUE_HOUR_UTC`, `LLM_MODEL`.
 
 Tests without keys: `node tests/issue.test.mjs` (the scheduled agent) and `node tests/agent.test.mjs` (the inspection).
 
@@ -65,8 +65,27 @@ Tests without keys: `node tests/issue.test.mjs` (the scheduled agent) and `node 
 ## Images
 
 `npm run dev` and `npm run build` copy `brand/` into `public/project/` first.
-Not copied: the `docs/` folder and files named `*_raw.*`.
+Not copied: the `docs/` and `figma/` folders, `*.fig` files and files named `*_raw.*`.
 With `"images": { "optimize": true }` in the config, big pictures are shrunk and recompressed on the way; originals are not touched.
+With `"images": { "webp": true }` a WebP copy is made next to every picture (and a 640 px copy of pictures wider than 760 px for `srcset`); `asset()` in `src/lib/project.ts` then serves the WebP. The link preview picture (`assets.og`) stays as it is; the tab icon becomes a 96 px PNG copy of `assets.favicon` (or the logo).
+
+## Fonts on the site itself
+
+A theme may keep its fonts on the site: `"fonts": { "local": [{ "family": "Yatra One", "file": "yatra-one-latin-400-normal.woff2", "weight": "400", "range": "U+0000-00FF,…", "preload": true }] }`. The files live in `src/fonts/` (OFL licences next to them) and are copied to `public/project/fonts/` by `scripts/sync-assets.mjs`. Then the page makes no request to Google Fonts. Theme `masala` (Ullu) does this.
+
+## Security and search settings of a project (all optional)
+
+- `"security": { "csp": true }` — every page gets a strict Content Security Policy (`astro.config.mjs`): scripts only from the site and Astro's own inline scripts by hash, pictures, fonts and requests only to the site. External fonts and scripts stop working, so the theme must keep its fonts on the site (above). Effects then run from a bundled file (`src/components/EffectsSafe.astro`).
+- `"seo": { "canonical": true, "sitemap": true }` — `<link rel="canonical">` to `url`, `robots.txt` and `sitemap.xml` (`src/pages/[seofile].ts`).
+- `"notFound": { "title", "text", "button" }` — the words of `dist/404.html` (every project has the page; without these, short defaults). `pack-site.mjs` makes `dist/50x.html` from it (`"serverError"` for its words).
+
+## Limits shared by every copy of a function
+
+`api/_agent/limits.js` counts houses a day, wrong admin passwords, inspections a day and used browser checks. With `KV_REST_API_URL` + `KV_REST_API_TOKEN` (Vercel "Upstash for Redis") or `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` the counters live in Redis and every copy of a Vercel Function sees them; without them, in the memory of the process (on an own server that is all of them). Files (street, stats) are changed through `update()` in `api/_agent/store.js`: on Vercel Blob a write goes through only if nobody wrote the file since it was read (ETag), so two posts at once never undo each other.
+
+## The moderator page
+
+`/admin` (projects with `server.functions` containing `admin`, password `ADMIN_PASSWORD`: 16+ characters, 8 different). The page trades the password for a token that lives 12 hours and keeps only the token in the tab; a new password ends every token, "Log out everywhere" ends them too. Wrong passwords: after 5 from one address a wait of 1 minute that doubles with each next wrong one (up to an hour), per address only. Requests from another site's page are refused (Origin). Tests: `node tests/street.test.mjs`, `node tests/limits.test.mjs`.
 
 ## New site in 5 steps
 

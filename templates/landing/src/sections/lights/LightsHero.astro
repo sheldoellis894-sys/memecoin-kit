@@ -1,6 +1,6 @@
 ---
 // First screen of the "lights" layout: the owl in a glowing arched window, the name, the ticker, the slogan.
-import { config, asset } from '../../lib/project';
+import { config, asset, srcsetOf } from '../../lib/project';
 import { lights, owlImages } from '../../lib/lights';
 import LtCa from './LtCa.astro';
 const h = lights.hero || {};
@@ -23,7 +23,7 @@ const follow = h.follow !== false && owlImages.fly;
     </div>
     <figure class="lt-hero-art" data-ul-in>
       <div class="lt-arch">
-        <img src={asset(config.assets.hero)} alt={h.alt || config.name} width="900" height="900" fetchpriority="high" />
+        <img src={asset(config.assets.hero)} srcset={srcsetOf(config.assets.hero) || undefined} sizes={srcsetOf(config.assets.hero) ? '(max-width: 900px) 92vw, 560px' : undefined} alt={h.alt || config.name} width="900" height="900" fetchpriority="high" />
       </div>
       {h.note && <figcaption class="lt-hero-note">{h.note}</figcaption>}
     </figure>

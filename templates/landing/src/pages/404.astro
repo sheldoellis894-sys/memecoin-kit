@@ -1,0 +1,47 @@
+---
+// The page for an address the site does not have (dist/404.html: Vercel and server/serve.mjs answer with it).
+// A page of its own, without the site's big style file (so the home page stays exactly as it was): theme colours,
+// theme fonts (from the site itself when the theme keeps them, else Google Fonts), the logo, one way back home.
+// Wording: project.config.json "notFound": { "title", "text", "button" }; without it a short default.
+// Not counted in the visit numbers and closed to search engines.
+import { config, theme, asset, faviconPath } from '../lib/project';
+const nf = (config as any).notFound || {};
+const heading = nf.title || 'Page not found';
+const text = nf.text || 'This address is not on the site';
+const button = nf.button || 'Back to the home page';
+const logo = config.assets.logo ? asset(config.assets.logo) : '';
+const c = theme.colors;
+const f = theme.fonts as any;
+const ok = (x: any) => x && /^[A-Za-z0-9 ]+$/.test(String(x.family)) && /^[a-z0-9-]+\.woff2$/.test(String(x.file)) && /^\d{3}( \d{3})?$/.test(String(x.weight || '400')) && (!x.range || /^[U+0-9A-Fa-f, -]+$/.test(x.range));
+const local: any[] = Array.isArray(f.local) ? f.local.filter(ok).filter((x: any) => x.family === f.heading || x.family === f.body) : [];
+const fontCss = local.map((x) => `@font-face{font-family:'${x.family}';font-weight:${x.weight || 400};font-display:swap;src:url(/project/fonts/${x.file}) format('woff2')${x.range ? `;unicode-range:${x.range}` : ''}}`).join('');
+const safe = (v: string) => (/^#[0-9a-fA-F]{3,8}$/.test(v) ? v : '#111');
+const css = `${fontCss}
+:root{--bg:${safe(c.bg)};--text:${safe(c.text)};--muted:${safe(c.muted)};--primary:${safe(c.primary)};--on:${safe(c.onPrimary)}}
+*{box-sizing:border-box}html,body{margin:0}
+body{min-height:100svh;display:grid;place-content:center;justify-items:center;gap:14px;padding:48px 22px;text-align:center;background:var(--bg);color:var(--text);font:17px/1.5 '${f.body}',system-ui,sans-serif}
+.logo{width:104px;height:104px;border-radius:50%;object-fit:cover}
+.code{margin:0;font:400 clamp(4.5rem,18vw,9rem)/.9 '${f.heading}',system-ui,sans-serif;color:var(--primary)}
+h1{margin:0;font:400 clamp(1.7rem,5vw,2.5rem)/1.1 '${f.heading}',system-ui,sans-serif}
+p.t{margin:0;max-width:34ch;color:var(--muted);font-size:1.1rem}
+a.b{margin-top:10px;display:inline-flex;align-items:center;min-height:48px;padding:0 1.4em;border-radius:${String(theme.radius?.button || '12px').replace(/[^0-9a-z.%]/gi, '')};background:var(--primary);color:var(--on);font-weight:800;text-decoration:none}
+a.b:focus-visible{outline:3px solid var(--text);outline-offset:3px}`;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>{heading} · {config.name}</title>
+  {logo && <link rel="icon" href={faviconPath()} />}
+  {!local.length && f.googleFonts && <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?${f.googleFonts}&display=swap`} />}
+  <style set:html={css}></style>
+</head>
+<body>
+  {logo && <img class="logo" src={logo} alt="" width="104" height="104" />}
+  <p class="code" aria-hidden="true">404</p>
+  <h1>{heading}</h1>
+  <p class="t">{text}</p>
+  <a class="b" href="/">{button}</a>
+</body>
+</html>

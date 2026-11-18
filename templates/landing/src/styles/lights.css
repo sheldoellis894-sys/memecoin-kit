@@ -195,7 +195,7 @@ html:not(.ul-motion) .lt-slot.is-target { animation: none; box-shadow: 0 0 0 3px
 .lt-inv { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
 .lt-item { position: relative; display: grid; justify-items: center; gap: 2px; padding: 8px 4px 6px; border-radius: 14px; border: 2px solid transparent; background: rgb(255 255 255 / .05); color: var(--t-text); cursor: pointer;
   font: 600 .78rem/1.15 var(--font-body); text-align: center; transition: border-color .15s, background-color .15s, transform .15s; }
-.lt-item img { width: 52px; height: 52px; }
+.lt-item img { width: 52px; height: 52px; object-fit: contain; }
 .lt-item:hover { background: rgb(255 255 255 / .1); }
 .lt-item[aria-pressed="true"] { border-color: var(--t-accent); background: color-mix(in srgb, var(--t-accent) 14%, transparent); transform: translateY(-2px); }
 .lt-item.is-empty { opacity: .5; }

@@ -37,15 +37,16 @@
 //     and when every house is lit the new one waits (error 'full');
 //   - the moderator takes a whole run of numbers off the street at once (api/admin.js).
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
-import { storeFor, storeKind, serial } from './_agent/store.js';
+import { storeFor, storeKind, update } from './_agent/store.js';
 import { ipKey } from './_agent/ip.js';
+import { count, once } from './_agent/limits.js';
 import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGHTS, FAMILY_IDS, WISH_IDS } from '../src/lib/lights-kit.js';
 
 export const STREETS = { ullu: { keep: 2000, ticker: 'ULLU' } };   // keep = houses the street holds (the city map shows them all)
 const SHOW = 60;                         // houses sent to the street row of the page
 const CODES_MAX = 40;                    // houses one request may ask for in full (?sn=)
-const PER_IP = 40;                       // posts a day from one address, updates too (kept in memory: a soft limit; mobile
-                                         // networks put many phones behind one address, so it is not small)
+const PER_IP = 40;                       // posts a day from one address, updates too (mobile networks put many phones
+                                         // behind one address, so it is not small). Counted in api/_agent/limits.js
 const NEW_PER_IP = 20;                   // new houses a day from one address
 const NEW_PER_MINUTE = 60;               // new houses a minute for the whole street (updates are not counted)
 const PROOF_BITS = 16;                   // the browser check: zero bits the answer's hash starts with (env STREET_PROOF_BITS)
@@ -60,28 +61,18 @@ const json = (body, status = 200, extra = {}) => new Response(JSON.stringify(bod
 const pathOf = (project) => `${project}/street.json`;
 const int = (v, max = 100000) => (Number.isInteger(v) && v >= 0 && v <= max ? v : null);
 
-const memory = { ip: new Map(), fresh: new Map(), minute: { at: 0, n: 0 }, used: new Map() };
-export const resetLimits = () => { memory.ip.clear(); memory.fresh.clear(); memory.minute = { at: 0, n: 0 }; memory.used.clear(); };
+// The limits live in api/_agent/limits.js: in Redis when the project has one, else in the memory of the process
+// (on an own server that is every request; on Vercel without Redis, each copy of the function counts on its own)
+export { resetMemory as resetLimits } from './_agent/limits.js';
+const dayOf = (now) => Math.floor(now / 86400000);
 
-/** Every post from one address counts here (a soft limit, per server instance). */
-function limited(ip, now) {
-  const key = `${Math.floor(now / 86400000)}:${ip}`;
-  const n = memory.ip.get(key) || 0;
-  if (n >= PER_IP) return true;
-  if (memory.ip.size > 5000) memory.ip.clear();
-  memory.ip.set(key, n + 1);
-  return false;
-}
+/** Every post from one address counts here. */
+const limited = async (env, ip, now, deps) => (await count(env, `post:${dayOf(now)}:${ip}`, 90000, deps)) > PER_IP;
 /** Only new houses count here: a day from one address and a minute for the whole street. */
-function newLimited(ip, now) {
-  const m = Math.floor(now / 60000);
-  if (memory.minute.at !== m) memory.minute = { at: m, n: 0 };
-  const key = `${Math.floor(now / 86400000)}:${ip}`;
-  const n = memory.fresh.get(key) || 0;
-  if (memory.minute.n >= NEW_PER_MINUTE || n >= NEW_PER_IP) return true;
-  if (memory.fresh.size > 5000) memory.fresh.clear();
-  memory.fresh.set(key, n + 1); memory.minute.n += 1;
-  return false;
+async function newLimited(env, ip, now, deps) {
+  const mine = await count(env, `new:${dayOf(now)}:${ip}`, 90000, deps);
+  const all = await count(env, `new-minute:${Math.floor(now / 60000)}`, 120, deps);
+  return mine > NEW_PER_IP || all > NEW_PER_MINUTE;
 }
 
 // ---- the browser check (src/lib/street-proof.js). A challenge is "v1.time.random.bits.signature": the server keeps nothing
@@ -111,27 +102,18 @@ function proofValid(env, proof, id, now) {
   let zero = 0; for (const byte of hash) { if (byte === 0) { zero += 8; continue; } zero += Math.clz32(byte) - 24; break; }
   return zero >= bits;
 }
-/** An answered challenge is good for one house: kept until it would be too old anyway. */
-const proofUsed = (proof, now) => {
-  for (const [c, until] of memory.used) if (until < now) memory.used.delete(c);
-  return memory.used.has(proof.challenge);
-};
-const useProof = (proof, now) => { if (memory.used.size > 20000) memory.used.clear(); memory.used.set(proof.challenge, now + (PROOF_MINUTES + 1) * 60000); };
+/** An answered challenge is good for one house: true the first time it is used (kept until it would be too old anyway). */
+const firstUse = (env, proof, deps) => once(env, `proof:${proof.challenge}`, (PROOF_MINUTES + 1) * 60, deps);
 
-// Vercel Blob in public mode is read through its CDN, which may give the file as it was up to a minute ago. Then two posts
-// in a row would undo each other. So the last file this instance wrote is kept in memory, and the newer of the two is used.
-const written = new WeakMap();   // store → { path, updated, j, n }
-let writes = 0;
-
-/** The street file: houses, the last serial number given, bans and the moderation log (api/admin.js). */
-export async function readStreet(env, store) {
-  const path = pathOf(env.PROJECT);
-  const raw = await store.read(env, path);
-  let j = raw ? JSON.parse(raw) : null;
-  const mine = storeKind(env) === 'blob' ? written.get(store) : null;
+/**
+ * The street file as text → houses, the last serial number given, bans and the moderation log (api/admin.js).
+ * The file is always read from the storage itself, not from a cache (api/_agent/journal.js), so it is never older
+ * than the last write.
+ */
+export function parseStreet(raw) {
+  const j = raw ? JSON.parse(raw) : null;
   // stamp = a mark of this version of the file (see visibleOf)
-  let stamp = raw ? createHash('sha1').update(raw).digest('base64') : '';
-  if (mine && mine.path === path && (!j || String(j.updated || '') < mine.updated)) { j = mine.j; stamp = `w${mine.n}`; }
+  const stamp = raw ? createHash('sha1').update(raw).digest('base64') : '';
   const houses = Array.isArray(j?.houses) ? j.houses.filter((h) => h && typeof h.key === 'string' && typeof h.code === 'string') : [];
   const bans = Array.isArray(j?.bans) ? j.bans.filter((b) => b && typeof b.key === 'string') : [];
   const log = Array.isArray(j?.log) ? j.log.filter((e) => e && typeof e === 'object') : [];
@@ -141,12 +123,19 @@ export async function readStreet(env, store) {
   return { houses, bans, log, lastSn: last, stamp };
 }
 
-/** Writes the street file (houses, numbers, bans, log) and remembers it for the CDN case above. */
-export async function writeStreet(env, store, st, updated) {
-  const file = { houses: st.houses, lastSn: st.lastSn, bans: st.bans, log: st.log.slice(-300), updated };
-  await store.write(env, pathOf(env.PROJECT), JSON.stringify(file));
-  written.set(store, { path: pathOf(env.PROJECT), updated, j: file, n: ++writes });
-}
+export const readStreet = async (env, store) => parseStreet(await store.read(env, pathOf(env.PROJECT)));
+
+/** The street file as text (houses, numbers, bans, log). */
+export const streetText = (st, updated) => JSON.stringify({ houses: st.houses, lastSn: st.lastSn, bans: st.bans, log: st.log.slice(-300), updated });
+
+/**
+ * Changes the street: change(st) gets the street as it is now and returns { st, result } (st null = nothing to write).
+ * Two changes at the same moment never undo each other (api/_agent/store.js update()).
+ */
+export const changeStreet = (env, store, updated, change) => update(env, store, pathOf(env.PROJECT), async (raw) => {
+  const out = await change(parseStreet(raw));
+  return { text: out.st ? streetText(out.st, updated) : null, result: out.result };
+});
 export { pathOf, isDark, publicOf, blockList, rude, json, ipKey };
 
 /** How bright a house is shown now: a house not lit for two days shows at level 1. */
@@ -246,16 +235,14 @@ export async function handle(request, env = process.env, deps = {}) {
   // taking the own house off the street
   if (b.remove === true) {
     const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
-    if (limited(ip, now)) return json({ ok: false, error: 'busy' }, 429);
+    if (await limited(env, ip, now, deps)) return json({ ok: false, error: 'busy' }, 429);
     try {
-      return await serial(pathOf(env.PROJECT), async () => {
-        const st = await readStreet(env, store);
+      return await changeStreet(env, store, new Date(now).toISOString(), (st) => {
         const next = st.houses.filter((x) => x.key !== key);
-        if (next.length === st.houses.length) return json({ ok: true, removed: false });
-        await writeStreet(env, store, { ...st, houses: next }, new Date(now).toISOString());
-        return json({ ok: true, removed: true });
+        if (next.length === st.houses.length) return { st: null, result: json({ ok: true, removed: false }) };
+        return { st: { ...st, houses: next }, result: json({ ok: true, removed: true }) };
       });
-    } catch { return json({ ok: false, error: 'storage' }, 503); }
+    } catch (e) { return json({ ok: false, error: e?.code === 'busy' ? 'busy' : 'storage' }, 503); }
   }
   // the name on the door
   const name = cleanName(b.name);
@@ -275,11 +262,13 @@ export async function handle(request, env = process.env, deps = {}) {
   if (got.free.some((f) => f.t && (blocked(f.t, block) || isBadText(f.t, { ticker: conf.ticker, extra: block })))) return json({ ok: false, error: 'sign' }, 400);
 
   const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
-  if (limited(ip, now)) return json({ ok: false, error: 'busy' }, 429);
+  if (await limited(env, ip, now, deps)) return json({ ok: false, error: 'busy' }, 429);
   // a wrong answer to the browser check is turned away before the street is read
   const bits = proofBits(env);
-  const proofGood = bits > 0 && b.proof !== undefined ? proofValid(env, b.proof, b.id, now) : false;
-  if (bits > 0 && b.proof !== undefined && !proofGood) return json({ ok: false, error: 'proof' }, 403);
+  const proofRight = bits > 0 && b.proof !== undefined ? proofValid(env, b.proof, b.id, now) : false;
+  if (bits > 0 && b.proof !== undefined && !proofRight) return json({ ok: false, error: 'proof' }, 403);
+  // a right answer counts once: a second post with it is like a post without it (the page then asks for a new challenge)
+  const proofGood = proofRight && (await firstUse(env, b.proof, deps));
 
   const h = houseOfP(got);
   const level = Math.min(NIGHTS, streak);
@@ -288,21 +277,23 @@ export async function handle(request, env = process.env, deps = {}) {
   const entry = { key, seed: got.seed, family: got.family, wish: got.wish, name, code, no: h.no, nights, gifts, best, landings, streak,
     light: lightOf(h, got.placed, level, got.free), lightDark: lightOf(h, got.placed, 1, got.free), updated: new Date(now).toISOString() };
 
+  // the limits of new houses are counted once, even when the street is read again (another post wrote it in between)
+  let fresh = null;
+  const stop = (result) => ({ st: null, result });
   try {
-    return await serial(pathOf(env.PROJECT), async () => {
-    const st = await readStreet(env, store);
+    return await changeStreet(env, store, entry.updated, async (st) => {
     const { houses } = st;
     // a visitor the moderator banned does not get on the street again
-    if (st.bans.some((x) => x.key === key)) return json({ ok: false, error: 'banned' }, 403);
+    if (st.bans.some((x) => x.key === key)) return stop(json({ ok: false, error: 'banned' }, 403));
     // one house per visitor. Codes are public, so a copy must not push the real house off the street: a house (seed and
     // style) that another visitor keeps lit is not taken. Once it has gone dark (two days), a moved house may take its place.
     const same = (x) => x.key !== key && x.seed === entry.seed && (x.family || 'mumbai') === entry.family;
-    if (houses.some((x) => same(x) && !isDark(x, now))) return json({ ok: false, error: 'taken' }, 409);
+    if (houses.some((x) => same(x) && !isDark(x, now))) return stop(json({ ok: false, error: 'taken' }, 409));
     const others = houses.filter((x) => x.key !== key && !same(x));
     // the house keeps its number while it is on the street (an update, a move); a new house gets the next one
     const mine = houses.find((x) => x.key === key);
     // a new house: the browser check (one house per challenge) and the limits of new houses
-    if (!mine && bits > 0 && (!proofGood || proofUsed(b.proof, now))) return json({ ok: false, error: 'proof' }, 403);
+    if (!mine && bits > 0 && !proofGood) return stop(json({ ok: false, error: 'proof' }, 403));
     let lastSn = st.lastSn;
     entry.sn = mine && Number.isInteger(mine.sn) ? mine.sn : ++lastSn;
     let next = [entry, ...others].sort((a, b2) => (a.updated < b2.updated ? 1 : -1));
@@ -311,16 +302,14 @@ export async function handle(request, env = process.env, deps = {}) {
     if (next.length > conf.keep) {
       const extra = next.length - conf.keep;
       const gone = new Set(next.filter((x) => x !== entry && isDark(x, now)).slice(-extra));
-      if (gone.size < extra && !mine) return json({ ok: false, error: 'full' }, 503);
+      if (gone.size < extra && !mine) return stop(json({ ok: false, error: 'full' }, 503));
       next = next.filter((x) => !gone.has(x)).slice(0, conf.keep);
     }
-    if (!mine && newLimited(ip, now)) return json({ ok: false, error: 'busy' }, 429);
-    await writeStreet(env, store, { ...st, houses: next, lastSn }, entry.updated);
-    if (!mine && bits > 0) useProof(b.proof, now);
-    return json({ ok: true, house: publicOf(entry, now) });
+    if (!mine) { if (fresh === null) fresh = !(await newLimited(env, ip, now, deps)); if (!fresh) return stop(json({ ok: false, error: 'busy' }, 429)); }
+    return { st: { ...st, houses: next, lastSn }, result: json({ ok: true, house: publicOf(entry, now) }) };
     });
-  } catch {
-    return json({ ok: false, error: 'storage' }, 503);
+  } catch (e) {
+    return json({ ok: false, error: e?.code === 'busy' ? 'busy' : 'storage' }, 503);
   }
 }
 

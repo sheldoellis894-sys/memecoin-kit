@@ -1,7 +1,8 @@
 ---
 import '../styles/global.css';
-import { config, theme, asset } from '../lib/project';
+import { config, theme, asset, faviconPath } from '../lib/project';
 import Effects from './Effects.astro';
+import EffectsSafe from './EffectsSafe.astro';
 import Track from './Track.astro';
 
 const c = theme.colors;
@@ -33,7 +34,15 @@ const vars = [
 const title = `${config.name} ($${config.ticker})`;
 // visit and click numbers for /admin, only where the server counts them (config server.functions has "stats")
 const track = ((config as any).server?.functions || []).includes('stats');
-const og = config.assets.og ? (config.url ? new URL(asset(config.assets.og), config.url).href : asset(config.assets.og)) : '';
+const og = config.assets.og ? (config.url ? new URL(asset(config.assets.og, false), config.url).href : asset(config.assets.og, false)) : '';
+// fonts kept on the site itself (theme "fonts.local", files in src/fonts/, copied by scripts/sync-assets.mjs): no request
+// to Google when a page opens. A theme without the list loads its fonts from Google Fonts as before
+const okFont = (x: any) => x && typeof x.family === 'string' && /^[A-Za-z0-9 ]+$/.test(x.family) && typeof x.file === 'string' && /^[a-z0-9-]+\.woff2$/.test(x.file)
+  && /^\d{3}( \d{3})?$/.test(String(x.weight || '400')) && (!x.range || /^[U+0-9A-Fa-f, -]+$/.test(x.range));
+const localFonts: any[] = Array.isArray((theme.fonts as any).local) ? (theme.fonts as any).local.filter(okFont) : [];
+const fontCss = localFonts.map((x) => `@font-face{font-family:'${x.family}';font-style:normal;font-weight:${x.weight || 400};font-display:swap;src:url(/project/fonts/${x.file}) format('woff2')${x.range ? `;unicode-range:${x.range}` : ''}}`).join('');
+// the address search engines and link previews treat as the page's own (config "seo": { "canonical": true })
+const canonical = (config as any).seo?.canonical && config.url ? new URL('/', config.url).href : '';
 ---
 <!doctype html>
 <html lang="en" style={vars} class={htmlClass}>
@@ -43,7 +52,7 @@ const og = config.assets.og ? (config.url ? new URL(asset(config.assets.og), con
     <title>{title} — {config.tagline}</title>
     <meta name="description" content={config.description} />
     <meta name="theme-color" content={c.bg} />
-    <link rel="icon" href={asset(config.assets.favicon || config.assets.logo)} />
+    <link rel="icon" href={faviconPath()} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={config.description} />
@@ -51,13 +60,23 @@ const og = config.assets.og ? (config.url ? new URL(asset(config.assets.og), con
     {config.url && <meta property="og:url" content={config.url} />}
     <meta name="twitter:card" content="summary_large_image" />
     {og && <meta name="twitter:image" content={og} />}
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?${theme.fonts.googleFonts}&display=swap`} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {localFonts.length ? (
+      <>
+        {localFonts.filter((x) => x.preload).map((x) => <link rel="preload" href={`/project/fonts/${x.file}`} as="font" type="font/woff2" crossorigin />)}
+        <style set:html={fontCss}></style>
+      </>
+    ) : (
+      <>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?${theme.fonts.googleFonts}&display=swap`} />
+      </>
+    )}
   </head>
   <body class="antialiased">
     <slot />
-    <Effects />
+    {(config as any).security?.csp ? <EffectsSafe /> : <Effects />}
     {track && <Track />}
   </body>
 </html>
