@@ -43,9 +43,11 @@ const HOST = process.env.HOST || '127.0.0.1';
 const DIST = path.join(root, 'dist');
 const MAX_BODY = 64 * 1024;
 // sent with every answer: the browser must not guess file types, other sites learn only the domain the visitor came from,
-// and the pages may not use the camera, the microphone, the location or payments
+// the pages may not use the camera, the microphone, the location or payments, and only this site may show them in a frame
+// (frame-ancestors works only as a header, not in the page's own CSP tag; the moderator page is stricter, see NO_FRAME)
 const SAFE = { 'x-content-type-options': 'nosniff', 'referrer-policy': 'strict-origin-when-cross-origin',
-  'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' };
+  'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+  'x-frame-options': 'SAMEORIGIN', 'content-security-policy': "frame-ancestors 'self'" };
 // behind HTTPS (nginx says so in X-Forwarded-Proto) the browser is told to use HTTPS only from now on
 const HSTS = { 'strict-transport-security': 'max-age=31536000' };
 const tls = (req) => String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https';

@@ -19,7 +19,9 @@
 //                           (new stores add BLOB_STORE_ID instead; the Blob package then signs in with Vercel OIDC)
 //   STORE=file, DATA_DIR  — on an own server: the folder for the file (the client's hosting)
 //   STREET_SALT           — required for posting: any long random string; visitor ids are stored only as hashes with it,
-//                           and the challenges of the browser check are signed with it
+//                           and the challenges of the browser check are signed with it. Without it the street is still
+//                           read, but a challenge or a post gets 503 { error: 'off', reason: 'no_salt' }: there is no
+//                           stand-in salt, so nobody can sign a challenge or tie a house to a known value
 //   STREET_PROOF_BITS     — optional: how hard the browser check is (default 16, about a second on a phone; 0 = off)
 //   STREET_BLOCK          — optional: more words that may not be in a name or on a sign, comma separated
 //                           (swearing, slurs, hate, links, promo and mocked holy names are blocked anyway: src/lib/lights-filter.js)
@@ -75,13 +77,23 @@ async function newLimited(env, ip, now, deps) {
   return mine > NEW_PER_IP || all > NEW_PER_MINUTE;
 }
 
+// the salt of the street exactly as set (the hashes of the houses already on the street are made with it), or '' when unset
+const saltOf = (env) => String(env.STREET_SALT || '');
+const hasSalt = (env) => saltOf(env).trim() !== '';
+let saltWarned = false;
+/** 503 with the reason, written once to the function's log for the owner, as server/serve.mjs does at start */
+function noSalt() {
+  if (!saltWarned) { saltWarned = true; console.error('STREET_SALT is not set: the street cannot sign the browser check or take houses. Set a long random string (for example the output of openssl rand -hex 32) in the environment variables and redeploy. Set it once and never change it'); }
+  return json({ ok: false, error: 'off', reason: 'no_salt' }, 503);
+}
+
 // ---- the browser check (src/lib/street-proof.js). A challenge is "v1.time.random.bits.signature": the server keeps nothing
 // until it is answered, and the signature (made with STREET_SALT) shows it came from this street and was not changed.
 const proofBits = (env) => {
   const t = String(env.STREET_PROOF_BITS ?? '').trim(); const v = Number(t);   // empty (as in .env.example) = the default
   return t !== '' && Number.isInteger(v) && v >= 0 && v <= 24 ? v : PROOF_BITS;
 };
-const signOf = (env, body) => createHmac('sha256', `proof:${env.STREET_SALT || 'street'}`).update(`${env.PROJECT}.${body}`).digest('base64url').slice(0, 22);
+const signOf = (env, body) => createHmac('sha256', `proof:${saltOf(env)}`).update(`${env.PROJECT}.${body}`).digest('base64url').slice(0, 22);
 function challengeOf(env, now) {
   const body = `v1.${now}.${randomBytes(8).toString('hex')}.${proofBits(env)}`;
   return `${body}.${signOf(env, body)}`;
@@ -192,6 +204,7 @@ export async function handle(request, env = process.env, deps = {}) {
   if (request.method === 'GET') {
     if (!live) return json({ live, houses: [], star: null, count: 0 });
     if (new URL(request.url).searchParams.has('challenge')) {
+      if (!hasSalt(env)) return noSalt();
       const bits = proofBits(env);
       return json({ challenge: bits ? challengeOf(env, now) : '', bits });
     }
@@ -219,7 +232,7 @@ export async function handle(request, env = process.env, deps = {}) {
   if (request.method !== 'POST') return json({ error: 'method' }, 405, { allow: 'GET, POST' });
   if (!live) return json({ ok: false, error: 'off' }, 503);
   // without STREET_SALT nothing is written: houses tied to no salt would be lost the day it is set
-  if (!String(env.STREET_SALT || '').trim()) return json({ ok: false, error: 'off' }, 503);
+  if (!hasSalt(env)) return noSalt();
   if (Number(request.headers.get('content-length') || 0) > MAX_BODY) return json({ ok: false, error: 'big' }, 413);
   let b;
   try {
@@ -231,7 +244,7 @@ export async function handle(request, env = process.env, deps = {}) {
 
   // who: a random id from the browser, kept only as a hash
   if (typeof b.id !== 'string' || !/^[a-z0-9]{16,32}$/.test(b.id)) return json({ ok: false, error: 'bad' }, 400);
-  const key = createHash('sha256').update(`${env.STREET_SALT || 'street'}:${env.PROJECT}:${b.id}`).digest('hex').slice(0, 32);
+  const key = createHash('sha256').update(`${saltOf(env)}:${env.PROJECT}:${b.id}`).digest('hex').slice(0, 32);
   // taking the own house off the street
   if (b.remove === true) {
     const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);

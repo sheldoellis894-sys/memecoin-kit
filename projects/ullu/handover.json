@@ -1,0 +1,29 @@
+{
+  "project": "ullu",
+  "archives": [
+    {
+      "name": "ullu-site",
+      "readme": "../ullu-repo/ullu-site/README.md",
+      "folders": {
+        "deploy": [{ "src": "../ullu-repo/ullu-site/deploy", "tree": true }],
+        "source": [{ "src": "../ullu-repo/ullu-site/source", "tree": true }]
+      }
+    },
+    {
+      "name": "ullu-brand-kit",
+      "readme": "../ullu-repo/ullu-site/ullu-brand-kit/README.md",
+      "folders": {
+        "01_brand_book": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/01_brand_book", "tree": true }],
+        "02_logo": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/02_logo", "tree": true }],
+        "03_social": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/03_social", "tree": true }],
+        "04_website": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/04_website", "tree": true }],
+        "05_emotions": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/05_emotions", "tree": true }],
+        "06_poses": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/06_poses", "tree": true }],
+        "07_original_art": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/07_original_art", "tree": true }],
+        "08_prompts": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/08_prompts", "tree": true }],
+        "09_texts": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/09_texts", "tree": true }],
+        "10_figma": [{ "src": "../ullu-repo/ullu-site/ullu-brand-kit/10_figma", "tree": true }]
+      }
+    }
+  ]
+}

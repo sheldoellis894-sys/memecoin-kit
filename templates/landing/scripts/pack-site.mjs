@@ -10,6 +10,7 @@
 //   package.json     only the packages those files need
 //   .env.example, Dockerfile, README.md
 // Nothing of the other projects goes in.
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -62,6 +63,9 @@ fs.writeFileSync(path.join(out, 'package.json'), JSON.stringify({
   // (the helper runs only on Vercel; a site on its own server keeps its data in files and never loads it)
   ...(packages.has('@vercel/blob') ? { overrides: { zod: '^4.6.7' } } : {}),
 }, null, 2) + '\n');
+// package-lock.json pins the exact versions of those packages: every install (npm ci, the Docker image) gets the same code
+fs.rmSync(path.join(out, 'package-lock.json'), { force: true });
+if (packages.size) execSync('npm install --package-lock-only --ignore-scripts --no-audit --no-fund', { cwd: out, stdio: 'inherit' });
 
 const street = functions.includes('street');
 fs.writeFileSync(path.join(out, '.env.example'), [
@@ -94,14 +98,15 @@ fs.writeFileSync(path.join(out, '.env.example'), [
   '',
 ].join('\n'));
 
-// what never goes into a Docker image: the settings with the salt, the data of the street, installed packages
-fs.writeFileSync(path.join(out, '.dockerignore'), ['.env', 'data', 'node_modules', '*.log', ''].join('\n'));
+// what never goes into a Docker image: the settings with the salt and every copy of them (.env.local, .env.bak …),
+// the data of the street, installed packages. Only the empty .env.example goes in
+fs.writeFileSync(path.join(out, '.dockerignore'), ['.env*', '!.env.example', 'data', 'node_modules', '*.log', ''].join('\n'));
 
 fs.writeFileSync(path.join(out, 'Dockerfile'), [
   'FROM node:24-alpine',
   'WORKDIR /app',
-  'COPY package.json ./',
-  'RUN npm install --omit=dev',
+  'COPY package.json package-lock.json ./',
+  'RUN npm ci --omit=dev',
   'COPY . .',
   '# the site runs as the unprivileged user "node"; only the data folder is writable for it',
   'RUN mkdir -p /data && chown node:node /data',
@@ -189,7 +194,7 @@ Log in with an SSH key, then turn password logins off: in \`/etc/ssh/sshd_config
 \`\`\`
 sudo mkdir -p /srv/${project} && sudo cp -r ./* ./.env.example ./.dockerignore /srv/${project}/ && cd /srv/${project}
 sudo node set-domain.mjs https://your-domain.com   # the pages are built for ${siteUrl || 'another address'}; this swaps it for yours
-sudo npm install --omit=dev
+sudo npm ci --omit=dev                             # installs exactly the versions in package-lock.json
 sudo cp .env.example .env && sudo chown root:root .env && sudo chmod 600 .env   # then fill in .env (below): sudo nano .env
 sudo mkdir -p data && sudo chown www-data:www-data data && sudo chmod 700 data   # only the site's process reads and writes its data
 \`\`\`
@@ -326,7 +331,7 @@ ${functions.includes('admin') ? '- `https://your-domain.com/admin` opens with th
 
 ## Update
 
-Replace \`dist/\` and \`site-url.txt\` (and \`api/\`, \`server/\`, \`src/\` if they changed) with the ones from the new release, run \`node set-domain.mjs https://your-domain.com\` again (it does nothing when the release was already built for your domain), and restart the service. Never touch \`data/\` or \`.env\`.
+Replace \`dist/\` and \`site-url.txt\` (and \`api/\`, \`server/\`, \`src/\` if they changed) with the ones from the new release, run \`node set-domain.mjs https://your-domain.com\` again (it does nothing when the release was already built for your domain), and restart the service. If \`package.json\` or \`package-lock.json\` changed, run \`sudo npm ci --omit=dev\` first. Never touch \`data/\` or \`.env\`.
 `);
 
 console.log(`Packed ${project} → ${path.relative(here, out)}`);

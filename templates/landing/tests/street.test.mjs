@@ -406,16 +406,36 @@ const dir = await fsp.mkdtemp(pth.join(os.tmpdir(), 'street-'));
 const FENV = { PROJECT: 'ullu', STORE: 'file', DATA_DIR: dir, STREET_PROOF_BITS: '0', STREET_SALT: 'file-street-salt-0123' };
 resetLimits(); clock = Date.parse('2026-11-05T20:00:00Z');
 res = await call('GET', null, {}, FENV); assert.equal(res.out.live, true); assert.deepEqual(res.out.houses, []);
-// without STREET_SALT the street is read but nothing is written (houses tied to no salt would be lost once it is set)
+// without STREET_SALT the street is read but nothing is written (houses tied to no salt would be lost once it is set),
+// and no challenge is signed: there is no stand-in salt (audit 23.11.2026, finding 4). The answer says why
 for (const salt of [undefined, '', '   ']) {
-  res = await call('POST', { ...good, id: 'nosaltaaaaaaaaaaaaa', name: 'No salt', code: K.encodeHouse(2999, {}, 'haveli') }, {}, { ...FENV, STREET_SALT: salt }, '7.7.6.1');
-  assert.equal(res.status, 503); assert.equal(res.out.error, 'off');
+  const NENV = { ...FENV, STREET_SALT: salt, STREET_PROOF_BITS: '8' };
+  res = await call('POST', { ...good, id: 'nosaltaaaaaaaaaaaaa', name: 'No salt', code: K.encodeHouse(2999, {}, 'haveli') }, {}, NENV, '7.7.6.1');
+  assert.equal(res.status, 503); assert.equal(res.out.error, 'off'); assert.equal(res.out.reason, 'no_salt');
+  res = await call('GET', null, {}, NENV); assert.equal(res.status, 200); assert.equal(res.out.live, true, 'the street is still read');
+  const c = await handle(new Request('https://x/api/street?challenge=1'), NENV, { now });
+  assert.equal(c.status, 503, 'no challenge without a salt'); const cj = await c.json();
+  assert.equal(cj.reason, 'no_salt'); assert.ok(!('challenge' in cj), 'nothing signed');
 }
 await assert.rejects(fsp.readFile(pth.join(dir, 'ullu', 'street.json'), 'utf8'), 'no file written without a salt');
+// a challenge signed with the old stand-in salt 'street' is not taken by a street that has a salt
+{
+  const { createHmac } = await import('node:crypto');
+  const body = `v1.${clock}.0123456789abcdef.0`;
+  const forged = `${body}.${createHmac('sha256', 'proof:street').update(`ullu.${body}`).digest('base64url').slice(0, 22)}`;
+  res = await call('POST', { ...good, id: 'forgedaaaaaaaaaaaaa', name: 'Forged', code: K.encodeHouse(2998, {}, 'haveli'), proof: { challenge: forged, nonce: 'a1' } }, {}, { ...FENV, STREET_PROOF_BITS: '1' }, '7.7.6.2');
+  assert.equal(res.status, 403); assert.equal(res.out.error, 'proof');
+}
 const posts = await Promise.all(Array.from({ length: 5 }, (_, i) => call('POST', { ...good, id: `para${i}aaaaaaaaaaaaaa`, name: `Para ${i}`, code: K.encodeHouse(3000 + i, {}, 'haveli') }, {}, FENV, `7.7.7.${i}`)));
 assert.ok(posts.every((x) => x.out.ok), JSON.stringify(posts.map((x) => x.out)));
 const onDisk = JSON.parse(await fsp.readFile(pth.join(dir, 'ullu', 'street.json'), 'utf8'));
 assert.equal(onDisk.houses.length, 5, 'no post lost when they arrive together');
+// with a salt set, a house keeps the same key as before the change (houses already on the street stay their owners')
+{
+  const { createHash } = await import('node:crypto');
+  const was = (id) => createHash('sha256').update(`${FENV.STREET_SALT || 'street'}:ullu:${id}`).digest('hex').slice(0, 32);
+  assert.deepEqual(onDisk.houses.map((x) => x.key).sort(), Array.from({ length: 5 }, (_, i) => was(`para${i}aaaaaaaaaaaaaa`)).sort());
+}
 res = await call('GET', null, {}, FENV); assert.equal(res.out.count, 5); assert.ok(res.out.houses.every((x) => x.family === 'haveli'));
 res = await call('GET', null, {}, { PROJECT: 'ullu', STORE: 'blob' }); assert.equal(res.out.live, false, 'blob asked for but no token: the street is off, not broken');
 await fsp.rm(dir, { recursive: true, force: true });
