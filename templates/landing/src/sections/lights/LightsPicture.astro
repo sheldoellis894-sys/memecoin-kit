@@ -29,7 +29,7 @@ const data = JSON.stringify({
 {googleExtra && <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Kalam:wght@700&family=Bungee&family=Pacifico&display=swap" />}
 <section id="picture" class="lt-sec lt-pic-sec" data-ul-pic={data}>
   <div class="lt-in">
-    <LtHead kicker={c.kicker} title={c.title} lead={c.lead} />
+    <LtHead kicker={c.kicker} title={c.title} lead={c.lead} sticker />
     <div class="lt-pic">
       <div class="lt-pic-stage" data-ul-in>
         <canvas class="lt-canvas" width="1080" height="1080" data-ul-canvas aria-label={l.canvasLabel || 'Your picture with lights'}></canvas>
@@ -104,7 +104,6 @@ const data = JSON.stringify({
           <span class="lt-switch-track" aria-hidden="true"><i></i></span>
           <span>{l.holder || 'Holder preview: golden lights, no watermark'}</span>
         </label>
-        <a class="lt-sr" data-ul-pdl download>download</a>
       </div>
     </div>
   </div>
@@ -150,7 +149,7 @@ const data = JSON.stringify({
     ];
     const list = $<HTMLElement>('[data-ul-stickers]');
     const ptabs = $<HTMLElement>('[data-ul-ptabs]');
-    let ptab = 'owl';
+    let ptab = 'lamps';   // the lamps first: they light the picture up; the owl stickers are for fun and give no light
     const catName = (c: string) => (c === 'owl' ? L.tabOwl || 'Owl' : cfg.categories?.[c] || c.charAt(0).toUpperCase() + c.slice(1));
     const drawList = () => {
       const cats = ['owl', ...K.CATEGORIES.filter((c: string) => kinds.some((k) => k.cat === c))];
@@ -313,8 +312,14 @@ const data = JSON.stringify({
     let spread = 0;
     const add = async (k: Kind, at?: { x: number; y: number }, pick = true) => {
       const img = await load(k.src);
-      spread = (spread + 1) % 9;
-      const x: St = { k, img, x: at?.x ?? 240 + (spread % 3) * 300, y: at?.y ?? 260 + Math.floor(spread / 3) * 220, s: 1, r: 0, flip: false };
+      // a new light goes around the edges of the picture, never on the middle (where the face usually is), a little off the spot each time
+      const RING = [[150, 440], [930, 440], [150, 720], [920, 720], [220, 930], [860, 930], [200, 170], [880, 170], [540, 950], [540, 140]];
+      // while there are words on the picture (at the bottom), the lights keep clear of them
+      const words = textObj();
+      if (spread === 0 && st.length === 0) spread = RING.length - 1;   // a fresh picture starts again from the first side point
+      for (let n = 0; n < RING.length; n++) { spread = (spread + 1) % RING.length; if (!words || Math.abs(RING[spread][1] * (S / 1080) - words.y) > 200) break; }
+      const [rx, ry] = RING[spread]; const jit = () => (Math.random() - 0.5) * 70;
+      const x: St = { k, img, x: at?.x ?? Math.round(rx + jit()), y: at?.y ?? Math.round(ry + jit()), s: 1, r: 0, flip: false };
       st.push(x); if (pick) select(x); else render();
       if (k.light) await owlCheck();
       return x;
@@ -324,7 +329,8 @@ const data = JSON.stringify({
     {
       const phone = matchMedia('(max-width: 939px)');
       const stage = root.querySelector<HTMLElement>('.lt-pic-stage')!;
-      const moved = [root.querySelector<HTMLElement>('[data-ul-litbox]')!, root.querySelector<HTMLElement>('[data-ul-edit]')!];
+      // the picture first (as the tip says), then the lights and the editing box
+      const moved = [root.querySelector<HTMLElement>('[data-ul-bases]')!.closest<HTMLElement>('.lt-box')!, root.querySelector<HTMLElement>('[data-ul-litbox]')!, root.querySelector<HTMLElement>('[data-ul-edit]')!];
       const marks = moved.map((el) => { const m = document.createComment('dock'); el.before(m); return m; });
       const dock = () => { moved.forEach((el, i) => { if (phone.matches) stage.appendChild(el); else marks[i].after(el); }); root.classList.toggle('is-docked', phone.matches); };
       dock(); phone.addEventListener('change', dock);
@@ -476,7 +482,8 @@ const data = JSON.stringify({
     markStyle();
 
     // ---- saving and sharing --------------------------------------------------------------------
-    const dl = $<HTMLAnchorElement>('[data-ul-pdl]');
+    // a link made only for the moment of the download (a link without an address on the page is a dead link for search engines)
+    const dl = { href: '', download: '', click() { const a = document.createElement('a'); a.href = this.href; a.download = this.download; a.hidden = true; document.body.appendChild(a); a.click(); a.remove(); } };
     let lastUrl = '';
     const blobOf = (c: HTMLCanvasElement) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('blob'))), 'image/png'));
     const exportPng = async (round = false) => {

@@ -38,7 +38,9 @@ html.decor-truck .lt-hero-title::after { content: "उल्लू"; content: "�
   color: var(--dt-yellow); background: var(--dt-red); border: 3px solid var(--lt-ink); border-radius: 10px; box-shadow: 4px 4px 0 var(--lt-ink); text-shadow: 2px 2px 0 var(--lt-ink); transform: rotate(-6deg); }
 html.decor-truck .lt-hero-ticker { text-shadow: 2px 2px 0 var(--dt-red), 3px 3px 0 var(--lt-ink); }
 html.decor-truck .lt-title { color: var(--lt-cream); text-shadow: 3px 3px 0 var(--dt-red), 5px 5px 0 var(--lt-ink); }
-html.decor-truck :is(.lt-card, .lt-step, .lt-plan-card, .lt-setup, .lt-star-text) h3, html.decor-truck .lt-rules-title, html.decor-truck .lt-rules dt { text-shadow: 2px 2px 0 var(--dt-red); }
+/* the painted red shadow stays on the big titles only; small titles are plain, in the accent colour, so not every heading looks the same */
+html.decor-truck .lt-star-text h3 { text-shadow: 2px 2px 0 var(--dt-red); }
+html.decor-truck :is(.lt-card, .lt-step, .lt-plan-card, .lt-setup) h3, html.decor-truck .lt-rules-title, html.decor-truck .lt-rules dt { text-shadow: none; color: var(--t-accent); }
 
 /* ---- Rubric: a painted ribbon with swallowtail ends ---- */
 html.decor-truck .lt-kicker { width: fit-content; max-width: 100%; padding: .55em 1.5em .5em; color: var(--lt-cream); background-color: var(--dt-red);
@@ -49,7 +51,7 @@ html.decor-truck .lt-kicker { background-color: var(--dt-red-deep); }   /* the d
 html.decor-truck :is(.lt-head.is-center, .lt-buy, .lt-gift-in, .lt-facade-top) .lt-kicker { margin-inline: auto; }
 
 /* ---- Truck panels: black frame, a coloured stripe with white dots, a flower in the corners ---- */
-html.decor-truck :is(.lt-card, .lt-plan-card, .lt-setup, .lt-star, .lt-rules div) {
+html.decor-truck :is(.lt-card, .lt-plan-card, .lt-setup, .lt-star, .lt-rules div, .lt-rules-strip) {
   --s: var(--dt-red); position: relative; border: 3px solid var(--lt-ink); border-radius: 16px; padding: 28px 28px 26px;
   background: var(--dt-flower) left 8px top 8px / 18px no-repeat, var(--dt-flower) right 8px top 8px / 18px no-repeat,
     var(--dt-flower) left 8px bottom 8px / 18px no-repeat, var(--dt-flower) right 8px bottom 8px / 18px no-repeat, var(--lt-card);
@@ -58,6 +60,7 @@ html.decor-truck :is(.lt-card, .lt-plan-card, .lt-setup, .lt-star, .lt-rules div
 html.decor-truck :is(.lt-card, .lt-plan-card, .lt-rules div):nth-child(3n + 2) { --s: var(--dt-blue); }
 html.decor-truck :is(.lt-card, .lt-plan-card, .lt-rules div):nth-child(3n) { --s: var(--dt-green); }
 html.decor-truck .lt-star { --s: var(--dt-green); }
+html.decor-truck .lt-rules-strip { --s: var(--dt-blue); }
 html.decor-truck .lt-plan-card:first-child { box-shadow: inset 0 0 0 7px var(--s), inset 0 0 0 9.5px var(--lt-ink), 0 0 40px -12px color-mix(in srgb, var(--t-primary) 55%, transparent); }
 html.decor-truck .lt-card-no { width: 58px; height: 58px; border: 0; border-radius: 0; background: var(--dt-medal) center / contain no-repeat; box-shadow: none; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--t-primary) 45%, transparent)); }
 html.decor-truck .lt-night-dot { width: 18px; height: 18px; border-radius: 0; background: var(--dt-flower) center / contain no-repeat; box-shadow: none; transform: translateY(3px); }

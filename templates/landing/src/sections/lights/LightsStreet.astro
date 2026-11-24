@@ -13,7 +13,7 @@ const data = JSON.stringify({
 ---
 <section id="street" class="lt-sec lt-street-sec" data-ul-street={data}>
   <div class="lt-in">
-    <LtHead kicker={c.kicker} title={c.title} lead={c.lead} />
+    <LtHead kicker={c.kicker} title={c.title} lead={c.lead} plaque />
     <div class="lt-star" data-ul-star hidden data-ul-in>
       <div class="lt-star-art" data-ul-star-art></div>
       <div class="lt-star-text">
@@ -22,6 +22,11 @@ const data = JSON.stringify({
         <p data-ul-star-line></p>
         <ol class="lt-nights lt-star-nights" data-ul-star-nights aria-hidden="true">{Array.from({ length: 7 }, () => <li></li>)}</ol>
         <p class="lt-star-gifts" data-ul-star-gifts></p>
+        <div class="lt-star-note">
+          {owlImages.landed && <img src={owlImages.landed} alt="" width="96" height="96" loading="lazy" decoding="async" />}
+          <p class="lt-star-bubble">{l.starNote || 'I check this roof first tonight. Yours could be next'}</p>
+          <a class="lt-btn lt-btn-ghost lt-star-go" href="#house" data-ul-star-go>{l.starGo || 'Light mine'}</a>
+        </div>
       </div>
     </div>
     <div class="lt-street-tabs" role="tablist" aria-label={l.sortLabel || 'Sort the street'}>
@@ -61,7 +66,8 @@ const data = JSON.stringify({
     const cfg = JSON.parse(root.dataset.ulStreet!);
     const L: Record<string, string> = cfg.labels;
     const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
-    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
+    // one owl visit, one night: the singular when the number is 1
+    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? '')).replace(/(^|[^\d])1 (owl visits|nights)\b/g, (_m, a, w) => `${a}1 ${w.slice(0, -1)}`);
     const row = $<HTMLElement>('[data-ul-row]');
     const note = $<HTMLElement>('[data-ul-street-note]');
     type H = { family?: string; name: string; code: string; nights: number; gifts: number; best: number; landings: number; streak: number; light: number; dark?: boolean; updated?: string; sample?: boolean; seed?: number; placed?: Record<string, string> };
@@ -90,10 +96,13 @@ const data = JSON.stringify({
     let starSn = 0;   // the house of the night is shown large above the row, so the row does not show it again
     const draw = () => {
       // the visitor's own house stands first, then the real houses, then the examples
-      const list = [...houses].filter((x) => !(starSn && !x.sample && (x as any).sn === starSn && !isMine(x))).sort((a, b) => Number(isMine(b)) - Number(isMine(a)) || Number(Boolean(a.sample)) - Number(Boolean(b.sample)) || (sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light));
+      const list = [...houses].filter((x) => !(starSn && !x.sample && (x as any).sn === starSn && !isMine(x))).sort((a, b) => Number(Boolean(a.sample)) - Number(Boolean(b.sample)) || (sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light));
       row.innerHTML = '';
       moreBox.hidden = list.length <= shown;
-      list.slice(0, shown).forEach((x, i) => {
+      // the visitor's own house stands where its numbers put it; when that is further down, it joins the end of the row
+      const vis = list.slice(0, shown); const mineAt = list.findIndex(isMine);
+      if (mineAt >= shown) vis[vis.length - 1] = list[mineAt];
+      vis.forEach((x, i) => {
         const li = document.createElement('li');
         li.className = 'lt-door'; li.classList.toggle('is-dark', Boolean(x.dark));
         const b = document.createElement('button'); b.type = 'button'; b.className = 'lt-door-btn'; b.dataset.i = String(houses.indexOf(x));
@@ -186,6 +195,8 @@ const data = JSON.stringify({
     const pname = pform.elements.namedItem('name') as HTMLInputElement;
     const fillName = () => { if (!pname.value && ul.houseName) pname.value = ul.houseName() || ''; };
     fillName(); ul.on('ul:night', fillName);
+    // with a house of one's own lit, the button under the house of the night goes to it instead of asking to light one
+    ul.on('ul:night', (d: { first?: boolean }) => { const go = document.querySelector<HTMLElement>('[data-ul-star-go]'); if (go) go.textContent = d?.first ? L.starGo || 'Light mine' : L.starMine || 'See my house'; });
     const offBtn = $<HTMLButtonElement>('[data-ul-street-off]');
     const markOn = () => { offBtn.hidden = !(ul.onStreet && ul.onStreet()); };
     markOn(); ul.on('ul:street', markOn);

@@ -80,7 +80,7 @@ const C = [
   // signs (free, anywhere)
   ['sign-gm', 'sign', 'signs', 'common', 8, WALL, { text: 'GM', color: '#FFE066' }, 'GM sign', 'Good morning. At night. As usual'],
   ['sign-wagmi', 'sign', 'signs', 'rare', 10, WALL, { text: 'GN', color: '#B6FF7A' }, 'GN sign', 'Good night. Said at the start of the night, as owls do'],
-  ['sign-hodl', 'sign', 'signs', 'rare', 10, WALL, { text: 'HODL', color: '#7AF0FF' }, 'HODL sign', 'Hold the light. Hold everything'],
+  ['sign-hodl', 'sign', 'signs', 'rare', 10, WALL, { text: 'LIGHTS ON', color: '#7AF0FF' }, 'Lights on sign', 'Says what it does'],
   ['sign-lfg', 'sign', 'signs', 'common', 8, WALL, { text: 'LFG', color: '#FF8A1C' }, 'LFG sign', 'Three letters, maximum energy'],
   ['sign-moon', 'sign', 'signs', 'epic', 12, WALL, { text: 'NIGHT SHIFT', color: '#FFE066' }, 'Night shift sign', 'The owl works nights. So does this house'],
   ['sign-open', 'sign', 'signs', 'common', 8, WALL, { text: 'OPEN 24/7', color: '#FF3F7F' }, 'Open sign', 'This house never closes'],
@@ -214,7 +214,11 @@ export function drawItem(id, slot, g = 1, ctx = {}) {
     case 'kandil': return glow(x, y + 26, 40, g) + `<path d="M${x} ${y - 18}v16" stroke="${INK}" stroke-width="2"/><path d="M${x - 14} ${y + 4}h28l6 12v20l-6 12h-28l-6 -12v-20z" fill="${it.color}" ${OUT}/><path d="M${x - 6} ${y + 10}h12v32h-12z" fill="#FFE9A8" opacity=".9"/>` + [-12, -4, 4, 12].map((d) => `<path d="M${x + d} ${y + 48}v14" stroke="${it.color}" stroke-width="3"/>`).join('');
     case 'chinese': return glow(x, y + 24, 40, g) + `<path d="M${x} ${y - 18}v14" stroke="${INK}" stroke-width="2"/><rect x="${x - 8}" y="${y - 4}" width="16" height="6" fill="#F2B705" ${OUT}/><ellipse cx="${x}" cy="${y + 22}" rx="20" ry="18" fill="${it.color}" ${OUT}/><path d="M${x - 10} ${y + 8}q-4 14 0 28M${x + 10} ${y + 8}q4 14 0 28M${x} ${y + 4}v36" stroke="${INK}" stroke-width="1.3" opacity=".45" fill="none"/><rect x="${x - 8}" y="${y + 40}" width="16" height="5" fill="#F2B705" ${OUT}/><path d="M${x} ${y + 45}v14" stroke="#F2B705" stroke-width="3"/>`;
     case 'paper': return glow(x, y + 22, 38, g) + `<path d="M${x} ${y - 18}v18" stroke="${INK}" stroke-width="2"/><circle cx="${x}" cy="${y + 20}" r="19" fill="${it.color}" ${OUT}/><path d="M${x - 19} ${y + 14}q19 6 38 0M${x - 18} ${y + 26}q18 6 36 0" stroke="${INK}" stroke-width="1" opacity=".3" fill="none"/>`;
-    case 'skylamp': return glow(x, y - 20, 36, g) + `<path d="M${x - 12} ${y - 40}h24l-4 32h-16z" fill="#FFB52E" ${OUT}/><path d="M${x - 8} ${y - 8}l-4 8M${x + 8} ${y - 8}l4 8" stroke="${INK}" stroke-width="1.5"/>`;
+    // a paper sky lantern: a rounded paper dome, wider at the top, a small flame under its open mouth, tied down by two strings
+    case 'skylamp': return glow(x, y - 22, 38, g) + `<path d="M${x - 11} ${y - 8}L${x - 15} ${y - 34}Q${x} ${y - 50} ${x + 15} ${y - 34}L${x + 11} ${y - 8}Z" fill="#FFB52E" ${OUT}/>`
+      + `<path d="M${x - 5} ${y - 9}L${x - 6} ${y - 40}M${x + 5} ${y - 9}L${x + 6} ${y - 40}" stroke="#E07A10" stroke-width="1.4" fill="none"/>`
+      + `<path d="M${x - 10} ${y - 12}h20" stroke="#FFF3C4" stroke-width="2" opacity=".8"/><ellipse cx="${x}" cy="${y - 4}" rx="3" ry="4.5" fill="#FFE066"/>`
+      + `<path d="M${x - 11} ${y - 8}l-5 10M${x + 11} ${y - 8}l5 10" stroke="${INK}" stroke-width="1.5"/>`;
     case 'moonlamp': return glow(x, y + 24, 52, g) + tint(x, y + 24, 34, '#FFF3C4', g) + `<path d="M${x} ${y - 18}v18" stroke="${INK}" stroke-width="2"/><circle cx="${x}" cy="${y + 24}" r="22" fill="#FFF3C4" ${OUT}/><circle cx="${x - 7}" cy="${y + 18}" r="4" fill="#E8D9A0"/><circle cx="${x + 8}" cy="${y + 30}" r="5" fill="#E8D9A0"/>`;
     case 'string': {
       const { x1, x2 } = slot, d = Math.max(14, (x2 - x1) * 0.09), n = Math.max(5, Math.round((x2 - x1) / 28)), cols = it.colors;
@@ -281,7 +285,7 @@ export function drawItem(id, slot, g = 1, ctx = {}) {
     case 'neon': {
       const c = it.color;
       const shapes = {
-        heart: heartPath(x, y, 18), star: starPath(x, y, 24), moon: `M${x + 8} ${y - 22}a22 22 0 1 0 0 44a17 17 0 1 1 0 -44z`,
+        heart: heartPath(x, y, 18), star: starPath(x, y, 24), moon: `M${x + 6} ${y - 22}a22 22 0 1 0 0 44a26 26 0 0 0 0 -44z`,
         bolt: `M${x + 4} ${y - 26}l-14 28h12l-6 24l16 -30h-12z`, arrow: `M${x} ${y + 24}v-46M${x - 14} ${y - 8}l14 -14l14 14`,
         coin: `M${x} ${y - 22}a22 22 0 1 0 0.1 0M${x + 7} ${y - 10}q-7 -6 -14 0q-3 6 7 9q10 3 7 9q-7 6 -14 0M${x} ${y - 16}v32`,
         diamond: `M${x - 22} ${y - 6}l10 -14h24l10 14l-22 28zM${x - 22} ${y - 6}h44`, rocket: `M${x} ${y - 28}q14 12 8 34h-16q-6 -22 8 -34zM${x - 8} ${y + 6}l-8 10h8M${x + 8} ${y + 6}l8 10h-8M${x} ${y - 10}a3 3 0 1 0 0.1 0`,
@@ -372,7 +376,11 @@ export function itemSvg(id, size = 120, ctx = {}) {
   if (LINE_TYPES.includes(it.type)) body = drawItem(id, { x1: -52, x2: 52, y: -26 }, 1, ctx);
   else if (HANG_TYPES.includes(it.type)) { body = drawItem(id, { x: 0, y: -36 }, 1, ctx); if (it.type === 'bulb' && !it.big) box = '-40 -40 80 80'; }
   else if (['curtains', 'dancers', 'tvglow', 'wincat', 'winhearts', 'winstar'].includes(it.type)) body = `<rect x="-26" y="-34" width="52" height="68" rx="4" fill="#1B2048" stroke="${INK}" stroke-width="2.5"/>` + drawItem(id, { x: 0, y: -34, w: 52, h: 68 }, 1, ctx);
-  else if (['neon', 'net', 'curtainlights', 'sign', 'poster', 'sticker', 'graffiti', 'rangoli'].includes(it.type)) body = drawItem(id, { x: 0, y: 0 }, 1, ctx);
+  else if (['neon', 'net', 'curtainlights', 'sign', 'poster', 'sticker', 'graffiti', 'rangoli'].includes(it.type)) {
+    body = drawItem(id, { x: 0, y: 0 }, 1, ctx);
+    // a long sign is wider than the usual square: the picture grows with it, so its words are never cut at the edges
+    if (it.type === 'sign') { const t = it.custom ? cleanSign(ctx.text) || 'HOOT' : it.text === '$TICKER' ? `$${ctx.ticker || 'OWL'}` : it.text; const s = t.length > 9 ? 16 : t.length > 5 ? 20 : 26; const half = Math.max(60, Math.ceil((Math.max(70, t.length * s * 0.66 + 26)) / 2) + 8); box = `${-half} ${-half} ${half * 2} ${half * 2}`; }
+  }
   else { body = drawItem(id, { x: 0, y: 22 }, 1, ctx); box = { diya: '-28 -10 56 56', jar: '-30 -18 60 60', slipper: '-30 -8 60 60', feather: '-28 -16 56 56', paint: '-30 -24 60 60' }[it.type] || '-40 -44 80 80'; }
   // a glow that fades sooner, so it never meets the edge of a small picture
   const thumbGlow = '<radialGradient id="ul-glow"><stop offset="0" stop-color="#FFD36B" stop-opacity=".85"/><stop offset=".3" stop-color="#FF9F1C" stop-opacity=".25"/><stop offset=".62" stop-color="#FF9F1C" stop-opacity="0"/></radialGradient>';

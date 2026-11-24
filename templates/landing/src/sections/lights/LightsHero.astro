@@ -47,6 +47,11 @@ const follow = h.follow !== false && owlImages.fly;
     const fine = matchMedia('(pointer: fine)').matches;
     // on a computer the owl is a fixed layer over the page; on a phone he stays inside the first screen
     if (fine) { document.body.appendChild(owl); owl.classList.add('is-page'); }
+    // the city map has its own owl and small buttons in the corners: while it is on screen the page owl steps out
+    // the same over the rules, where the owl already sits in his window
+    const away = new Set<Element>();
+    const keepOut = [document.getElementById('city'), document.getElementById('rules'), document.querySelector('.lt-footer')].filter(Boolean) as HTMLElement[];
+    if (fine) { const io = new IntersectionObserver((list) => { list.forEach((en) => (en.isIntersecting ? away.add(en.target) : away.delete(en.target))); owl.classList.toggle('is-away', away.size > 0); }, { threshold: 0.12 }); keepOut.forEach((el) => io.observe(el)); }
     const box = () => (fine ? { left: 0, top: 0, width: innerWidth, height: innerHeight } : hero.getBoundingClientRect());
     let W = 0, H = 0, ow = 0, oh = 0;
     const size = () => { const b = box(); W = b.width; H = b.height; ow = owl.offsetWidth || 120; oh = owl.offsetHeight || 96; };
@@ -81,6 +86,9 @@ const follow = h.follow !== false && owlImages.fly;
       tx = clampX(W * (0.08 + Math.random() * 0.84)); ty = clampY(H * (0.12 + Math.random() * 0.4));
     };
     if (fine) {
+      // after a jump or a scroll the owl goes back to the margin at once, not on the next mouse move
+      let scrollT = 0;
+      addEventListener('scroll', () => { clearTimeout(scrollT); scrollT = window.setTimeout(() => { if (below()) { wander(); x = tx; y = ty; vx = vy = 0; quietAt = performance.now(); wake(); } }, 150); }, { passive: true });
       addEventListener('pointermove', (e) => {
         if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
         const t = e.target as HTMLElement;

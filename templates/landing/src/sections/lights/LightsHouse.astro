@@ -42,6 +42,7 @@ const iv: Record<string, string> = c.invite || {};
       <div class="lt-panel" data-ul-in>
         <div class="lt-setup" data-ul-setup hidden>
           <p class="lt-invite-note" data-ul-invite-note hidden></p>
+          <div class="lt-setup-mini" data-ul-setup-mini aria-hidden="true"></div>
           <p class="lt-label" data-ul-setup-count></p>
           <div class="lt-setup-step" data-step="1">
             <h3 class="font-heading">{su.nameTitle || 'Whose house is this?'}</h3>
@@ -135,7 +136,7 @@ const iv: Record<string, string> = c.invite || {};
         <div class="lt-tray" data-ul-tray hidden>
           <img data-ul-out alt={l.cardAlt || 'Your house card'} width="1080" height="1080" />
           <div class="lt-actions lt-actions-tight">
-            <a class="lt-btn lt-btn-small" data-ul-download download>{l.download || 'Download'}</a>
+            <button type="button" class="lt-btn lt-btn-small" data-ul-download>{l.download || 'Download'}</button>
             <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-share2 data-ul-track="share">{l.share || 'Share on X'}</button>
           </div>
           <p class="lt-note" data-ul-share-note hidden>{l.shareNote || 'X opens with the text ready. Attach the card you downloaded.'}</p>
@@ -211,7 +212,8 @@ const iv: Record<string, string> = c.invite || {};
     const cfg = JSON.parse(root.dataset.ulHouse!);
     const L: Record<string, string> = cfg.labels;
     const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
-    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
+    // one owl visit, one night: the singular when the number is 1
+    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? '')).replace(/(^|[^\d])1 (owl visits|nights)\b/g, (_m, a, w) => `${a}1 ${w.slice(0, -1)}`);
     const KEY = `ul-house-${cfg.file}`;
     const ID_KEY = `ul-id-${cfg.file}`;
     const STREET_KEY = `ul-street-${cfg.file}`;   // the name, once the house stands on the street
@@ -291,6 +293,8 @@ const iv: Record<string, string> = c.invite || {};
       const scene = setupOn || peek ? '' : K.sceneOf(K.tonightOf(p, today)?.event || '');
       h = houseFor(p);
       svgBox.innerHTML = K.houseSvg(h, shownPlaced(), { level: setupLevel, owl: setupOn ? null : owlFor(s), slotsFor: sel, id: 'ulh', friend, scene, free: shownFree(), ctx: drawCtx });
+      // phones: a small copy of the house inside the questions card, so each answer shows on it without scrolling up
+      if (setupOn) { const mini = root.querySelector<HTMLElement>('[data-ul-setup-mini]'); if (mini && mini.offsetParent !== null) mini.innerHTML = K.houseSvg(h, {}, { level: 2, id: 'ulm', ctx: drawCtx }); }
       slotsBox.innerHTML = '';
       const placed = shownPlaced();
       for (const sl of h.slots) {
@@ -343,6 +347,7 @@ const iv: Record<string, string> = c.invite || {};
     const moveG = (f: any) => { gOf(f.n)?.setAttribute('transform', `translate(${f.x} ${f.y}) rotate(${Math.round(f.r)}) scale(${f.s.toFixed(2)})`); };
     function drawFrame() {
       const f = editN ? freeOf(editN) : null, g = f ? gOf(f.n) : null;
+      root.classList.toggle('is-editing', Boolean(f && g && !peek));
       if (!f || !g || peek) { frameBox = null; return; }
       try { const b = g.getBBox(); frameBox = { x: b.x, y: b.y, w: b.width, h: b.height }; } catch { frameBox = { x: -30, y: -30, w: 60, h: 60 }; }
       const el = document.createElement('div'); el.className = 'lt-sel'; el.dataset.sel = String(f.n);
@@ -412,7 +417,7 @@ const iv: Record<string, string> = c.invite || {};
     const thumbCache: Record<string, string> = {};
     const thumb = (id: string) => (thumbCache[id] ||= K.svgUrl(K.itemSvg(id, 72, drawCtx)));
     const catName = (c: string) => cfg.categories[c] || c.charAt(0).toUpperCase() + c.slice(1);
-    let tab = 'all';
+    let tab = 'all', sackOpen = false;
     const drawInv = () => {
       const free = K.freeItems(withLent());
       const owned = withLent().inv;
@@ -430,9 +435,11 @@ const iv: Record<string, string> = c.invite || {};
       }
       tabs.hidden = cats.length < 2;
       inv.innerHTML = '';
-      for (const id of ids) {
+      const list = ids.filter((id: string) => tab === 'all' || (K.ITEMS as any)[id].cat === tab);
+      const gotIds = list.filter(has), lockedIds = list.filter((id: string) => !has(id));
+      const shownLocked = tab !== 'all' || sackOpen ? lockedIds : lockedIds.slice(0, 3);
+      for (const id of [...gotIds, ...shownLocked]) {
         const it = (K.ITEMS as any)[id];
-        if (tab !== 'all' && it.cat !== tab) continue;
         const b = document.createElement('button');
         b.type = 'button'; b.className = `lt-item is-${it.rarity}`; b.dataset.item = id;
         b.setAttribute('aria-pressed', String(p.paint === id));
@@ -444,12 +451,20 @@ const iv: Record<string, string> = c.invite || {};
         b.querySelector('.lt-item-name')!.textContent = itemName(id);
         inv.appendChild(b);
       }
+      if (shownLocked.length < lockedIds.length) {
+        const m = document.createElement('button'); m.type = 'button'; m.className = 'lt-item lt-item-sack'; m.dataset.ulSack = '';
+        m.innerHTML = '<b class="font-heading"></b><span class="lt-item-name"></span>';
+        m.querySelector('b')!.textContent = `+${lockedIds.length - shownLocked.length}`;
+        m.querySelector('span')!.textContent = L.sackMore || "Still in the owl's sack";
+        inv.appendChild(m);
+      }
       if (!inv.children.length) inv.innerHTML = `<p class="lt-note">${L.invEmpty || ''}</p>`;
       const total = Object.entries(free).reduce((a: number, [i, b]: [string, any]) => a + (K.isOpen(i) ? 0 : b), 0);
-      $<HTMLElement>('[data-ul-inv-count]').textContent = total ? `(${total})` : '';
+      $<HTMLElement>('[data-ul-inv-count]').textContent = total ? fill(L.invFromOwl || '({n} to hang)', { n: total }) : '';
     };
     tabs.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]'); if (!b) return; tab = b.dataset.tab!; drawInv(); });
     inv.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('[data-ul-sack]')) { sackOpen = true; drawInv(); return; }
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-item]'); if (!b) return;
       const id = b.dataset.item!, it = (K.ITEMS as any)[id];
       if (isHolderItem(id) && !ul.holder) { say(L.holderOnly || 'Golden decorations are for holders. Turn on the holder preview below.'); return; }
@@ -465,6 +480,7 @@ const iv: Record<string, string> = c.invite || {};
       }
       if (!K.freeItems(withLent())[id]) { say(fill(L.allPlaced || 'No free {item} left. Remove one from the house first.', { item: itemName(id) })); return; }
       putOnHouse(id);
+      if (root.classList.contains('is-docked')) root.querySelector<HTMLElement>('.lt-stage-box')?.scrollIntoView({ block: 'nearest', behavior: ul.calm ? 'auto' : 'smooth' });
     });
 
     // ---- phones: the decorations and the editing box go right under the picture -----------------
@@ -473,7 +489,8 @@ const iv: Record<string, string> = c.invite || {};
     {
       const phone = matchMedia('(max-width: 939px)');
       const stageCol = root.querySelector<HTMLElement>('.lt-stage')!;
-      const moved = [root.querySelector<HTMLElement>('[data-ul-invbox]')!, root.querySelector<HTMLElement>('[data-ul-edit]')!];
+      // the lamp button comes first: tonight's lamp is the main thing to do, the decorations come after it
+      const moved = [root.querySelector<HTMLElement>('[data-ul-nights]')!, root.querySelector<HTMLElement>('[data-ul-status]')!, root.querySelector<HTMLElement>('[data-ul-light]')!, root.querySelector<HTMLElement>('[data-ul-invbox]')!, root.querySelector<HTMLElement>('[data-ul-edit]')!, root.querySelector<HTMLElement>('[data-ul-story]')!];
       const marks = moved.map((el) => { const m = document.createComment('dock'); el.before(m); return m; });
       const dock = () => {
         moved.forEach((el, i) => { if (phone.matches) stageCol.appendChild(el); else marks[i].after(el); });
@@ -498,7 +515,8 @@ const iv: Record<string, string> = c.invite || {};
       $<HTMLElement>('[data-ul-edit-text-row]').hidden = !custom; if (custom) eText.value = f.t || '';
       refresh();
     }
-    function closeEdit(redraw = true) { editN = 0; editBox.hidden = true; if (redraw) refresh(); }
+    // when the editing is over, the tip under the house goes back to what can be done next
+    function closeEdit(redraw = true) { const was = editN; editN = 0; editBox.hidden = true; if (redraw) refresh(); if (was) say(L.tipStart || ''); }
     let raf = 0;
     const patch = (q: any, redraw = true) => { if (!editN) return; p = K.updateFree(p, editN, q); save(); if (redraw) { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawHouse); } };
     eSize.addEventListener('input', () => patch({ s: Number(eSize.value) / 100 }));
@@ -523,7 +541,10 @@ const iv: Record<string, string> = c.invite || {};
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-free]'); if (!b || peek) return;
       const f = freeOf(Number(b.dataset.free)); if (!f) return;
       e.preventDefault(); b.setPointerCapture(e.pointerId);
-      drag = { n: f.n, x0: e.clientX, y0: e.clientY, fx: f.x, fy: f.y, moved: false, el: b };
+      // how far the decoration reaches from its middle (its turned box), so the whole of it stays inside the picture
+      let reach = 30 * f.s;
+      try { const bb = gOf(f.n)!.getBBox(); reach = Math.max(Math.abs(bb.x), Math.abs(bb.x + bb.width), Math.abs(bb.y), Math.abs(bb.y + bb.height)) * f.s; } catch {}
+      drag = { n: f.n, x0: e.clientX, y0: e.clientY, fx: f.x, fy: f.y, moved: false, el: b, reach: Math.min(reach, K.VIEW * 0.3) };
     });
     slotsBox.addEventListener('pointermove', (e) => {
       if (!drag) return;
@@ -531,7 +552,9 @@ const iv: Record<string, string> = c.invite || {};
       const dx = ((e.clientX - drag.x0) / r.width) * K.VIEW, dy = ((e.clientY - drag.y0) / r.height) * K.VIEW;
       if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
       if (!drag.moved) return;
-      p = K.updateFree(p, drag.n, { x: drag.fx + dx, y: drag.fy + dy });
+      // a decoration stays inside the picture, clear of its painted frame
+      const edge = K.VIEW * 0.04 + drag.reach * 1.1 + 14;
+      p = K.updateFree(p, drag.n, { x: Math.max(edge, Math.min(K.VIEW - edge, drag.fx + dx)), y: Math.max(edge, Math.min(K.VIEW - edge, drag.fy + dy)) });
       const f = freeOf(drag.n); drag.el.style.left = `${(f.x / K.VIEW) * 100}%`; drag.el.style.top = `${(f.y / K.VIEW) * 100}%`;
       moveG(f);   // only this decoration moves; the house is redrawn once, when the finger lets go
     });
@@ -601,11 +624,16 @@ const iv: Record<string, string> = c.invite || {};
       lightBtn.textContent = s.due ? (s.first ? L.lightFirst || L.light || 'Light up tonight' : L.light || 'Light up tonight') : L.lit || 'Lit for tonight';
       const filled = s.litTonight || (!s.missed && !s.first) ? Math.min(s.streak, K.NIGHTS) : 0;
       dots.forEach((d, i) => { d.classList.toggle('is-on', i < filled); d.classList.toggle('is-next', !peek && s.due && i === filled && i < K.NIGHTS); });
-      const st = (k: string, v: string | number) => { root.querySelector(`[data-ul-stat="${k}"]`)!.textContent = String(v); };
+      const st = (k: string, v: string | number) => {
+        const dd = root.querySelector(`[data-ul-stat="${k}"]`)!; dd.textContent = String(v);
+        const dt = dd.previousElementSibling;
+        if (dt && k === 'nights') dt.textContent = v === 1 ? L.statNight || 'Night lit' : L.statNights || 'Nights lit';
+        if (dt && k === 'gifts') dt.textContent = v === 1 ? L.statGift || 'Owl visit' : L.statGifts || 'Owl visits';
+      };
       st('nights', p.nights); st('gifts', p.gifts); st('best', p.best);
       st('light', `${K.lightOf(h, shownPlaced(), levelShown(s), shownFree())}%`);
       where();
-      ul.fire('ul:night', { text: peek ? fill(L.chip || 'Night {n}/7', { n: K.NIGHTS }) : s.first ? L.chipFirst || 'Light my house' : fill(L.chip || 'Night {n}/7', { n: Math.min(s.litTonight ? s.streak : s.night, K.NIGHTS) }), lit: s.litTonight || peek });
+      ul.fire('ul:night', { first: Boolean(s.first) && !peek, text: peek ? fill(L.chip || 'Night {n}/7', { n: K.NIGHTS }) : s.first ? L.chipFirst || 'Light my house' : fill(L.chip || 'Night {n}/7', { n: Math.min(s.litTonight ? s.streak : s.night, K.NIGHTS) }), lit: s.litTonight || peek });
     };
     // ---- the story of the nights and tonight's event ------------------------------------------
     const ST = cfg.story;
@@ -650,8 +678,28 @@ const iv: Record<string, string> = c.invite || {};
 
     // ---- lighting up tonight -------------------------------------------------------------------
     const dlg = $<HTMLDialogElement>('[data-ul-gift]');
+    // the gift the button hangs on the house (one gift; a night of many gifts goes into the box)
+    let hang = '';
+    $<HTMLButtonElement>('[data-ul-gift-ok]').addEventListener('click', () => {
+      const id = hang; hang = '';
+      if (!id || peek || !K.freeItems(withLent())[id]) return;
+      setTimeout(() => { putOnHouse(id); closeEdit(); say(fill(L.hung || '{item} is on the house. Tap it to move it', { item: itemName(id) })); root.querySelector<HTMLElement>('.lt-stage')?.scrollIntoView({ block: 'nearest', behavior: ul.calm ? 'auto' : 'smooth' }); }, 60);
+    });
     const openDialog = () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); };
+    // the lighting moment: the house glows up first, the gift window opens a moment later (at once with reduced motion)
+    const stageEl = root.querySelector<HTMLElement>('.lt-stage');
+    const afterGlow = (fn: () => void) => {
+      if (ul.calm || !stageEl) { fn(); return; }
+      stageEl.classList.remove('is-lighting'); void stageEl.offsetWidth; stageEl.classList.add('is-lighting');
+      // the owl crosses the sky over the roof while the windows light up
+      const box = stageEl.querySelector<HTMLElement>('.lt-stage-box');
+      let fly: HTMLImageElement | null = null;
+      if (box && owlSrc.fly) { fly = document.createElement('img'); fly.className = 'lt-flyby'; fly.src = owlSrc.fly; fly.alt = ''; fly.setAttribute('aria-hidden', 'true'); box.appendChild(fly); }
+      setTimeout(() => { stageEl.classList.remove('is-lighting'); fly?.remove(); fn(); }, 1500);
+    };
     const light = () => {
+      // the first three questions come first: no lamp before the house is built
+      if (setupOn) return { gift: null } as any;
       if (!pinnedDay) today = K.dayKey();
       const res = K.lightTonight(p, today, Math.random, ul.holder, ctxNow());
       if (!res.gift) { refresh(); return res; }
@@ -675,8 +723,9 @@ const iv: Record<string, string> = c.invite || {};
         res.returned ? fill(L.returnedLine || 'The monkey brought back your {item}.', { item: itemName(res.returned).toLowerCase() }) : ''].filter(Boolean).map((t) => String(t).replace(/\.$/, '')).join('. ');  // sentences without the last dot, as all copy
       $<HTMLElement>('[data-ul-gift-bonus]').textContent = extra;
       $<HTMLElement>('[data-ul-gift-ok]').textContent = many ? L.giftsOk || 'Hang them on the house' : L.giftOk || 'Hang it on the house';
+      hang = many || res.landedNow ? '' : res.gift;
       root.classList.toggle('is-landed', res.landedNow);
-      openDialog();
+      afterGlow(openDialog);
       ul.fire('ul:lit', { night: p.streak, gift: res.gift, landed: res.landedNow });
       // a house on the street is lit there too
       const onStreet = ul.store.get(STREET_KEY); if (onStreet) post(onStreet);
@@ -702,6 +751,7 @@ const iv: Record<string, string> = c.invite || {};
       $<HTMLElement>('[data-ul-gift-event]').textContent = '';
       $<HTMLElement>('[data-ul-gift-bonus]').textContent = L.foundNote || 'It is in your album now.';
       $<HTMLElement>('[data-ul-gift-ok]').textContent = L.giftOk || 'Hang it on the house';
+      hang = g;
       root.classList.remove('is-landed');
       openDialog();
     };
@@ -736,8 +786,8 @@ const iv: Record<string, string> = c.invite || {};
     let lastFile: File | null = null, lastUrl = '';
     const card = async () => {
       const s = view(), S = 1080;
-      const owl = owlFor(s);
-      owl.href = await dataUrl(owl.href).catch(() => K.owlPlaceholder(owl.pose));
+      const owl = owlFor(s);   // by day there is no owl at the house (he sleeps somewhere on the page)
+      if (owl) owl.href = await dataUrl(owl.href).catch(() => K.owlPlaceholder(owl.pose));
       const img = await loadImg(K.svgUrl(K.houseSvg(h, shownPlaced(), { level: levelShown(s), owl, id: 'ulc', size: S, pad: 150, friend, free: shownFree(), ctx: drawCtx })));
       const cv = document.createElement('canvas'); cv.width = cv.height = S;
       const ctx = cv.getContext('2d')!;
@@ -754,7 +804,7 @@ const iv: Record<string, string> = c.invite || {};
       ctx.fillStyle = bot; ctx.fillRect(0, S - 150, S, 150);
       ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#FFFFFF';
       const sn = ul.houseSn ? ul.houseSn() : 0;
-      const line = [p.name, sn ? fill(L.cardHouse || 'House #{no}', { no: String(sn).padStart(4, '0') }) : '', p.city, fill(L.cardNights || '{nights} nights', { nights: p.nights })].filter(Boolean).join(', ');
+      const line = [p.name, sn ? fill(L.cardHouse || 'House #{no}', { no: String(sn).padStart(4, '0') }) : '', p.city, (p.nights === 1 ? L.cardNight || 'First night' : fill(L.cardNights || '{nights} nights', { nights: p.nights }))].filter(Boolean).join(', ');
       const room = S - 96 - (cfg.watermark && !ul.holder ? 300 : 0);
       for (const fs of [34, 30, 27, 24]) { ctx.font = `800 ${fs}px ${body}`; if (ctx.measureText(line).width <= room) break; }
       ctx.fillText(line, 48, S - 52);
@@ -765,12 +815,16 @@ const iv: Record<string, string> = c.invite || {};
       const name = `${cfg.file}-house-${h.no}-night-${Math.min(s.streak || 1, 99)}.png`;
       try { lastFile = new File([blob], name, { type: 'image/png' }); } catch { lastFile = null; }
       ($<HTMLImageElement>('[data-ul-out]')).src = lastUrl;
-      const dl = $<HTMLAnchorElement>('[data-ul-download]'); dl.href = lastUrl; dl.download = name;
+      const dl = $<HTMLElement>('[data-ul-download]'); dl.dataset.href = lastUrl; dl.dataset.name = name;
       $<HTMLElement>('[data-ul-tray]').hidden = false;
+      // the card has its own Download and Share: the pair above it steps back
+      root.querySelector<HTMLElement>('[data-ul-share]')?.setAttribute('hidden', '');
+      cardLabel = L.cardAgain || 'Paint it again';
       return { size: blob.size, name };
     };
     const cardBtn = $<HTMLButtonElement>('[data-ul-card]');
-    cardBtn.addEventListener('click', () => { cardBtn.disabled = true; card().then(() => $<HTMLElement>('[data-ul-tray]').scrollIntoView({ block: 'nearest', behavior: ul.calm ? 'auto' : 'smooth' })).catch(() => say(L.cardFail || 'The card did not come out. Try again.')).finally(() => { cardBtn.disabled = false; }); });
+    let cardLabel = '';
+    cardBtn.addEventListener('click', () => { cardBtn.disabled = true; const was = cardBtn.textContent; cardBtn.textContent = L.cardBusy || 'Painting the card…'; card().then(() => $<HTMLElement>('[data-ul-tray]').scrollIntoView({ block: 'nearest', behavior: ul.calm ? 'auto' : 'smooth' })).catch(() => say(L.cardFail || 'The card did not come out. Try again.')).finally(() => { cardBtn.disabled = false; cardBtn.textContent = cardLabel || was; }); });
     // Share on X: X opens at once with the words and the link (opened inside the click, so no popup blocker stops it),
     // and the card is saved to the device at the same time, to attach to the post.
     const share = () => {
@@ -779,7 +833,7 @@ const iv: Record<string, string> = c.invite || {};
       const q = new URLSearchParams({ text }); q.set('url', cfg.url || location.origin + location.pathname);
       window.open(`https://x.com/intent/post?${q}`, '_blank', 'noopener');
       $<HTMLElement>('[data-ul-share-note]').hidden = false;
-      const save = () => $<HTMLAnchorElement>('[data-ul-download]').click();
+      const save = () => $<HTMLElement>('[data-ul-download]').click();
       if (lastFile) save(); else card().then(save).catch(() => {});
     };
     $<HTMLButtonElement>('[data-ul-share]').addEventListener('click', share);
@@ -851,6 +905,11 @@ const iv: Record<string, string> = c.invite || {};
       return { ...r, text: postNote.textContent || '' };
     }
     ul.postHouse = postLit;
+    // the card download: a link made only for the moment of the click
+    $<HTMLElement>('[data-ul-download]').addEventListener('click', (e) => {
+      const b = e.currentTarget as HTMLElement; if (!b.dataset.href) return;
+      const a = document.createElement('a'); a.href = b.dataset.href; a.download = b.dataset.name || 'card.png'; a.hidden = true; document.body.appendChild(a); a.click(); a.remove();
+    });
     // taking the own house off the street (the server knows it by this browser's id)
     ul.onStreet = () => Boolean(ul.store.get(STREET_KEY));
     ul.removeHouse = async () => {
@@ -921,7 +980,8 @@ const iv: Record<string, string> = c.invite || {};
       if (p.born) { const d = new Date(p.born); if (!isNaN(+d)) bits.push(fill(L.plateBuilt || 'built {date}', { date: d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) })); }
       if (p.city) bits.push(p.city);
       if (p.neighbour) bits.push(fill(L.plateNext || 'next door: {name}', { name: p.neighbour.name || fill(L.plateNextNo || 'house No. {no}', { no: friend?.no || '' }) }));
-      return bits.filter(Boolean).join(', ');
+      const line = bits.filter(Boolean).join(', ');
+      return line.charAt(0).toUpperCase() + line.slice(1);
     }
     function showSetup(on: boolean) { setupOn = on; setupBox.hidden = !on; mainBox.hidden = on; root.classList.toggle('is-setup', on); if (on) say(SU.tip || 'This is your house. Answer three questions, and it changes as you go.'); }
     const wishBox = $<HTMLElement>('[data-ul-wishes]');
@@ -956,6 +1016,8 @@ const iv: Record<string, string> = c.invite || {};
       root.querySelectorAll<HTMLElement>('[data-step]').forEach((el) => { el.hidden = Number(el.dataset.step) !== n; });
       $<HTMLElement>('[data-ul-setup-count]').textContent = fill(SU.count || 'Step {n} of 3', { n });
       backBtn.hidden = n === 1;
+      // phones: the next question starts at the top of the card, in view
+      if (n > 1 && matchMedia('(max-width: 700px)').matches) requestAnimationFrame(() => { const r = setupBox.getBoundingClientRect(); if (r.top < 90 || r.top > innerHeight * 0.5) setupBox.scrollIntoView({ block: 'start', behavior: ul.calm ? 'auto' : 'smooth' }); });
       // on the last question "Build my house" does the same as skipping, so the skip button goes away
       $<HTMLButtonElement>('[data-ul-setup-skip]').hidden = n === 3;
       nextBtn.textContent = n === 3 ? SU.build || 'Build my house' : SU.next || 'Next';
@@ -971,9 +1033,19 @@ const iv: Record<string, string> = c.invite || {};
       if (p.name && !nameField.value) nameField.value = p.name;
       say(p.neighbour ? fill(SU.welcomeFriend || 'Welcome! {friend} lives next door and left you a housewarming gift: marigolds.', { friend: p.neighbour.name || 'Your friend' }) : fill(SU.welcome || 'Welcome to your new {style}. Light the first lamp tonight.', { style: styleName(p.family) }));
       refresh();
+      // the built house in view, with the lamp button next to it (not under the top bar)
+      root.querySelector<HTMLElement>('.lt-house')?.scrollIntoView({ block: 'start', behavior: ul.calm ? 'auto' : 'smooth' });
       ul.fire('ul:house-ready', { family: p.family, wish: p.wish });
     };
     nameIn.addEventListener('input', () => { setupMsg.textContent = ''; });
+    // on a phone the questions sit a screen below the heading: a link to the house goes straight to the first question
+    document.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href="#house"]');
+      if (!a || !setupOn || innerWidth >= 940) return;
+      const card = root.querySelector<HTMLElement>('[data-ul-setup]'); if (!card) return;
+      e.preventDefault(); history.replaceState(null, '', '#house');
+      card.scrollIntoView({ block: 'start', behavior: ul.calm ? 'auto' : 'smooth' });
+    }, true);   // first, before the page's own anchor fix-up
     nextBtn.addEventListener('click', () => {
       if (step === 1) {
         const raw = nameIn.value.trim();
@@ -1005,10 +1077,16 @@ const iv: Record<string, string> = c.invite || {};
     $<HTMLButtonElement>('[data-ul-reroll]').addEventListener('click', () => {
       if (peek) return say(L.peekLocked || 'Turn off the preview to decorate.');
       const back = Object.keys(p.placed).length;
+      const was = { seed: p.seed, placed: p.placed };
       p = { ...p, seed: K.newSeed(), placed: {} }; sel = ''; closeEdit(false); h = houseFor(p); save();
       say(back ? L.rerolledBack || 'A new house on your street. The decorations from the windows and the roof are back in your box.' : L.rerolled || 'A new house on your street. Not this one? Press again.');
       refresh();
-      const onStreet = ul.store.get(STREET_KEY); if (onStreet) post(onStreet);
+      // the old house can come back for ten seconds (with its decorations); the street hears about the change after that
+      const undo = document.createElement('button'); undo.type = 'button'; undo.className = 'lt-undo'; undo.textContent = L.undo || 'Undo';
+      tip.append(' ', undo);
+      let undone = false;
+      undo.addEventListener('click', () => { undone = true; p = { ...p, seed: was.seed, placed: was.placed }; h = houseFor(p); save(); say(L.undone || 'Your old house is back'); refresh(); });
+      setTimeout(() => { undo.remove(); if (undone) return; const onStreet = ul.store.get(STREET_KEY); if (onStreet) post(onStreet); }, 10000);
     });
     // where the visitor is: the server tells the country and city (Vercel, Cloudflare or nginx), the browser tells the time zone
     const locate = async () => {

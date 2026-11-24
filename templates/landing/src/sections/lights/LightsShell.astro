@@ -33,6 +33,12 @@ const hide = (houseCfg as any).hide !== false && owlImages.sleep
   <nav class="lt-nav" aria-label={bar.navLabel || 'Sections'}>
     {nav.map((n) => <a href={`#${n.id}`} data-ul-nav={n.id}>{n.label}</a>)}
   </nav>
+  <details class="lt-menu" data-ul-menu>
+    <summary aria-label={bar.menu || 'Sections'}><span class="lt-menu-icon" aria-hidden="true"><i></i><i></i><i></i></span></summary>
+    <nav class="lt-menu-list" aria-label={bar.navLabel || 'Sections'}>
+      {nav.map((n) => <a href={`#${n.id}`}>{n.label}</a>)}
+    </nav>
+  </details>
   {social.length > 0 && <div class="lt-soc">
     {social.map((l) => {
       const icon = l.id === 'x' ? <span class="lt-soc-x" aria-hidden="true">X</span> : <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21 4 3.6 11.2c-.8.3-.8 1.4 0 1.7l4.3 1.5 1.6 5c.2.8 1.2 1 1.8.4l2.4-2.3 4.1 3c.7.5 1.6.1 1.8-.7L22.5 5.1c.2-.9-.7-1.5-1.5-1.1ZM9.2 14.1l9-6.5-7.4 7.8-.3 3Z" fill="currentColor"/></svg>;
@@ -72,7 +78,17 @@ const hide = (houseCfg as any).hide !== false && owlImages.sleep
 
   // The chip in the bar shows the night of the visitor's house (set by the house section)
   const chip = document.querySelector<HTMLElement>('[data-ul-chip-text]');
-  ul.on('ul:night', (d: { text: string; lit: boolean }) => { if (chip && d?.text) chip.textContent = d.text; document.querySelector('[data-ul-chip]')?.classList.toggle('is-lit', Boolean(d?.lit)); });
+  ul.on('ul:night', (d: { text: string; lit: boolean; first?: boolean }) => { if (chip && d?.text) chip.textContent = d.text; const c = document.querySelector('[data-ul-chip]'); c?.classList.toggle('is-lit', Boolean(d?.lit)); c?.classList.toggle('is-first', Boolean(d?.first)); });
+  // the menu on a phone closes when a section is picked, on a tap outside it and on Escape
+  const menu = document.querySelector<HTMLDetailsElement>('[data-ul-menu]');
+  if (menu) {
+    menu.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) menu.open = false; });
+    document.addEventListener('click', (e) => { if (menu.open && !menu.contains(e.target as Node)) menu.open = false; });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.open) { menu.open = false; menu.querySelector('summary')?.focus(); } });
+  }
+  // while the first screen shows its own two buttons, the bar does not repeat them
+  const heroBtn = document.querySelector('#home .lt-btn-big');
+  if (heroBtn) new IntersectionObserver(([en]) => document.documentElement.classList.toggle('ul-hero-btns', en.isIntersecting)).observe(heroBtn);
 
   // Bar background once the page moves, menu follows the page
   const marks = [...document.querySelectorAll<HTMLElement>('[data-ul-nav]')].map((a) => ({ a, el: document.getElementById(a.dataset.ulNav!) }));
@@ -245,4 +261,21 @@ const hide = (houseCfg as any).hide !== false && owlImages.sleep
       }
     }
   }
+</script>
+
+<script>
+  // A jump from the menu lands where it should: sections far below are drawn only when they come near (lights.css) and
+  // the street and the city load their houses on the way, so the page can grow while it scrolls. After the jump the
+  // target is checked a few times and the page is moved the rest of the way, at once.
+  document.addEventListener('click', (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    const id = decodeURIComponent(a.hash.slice(1)); const target = id && document.getElementById(id);
+    if (!target) return;
+    const gap = () => parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const off = () => target.getBoundingClientRect().top - gap();
+    let n = 0;
+    const fix = () => { n += 1; if (Math.abs(off()) > 6) window.scrollBy({ top: off(), behavior: 'instant' as ScrollBehavior }); if (n < 6) setTimeout(fix, 350); };
+    setTimeout(fix, 700);
+  });
 </script>

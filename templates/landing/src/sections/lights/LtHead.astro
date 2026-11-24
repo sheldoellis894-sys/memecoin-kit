@@ -1,9 +1,12 @@
 ---
 // Heading of a section in the "lights" layout: a small rubric with a lamp, then the title.
-const { kicker, title, level = 2, center = false, lead = '' } = Astro.props;
+// plaque: the title is painted on a signboard, as on a shop or a truck (one or two sections, for variety)
+// neon: the title glows like a neon shop sign; plate: painted on a yellow plate, like the back of a truck
+// banner: on a red cloth banner with cut ends; sticker: on a white sticker, a little turned
+const { kicker, title, level = 2, center = false, lead = '', plaque = false, neon = false, plate = false, banner = false, sticker = false } = Astro.props;
 const H = `h${level}` as any;
 ---
-<header class:list={['lt-head', center && 'is-center']} data-ul-in>
+<header class:list={['lt-head', center && 'is-center', plaque && 'is-plaque', neon && 'is-neon', plate && 'is-plate', banner && 'is-banner', sticker && 'is-sticker']} data-ul-in>
   {kicker && <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{kicker}</p>}
   <H class="lt-title font-heading">{title}</H>
   {lead && <p class="lt-lead">{lead}</p>}

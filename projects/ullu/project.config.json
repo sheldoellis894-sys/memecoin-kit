@@ -1,8 +1,8 @@
 {
   "name": "Ullu",
   "ticker": "ULLU",
-  "tagline": "Every night the owl brings fortune. The light decides where",
-  "description": "Ullu is the owl who brings fortune to the brightest house on the street. Every visitor gets a house, lights it night after night and decorates it with what the owl leaves. Seven nights in a row and the owl lands on your roof with a sack of gold.",
+  "tagline": "Every night the owl looks for the brightest light",
+  "description": "Ullu is the owl who looks for the brightest house on the street. Every visitor gets a house, lights it night after night and decorates it with what the owl leaves. Seven nights in a row and the owl lands on the roof",
   "url": "https://theullu.vercel.app",
   "chain": "Solana",
   "ca": "",
@@ -71,10 +71,10 @@
       "rulesTitle": "The seven nights",
       "rules": [
         "First visit: the street builds you a house. Only one like it",
-        "Light up once a night. The owl drops a lamp, a garland or one slipper",
+        "Light up once a night. The owl drops something for the house",
         "Hang his stuff up. The brighter the house, the closer he gets",
         "Miss a night and the lights go out. Back to night one",
-        "Night seven he lands on your roof with a sack of gold. Save it, post it, show it on the street"
+        "Night seven he lands on your roof with the whole sack. Save it, post it, show it on the street"
       ]
     },
     "gallery": {
@@ -88,7 +88,7 @@
     },
     "token": {
       "kicker": "",
-      "title": "The owl's sack",
+      "title": "The owl's ledger",
       "lead": "",
       "supply": "Supply",
       "ca": "Contract address",
@@ -111,7 +111,7 @@
     "rules": {
       "kicker": "",
       "disclaimer": false,
-      "chat": { "name": "Ullu", "online": "online, as always at night", "typing": "typing…", "open": 0, "helloTitle": "Ask me anything", "hello": "Tap a question below. I'm up all night anyway", "helloMood": "stickers/ullu_laughing.png", "done": "That's everything. Now go light your house", "doneBtn": "Get my house", "reset": "Clear the chat" },
+      "chat": { "name": "Ullu", "online": "online, as always at night", "typing": "typing…", "open": 0, "helloTitle": "Ask me anything", "hello": "Tap a question below. I'm up all night anyway", "helloMood": "stickers/ullu_laughing.png", "done": "That's everything. Now go light your house", "doneBtn": "Get my house", "reset": "Clear the chat", "sideMood": "stickers/ullu_shocked.png" },
       "title": "What the street does and does not do",
       "lead": "",
       "items": [
@@ -148,7 +148,7 @@
         {
           "title": "The holder preview is a preview",
           "text": "The switch shows what holders could get: golden lights, no watermark. It doesn't check your wallet, and golden lights stay off the street",
-          "ask": "Is the holder switch real?",
+          "ask": "Is the holder preview real?",
           "mood": "stickers/ullu_laughing.png"
         },
         {
@@ -168,7 +168,7 @@
       "cta": "Buy"
     },
     "footer": {
-      "tag": "The owl who brings fortune to the brightest house",
+      "tag": "The owl who looks for the brightest house",
       "note": "$ULLU is a meme coin with no promise of value or profit. The house, the nights and the owl's gifts are a game on this website, not rewards. Crypto is risky: only use money you can afford to lose. Nothing here is financial advice",
       "launchLabel": "guru.fun"
     }
@@ -239,8 +239,8 @@
       "foundNote": "It is in your album now",
       "secretKicker": "Secret word",
       "secretTitle": "Ullu flew by and dropped you: {item}",
-      "inventory": "What the owl left you",
-      "invHint": "Tap a decoration: it appears on the house. Drag it, pull a corner to resize, pull the round handle to turn it. Grey ones with a lock come from the owl",
+      "inventory": "Your decorations",
+      "invHint": "Tap a decoration: it appears on the house. Drag it, pull a corner to resize, pull the round handle to turn it. Ones with a lock come from the owl",
       "invEmpty": "Nothing yet. Light up and the owl will leave something",
       "tipStart": "Tap a decoration to put it on the house",
       "pickFirst": "Pick a decoration first",
@@ -266,7 +266,7 @@
       "cardFail": "The card did not come out. Try again",
       "giftKicker": "Night {n} of 7",
       "giftTitle": "The owl left you: {item}",
-      "giftOk": "Into my box",
+      "giftOk": "Hang it on the house",
       "landedTitle": "The owl landed on your roof!",
       "landedNote": "Seven nights in a row. He brought the whole sack: {n} gifts",
       "chip": "Night {n}/7",
@@ -330,7 +330,7 @@
       "broughtFront": "{item} is in front of the other decorations now",
       "removed": "{item} is off the house",
       "locked": "{item} is not yours yet. The owl brings it: light your house every night",
-      "inWindow": "{item}: in the window. Tap it to take it out",
+      "inWindow": "{item} is up. Tap it to take it out",
       "winsFull": "Every window has something in it. Tap one to take it out",
       "done": "Done",
       "editNote": "Drag it on the picture to move it",
@@ -384,7 +384,7 @@
       "wishTitle": "What do you want from the owl?",
       "wishNote": "The wish paints your house and changes what the owl brings",
       "styleTitle": "Which street is yours?",
-      "styleNote": "Nine streets of the owl's India. Pick the one your house comes from. Then press Show me another house until you like it",
+      "styleNote": "Pick your street. Not this house? Show me another",
       "found": "The owl found you near {city}. Now pick your street",
       "back": "Back",
       "next": "Next",
@@ -393,7 +393,7 @@
       "reroll": "Show me another house",
       "invited": "{friend} invited you. Your house will stand right next to theirs",
       "someone": "A friend",
-      "welcome": "Welcome to your new {style}. Light the first lamp tonight",
+      "welcome": "Welcome to your new {style}",
       "welcomeFriend": "Welcome! {friend} lives next door and left you a housewarming gift: marigolds",
       "tip": "This is your house. Answer three questions, and it changes as you go"
     },
@@ -515,7 +515,7 @@
     "captions": [
       "Brighter than my portfolio",
       "The owl is coming",
-      "Lights on. Fortune loading",
+      "Lights on. Owl incoming",
       "Not a fool. An ullu",
       "My house, my rules, my lights",
       "Seven nights. No sleep"
@@ -523,12 +523,12 @@
     "labels": {
       "canvasLabel": "Your picture with lights",
       "meter": "Brightness",
-      "tipStart": "Pick a picture, then tap the lights. Move them around however you like",
+      "tipStart": "Now tap the lights. Move them around however you like",
       "base": "The picture",
       "upload": "My picture",
       "myHouse": "My house",
       "blank": "Just the night",
-      "night": "Night",
+      "night": "Darkness",
       "lights": "The lights",
       "selected": "Selected",
       "size": "Size",
@@ -697,7 +697,7 @@
     "labels": {
       "start": "Tap to walk the city",
       "home": "Find my house",
-      "homeFree": "Find my lot",
+      "homeFree": "Your house",
       "zoomIn": "Closer",
       "zoomOut": "Further",
       "all": "The whole city",
@@ -715,7 +715,7 @@
       "cityStar": "Brightest tonight",
       "off": "Back to the page",
       "yourHouse": "Your house",
-      "yourLotTag": "Your lot",
+      "yourLotTag": "Your house",
       "yourLot": "Your house goes here",
       "freeLot": "Free lot",
       "you": "You",

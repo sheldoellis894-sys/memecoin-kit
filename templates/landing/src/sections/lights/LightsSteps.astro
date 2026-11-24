@@ -1,5 +1,6 @@
 ---
-// How to buy: one list, a diya and a large number for each step (the label "Lamp {n}" stays for screen readers).
+// How to buy: four clay lamps on one painted ledge; each flame carries its number and catches as the step scrolls into view
+// (the label "Step {n}" stays for screen readers).
 import { lights } from '../../lib/lights';
 import { config } from '../../lib/project';
 import LtHead from './LtHead.astro';
@@ -9,12 +10,11 @@ const steps: { title: string; text: string }[] = config.howToBuy || [];
 <section id="how-to-buy" class="lt-sec lt-steps-sec">
   <div class="lt-in">
     <div class="lt-steps-wrap">
-    <LtHead kicker={s.kicker} title={s.title} lead={s.lead} />
+    <LtHead kicker={s.kicker} title={s.title} lead={s.lead} plate />
     <ol class="lt-steps">
       {steps.map((st, i) => (
         <li class="lt-step" style={`--i:${i}`} data-ul-in>
-          <span class="lt-step-diya" aria-hidden="true"><i></i></span>
-          <span class="lt-step-num font-heading" aria-hidden="true">{i + 1}</span>
+          <span class="lt-step-lamp" aria-hidden="true"><span class="lt-step-flame"><b class="font-heading">{i + 1}</b></span><span class="lt-step-bowl"></span></span>
           <h3 class="font-heading"><span class="lt-sr">{(s.step || 'Step {n}').replace('{n}', String(i + 1))}: </span>{st.title}</h3>
           <p>{st.text}</p>
         </li>

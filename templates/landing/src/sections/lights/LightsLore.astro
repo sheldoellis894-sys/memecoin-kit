@@ -22,6 +22,11 @@ const rules: string[] = l.rules || [];
     {rules.length > 0 && (
       <div class="lt-rules-strip" data-ul-in>
         <p class="lt-rules-title font-heading">{l.rulesTitle || 'The seven nights'}</p>
+        <ol class="lt-lore-nights" aria-hidden="true">
+          {Array.from({ length: 7 }, (_, i) => (
+            <li style={`--i:${i}`}><span class="lt-step-lamp"><span class="lt-step-flame"><b class="font-heading">{i + 1}</b></span><span class="lt-step-bowl"></span></span></li>
+          ))}
+        </ol>
         <ul>{rules.map((r, i) => <li><span class="lt-night-dot" style={`--i:${i}`} aria-hidden="true"></span>{r}</li>)}</ul>
       </div>
     )}

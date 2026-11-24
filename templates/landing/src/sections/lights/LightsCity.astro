@@ -23,9 +23,9 @@ const data = JSON.stringify({
     pane: tl.pane || '#FFD36B', ink: tl.ink || '#141026', text: tc.text || '#FFFFFF', muted: tc.muted || '#BBBBCC', primary: tc.primary || '#FFB52E', secondary: tc.secondary || '#4A78D0', accent: tc.accent || '#FF7A1C' },
 });
 ---
-<section id="city" class="lt-sec lt-city-sec" data-ul-city={data}>
+<section id="city" class="lt-sec lt-city-sec is-wide" data-ul-city={data}>
   <div class="lt-in">
-    <LtHead kicker={'kicker' in c ? c.kicker : 'The city'} title={c.title || 'The city we lit'} lead={c.lead || 'Every light is a house. Tap one to look inside'} />
+    <LtHead kicker={'kicker' in c ? c.kicker : 'The city'} title={c.title || 'The city we lit'} lead={c.lead || 'Every light is a house. Tap one to look inside'} center neon />
     <p class="lt-city-stats" data-ul-city-stats aria-live="polite"></p>
     <div class="lt-city" data-ul-city-map data-ul-in>
       <canvas data-ul-city-canvas tabindex="0" role="img" aria-label={l.mapLabel || 'A map of the houses on the street'}></canvas>
@@ -65,6 +65,7 @@ const data = JSON.stringify({
     <div class="lt-view-in">
       <div data-ul-city-view-art></div>
       <p class="font-heading lt-view-name" data-ul-city-view-name></p>
+      <p class="lt-view-where" data-ul-city-view-where></p>
       <p data-ul-city-view-line></p>
       <form method="dialog"><button class="lt-btn lt-btn-small">{l.close || 'Back to the city'}</button></form>
     </div>
@@ -83,7 +84,8 @@ const data = JSON.stringify({
     const L: Record<string, string> = cfg.labels;
     const col: Record<string, string> = cfg.colors;
     const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
-    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
+    // one owl visit, one night: the singular when the number is 1
+    const fill = (t: string, v: Record<string, string | number>) => (t || '').replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? '')).replace(/(^|[^\d])1 (owl visits|nights)\b/g, (_m, a, w) => `${a}1 ${w.slice(0, -1)}`);
     const map = $<HTMLElement>('[data-ul-city-map]');
     const note = $<HTMLElement>('[data-ul-city-note]');
     const sn4 = (n: number) => `#${String(n).padStart(4, '0')}`;
@@ -196,6 +198,8 @@ const data = JSON.stringify({
       sMax = clamp(Math.min(W * 0.92, H * 0.74), 240, 560) / C.TILE;
       sMin = Math.min(fit, sHome);
     };
+    // a wide map (a computer) starts closer than the whole city, so the houses are not specks; "All" still shows all of it
+    const sStart = () => (W > 900 ? Math.min(Math.max(sMin, 9 / C.TILE), sHome) : sMin);   // as close as the glowing-dot view goes
     const hold = () => {
       cam.s = clamp(cam.s, sMin, sMax);
       // the middle of the map never leaves the city
@@ -544,8 +548,8 @@ const data = JSON.stringify({
       const meBox = meSeen && me !== star ? houseBox(meAt![0], meAt![1]) : null;
       let starBox: number[] | null = null;
       // the labels of the two houses: where each stands, or null when there is no free place for it
-      const starText = star ? `${L.cityStar || 'Brightest tonight'}: ${sn4(star.sn)}` : '';
-      const meText = !me ? '' : me.kind === 'you' ? L.yourLotTag || 'Your lot' : `${L.yourHouse || 'Your house'}: ${sn4(me.sn)}`;
+      const starText = star ? `${L.cityStar || 'Brightest tonight'}: ${star.name || sn4(star.sn)}` : '';
+      const meText = !me ? '' : me.kind === 'you' ? L.yourLotTag || 'Your lot' : `${L.yourHouse || 'Your house'}: ${me.name || sn4(me.sn)}`;
       let starTagAt: number[] | null = null, meTagAt: number[] | null = null, starTagBox: number[] | null = null, meTagBox: number[] | null = null;
       if (starSeen && !close) {
         const [x, y] = starAt!;
@@ -635,7 +639,7 @@ const data = JSON.stringify({
     // where the buttons lie on the map, so the names of districts and the labels keep off them
     function measure() {
       const r = map.getBoundingClientRect();
-      buttons = ['[data-ul-city-home]', '.lt-city-tools', '.lt-city-legend'].map((q) => root.querySelector<HTMLElement>(q)?.getBoundingClientRect()).filter((b) => b && b.width > 0)
+      buttons = ['[data-ul-city-home]', '[data-ul-city-all]', '.lt-city-tools', '.lt-city-legend', '[data-ul-city-start]', '.lt-city-top'].map((q) => root.querySelector<HTMLElement>(q)?.getBoundingClientRect()).filter((b) => b && b.width > 0)
         .map((b) => [b!.left - r.left - 6, b!.top - r.top - 6, b!.right - r.left + 6, b!.bottom - r.top + 6]);
       paint();
     }
@@ -645,7 +649,7 @@ const data = JSON.stringify({
       const whole = loaded && cam.s <= sMin * 1.02;
       resize();
       if (loaded && (W >= H * 1.15) !== wideNow) { build(lastRows, lastStar); resize(); }
-      if (whole) { cam.x = 0; cam.y = 0; cam.s = sMin; hold(); paint(); }
+      if (whole) { cam.x = 0; cam.y = 0; cam.s = sStart(); hold(); paint(); }
     };
     if ('ResizeObserver' in window) new ResizeObserver(resized).observe(map); else addEventListener('resize', resized);
 
@@ -669,7 +673,7 @@ const data = JSON.stringify({
       $<HTMLElement>('[data-ul-city-card-no]').textContent = sp.kind === 'house' ? sn4(sp.sn) : L.sample || 'Example';
       $<HTMLElement>('[data-ul-city-card-name]').textContent = sp.name;
       const nights = !lit(sp) ? L.cardDark || 'Dark tonight' : fill(sp.streak > K.NIGHTS ? L.cardRun || 'Night {n} in a row' : L.cardNight || 'Night {n} of {of}', { n: sp.streak, of: K.NIGHTS });
-      $<HTMLElement>('[data-ul-city-card-line]').textContent = `${districtName(sp.family)}, ${nights}, ${fill(L.cardBright || '{light}% bright', { light: Math.round(sp.light) })}`;
+      $<HTMLElement>('[data-ul-city-card-line]').textContent = `${districtName(sp.family)}, ${nights.charAt(0).toLowerCase()}${nights.slice(1)}, ${fill(L.cardBright || '{light}% bright', { light: Math.round(sp.light) })}`;
       card.hidden = false; placeCard(); paint();
       const got = await fullOf(sp);
       if (id !== cardId || picked !== sp || !got) return;
@@ -770,7 +774,9 @@ const data = JSON.stringify({
     $<HTMLButtonElement>('[data-ul-city-home]').addEventListener('click', () => { turnOn(); const me = spots[0]; if (me) flyTo(me.x, me.y + 0.08, Math.max(sHome, Math.min(cam.s, sNear)), 800); });
     // the visitor's lot: to the street form above, where a house is put on the street
     function goBuild() {
-      const form = document.querySelector<HTMLElement>('[data-ul-street-post]') || document.getElementById('house');
+      // no house yet: to the questions; a house that is not on the street yet: to the street form
+      const noHouse = document.querySelector('.lt-house-sec.is-setup');
+      const form = (noHouse ? document.getElementById('house') : document.querySelector<HTMLElement>('[data-ul-street-post]')) || document.getElementById('house');
       form?.scrollIntoView({ block: 'center', behavior: ul.calm ? 'auto' : 'smooth' });
     }
 
@@ -783,9 +789,11 @@ const data = JSON.stringify({
       const owl = landed(sp) ? { ...K.owlPlace(h, K.NIGHTS, true), href: cfg.owl.landed || K.owlPlaceholder('landed') } : null;
       $<HTMLElement>('[data-ul-city-view-art]').innerHTML = K.houseSvg(h, got.placed, { free: got.free, ctx: drawCtx(), level: lit(sp) ? Math.min(K.NIGHTS, sp.streak) : 1, owl, id: `ulv${vid++}` });
       $<HTMLElement>('[data-ul-city-view-name]').textContent = sp.kind === 'house' ? `${sp.name}, ${sn4(sp.sn)}` : sp.name;
-      const v = { streak: sp.streak, gifts: f.gifts ?? 0, best: f.best ?? sp.streak, light: sp.light };
-      const line = !lit(sp) ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', v) : fill(landed(sp) ? L.lineLanded || 'Night {streak} in a row, the owl is on the roof' : L.line || 'Night {streak} in a row, {gifts} owl visits', v);
-      $<HTMLElement>('[data-ul-city-view-line]').textContent = `${line}, ${fill(L.best || 'best run {best}', v)}, ${sp.light}% bright`;
+      const v = { streak: sp.streak, gifts: f.gifts ?? 0, best: f.best ?? sp.streak, light: Math.round(sp.light) };
+      // two short lines, as on the card: where it is and how it is tonight, then its numbers
+      const tonight = !lit(sp) ? L.cardDark || 'Dark tonight' : landed(sp) ? L.viewLanded || 'The owl is on the roof' : fill(sp.streak > K.NIGHTS ? L.cardRun || 'Night {n} in a row' : L.cardNight || 'Night {n} of {of}', { n: sp.streak, of: K.NIGHTS });
+      $<HTMLElement>('[data-ul-city-view-where]').textContent = `${districtName(sp.family)}, ${tonight.charAt(0).toLowerCase()}${tonight.slice(1)}`;
+      $<HTMLElement>('[data-ul-city-view-line]').textContent = fill(!lit(sp) ? L.viewDark || 'Best run {best} nights, {light}% bright' : L.viewLine || '{gifts} owl visits, best run {best} nights, {light}% bright', v);
       if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
     }
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
@@ -809,7 +817,7 @@ const data = JSON.stringify({
       build(rows, star);
       resize();
       // the map opens on the whole city; it goes to the visitor's house when the house has just been put on the street
-      if (!loaded) { cam.x = 0; cam.y = 0; cam.s = sMin; }
+      if (!loaded) { cam.x = 0; cam.y = 0; cam.s = sStart(); }
       else if (was === 'you' && spots[0].kind === 'house') { cam.x = 0; cam.y = 0.08; cam.s = sHome; }
       loaded = true; hold(); paint();
     }

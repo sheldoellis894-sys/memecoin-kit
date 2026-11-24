@@ -63,7 +63,7 @@ html.ul-motion .lt-stars-b { animation: lt-twinkle 5s ease-in-out infinite alter
 
 /* ---- Top bar ---- */
 .lt-bar { position: fixed; inset: 0 0 auto; z-index: 50; height: var(--lt-bar-h); display: flex; align-items: center; gap: 10px; padding: 0 16px; transition: background-color .25s, box-shadow .25s; }
-html.ul-scrolled .lt-bar { background: var(--lt-sky-top); background: color-mix(in srgb, var(--lt-sky-top) 95%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 0 var(--lt-line); }
+html.ul-scrolled .lt-bar { background: var(--lt-sky-top); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 0 var(--lt-line); }
 .lt-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--t-text); font-size: 1.45rem; margin-right: auto; min-width: 0; }
 .lt-brand img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; box-shadow: 0 0 0 2px var(--t-accent), 0 0 18px color-mix(in srgb, var(--lt-glow) 50%, transparent); }
 .lt-nav { display: none; gap: 2px; }
@@ -821,11 +821,338 @@ body:has(.lt-city:hover) .lt-follow.is-page { opacity: 0; }
 .lt-star-gifts { margin: 0; color: var(--t-muted); }
 /* phones: while the three first questions are open, the house stays in sight above them, a little smaller, so every
    answer shows on it at once */
+/* phones: a small live copy of the house sits in the corner of the questions card */
+.lt-setup-mini { display: none; }
 @media (max-width: 700px) {
-  .lt-house-sec.is-setup .lt-stage { position: sticky; top: calc(var(--lt-bar-h) + 26px); z-index: 3; padding-bottom: 8px; background: linear-gradient(var(--lt-sky-top) 85%, transparent); }
-  .lt-house-sec.is-setup .lt-stage-box { width: min(100%, 36svh); margin-inline: auto; }
-  .lt-house-sec.is-setup .lt-stage > .lt-tip, .lt-house-sec.is-setup .lt-stage > .lt-plate { display: none; }
+  .lt-setup-mini { display: block; float: right; width: 92px; height: 92px; margin: -6px -4px 6px 12px; border-radius: 14px; overflow: hidden; border: 2px solid var(--t-accent); box-shadow: 0 0 18px color-mix(in srgb, var(--lt-glow) 40%, transparent); }
+  .lt-setup-mini svg { display: block; width: 100%; height: 100%; }
+  .lt-setup { scroll-margin-top: calc(var(--lt-bar-h) + 30px); }
 }
 /* the first sections sit closer to the house */
 #lore.lt-sec { padding-bottom: clamp(24px, 3vw, 40px); }
 .lt-base-ic { color: var(--t-accent); width: 30px; height: 30px; }
+.lt-house-sec.is-docked .lt-stage > .lt-light-btn { margin: 14px 0 4px; }
+/* the street: its title is painted on a signboard, like the name board of a shop */
+.lt-head.is-plaque { position: relative; display: inline-block; max-width: 820px; padding: 22px 30px 24px; border: 3px solid var(--lt-ink); border-radius: 16px;
+  background: radial-gradient(circle at 14px 14px, var(--lt-cream) 0 3px, transparent 3.5px), radial-gradient(circle at calc(100% - 14px) 14px, var(--lt-cream) 0 3px, transparent 3.5px),
+    radial-gradient(circle at 14px calc(100% - 14px), var(--lt-cream) 0 3px, transparent 3.5px), radial-gradient(circle at calc(100% - 14px) calc(100% - 14px), var(--lt-cream) 0 3px, transparent 3.5px),
+    var(--dt-blue, #2453D6);
+  box-shadow: inset 0 0 0 6px var(--dt-blue, #2453D6), inset 0 0 0 8px var(--lt-ink), 6px 6px 0 var(--lt-ink); transform: rotate(-1.2deg); }
+.lt-head.is-plaque .lt-title, html.decor-truck .lt-head.is-plaque .lt-title { color: var(--dt-yellow, #FFD21F); text-shadow: 3px 3px 0 var(--lt-ink); }
+.lt-head.is-plaque .lt-lead { color: var(--lt-cream); }
+@media (prefers-reduced-motion: reduce) { .lt-head.is-plaque { transform: none; } }
+/* the city: a centred title and a map almost as wide as the screen */
+.lt-city-sec.is-wide > .lt-in { width: min(1560px, 100% - 32px); }
+.lt-city-sec.is-wide .lt-city-stats { justify-content: center; }
+.lt-city-sec.is-wide .lt-city-legend { justify-content: center; }
+.lt-head.is-plaque { text-align: center; }
+.lt-head.is-plaque .lt-lead { margin-inline: auto; }
+/* speed on phones: sections far below the first screen are not drawn until they come near it (the browser keeps their
+   last size, so the page does not jump). The house is close to the top and keeps drawing as usual */
+:is(#street, #picture, #gallery, #city, #token, #how-to-buy, #rules, #buy).lt-sec, .lt-footer { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+/* the first screen never waits for the script: the hero is visible at once (it is also the largest picture of the page) */
+html.ul-js.ul-motion .lt-hero [data-ul-in] { opacity: 1; transform: none; }
+/* the phone: no lamp button while the three first questions are open */
+.lt-house-sec.is-setup .lt-light-btn { display: none; }
+/* scrolled to: the house starts below the top bar */
+.lt-house { scroll-margin-top: calc(var(--lt-bar-h) + 24px); }
+/* the lighting moment: the house glows up before the gift window opens */
+@keyframes lt-light-up { 0% { filter: brightness(.45) saturate(.7); } 30% { filter: brightness(.5) saturate(.7); } 70% { filter: brightness(1.3) saturate(1.2); } 100% { filter: none; } }
+.lt-stage.is-lighting .lt-stage-svg { animation: lt-light-up 1.5s ease-out; }
+.lt-flyby { position: absolute; z-index: 4; left: 0; top: 14%; width: 22%; pointer-events: none; animation: lt-flyby 1.5s cubic-bezier(.45, .05, .4, 1) forwards; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--lt-glow) 70%, transparent)); }
+@keyframes lt-flyby { 0% { transform: translate(-30%, 40%) rotate(-8deg); opacity: 0; } 15% { opacity: 1; } 55% { transform: translate(190%, -10%) rotate(4deg); } 100% { transform: translate(420%, 20%) rotate(10deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .lt-stage.is-lighting .lt-stage-box { animation: none; } }
+/* the sizes the far sections are given before they are drawn: close to their real size, so the page hardly moves */
+#street.lt-sec { contain-intrinsic-size: auto 2430px; } #picture.lt-sec { contain-intrinsic-size: auto 1205px; } #gallery.lt-sec { contain-intrinsic-size: auto 500px; }
+#city.lt-sec { contain-intrinsic-size: auto 840px; } #token.lt-sec { contain-intrinsic-size: auto 630px; } #how-to-buy.lt-sec { contain-intrinsic-size: auto 415px; }
+#rules.lt-sec { contain-intrinsic-size: auto 490px; } #buy.lt-sec { contain-intrinsic-size: auto 490px; } .lt-footer { contain-intrinsic-size: auto 200px; }
+@media (max-width: 760px) {
+  #street.lt-sec { contain-intrinsic-size: auto 1775px; } #picture.lt-sec { contain-intrinsic-size: auto 1710px; } #gallery.lt-sec { contain-intrinsic-size: auto 445px; }
+  #city.lt-sec { contain-intrinsic-size: auto 735px; } #token.lt-sec { contain-intrinsic-size: auto 737px; } #how-to-buy.lt-sec { contain-intrinsic-size: auto 700px; }
+  #rules.lt-sec { contain-intrinsic-size: auto 630px; } #buy.lt-sec { contain-intrinsic-size: auto 490px; } .lt-footer { contain-intrinsic-size: auto 310px; }
+}
+/* the moon belongs to the first screen: below it, it is gone (it no longer lies over the cards) */
+html.ul-scrolled .lt-moon { opacity: 0; }
+/* phones: the painted rings of the token frame and the street cards keep a gap to the screen edge */
+@media (max-width: 520px) {
+  html.decor-truck .lt-facade { box-shadow: 0 0 0 3px var(--lt-ink), 0 0 0 7px var(--dt-blue), 0 0 0 9px var(--lt-ink), 0 30px 60px -30px rgb(0 0 0 / .8); outline: none; }
+}
+/* phones: the map buttons stand in a row at the top right, so they take less of the map */
+@media (max-width: 520px) { .lt-city-tools { grid-auto-flow: column; } }
+/* the house of the night: its words at the top, next to the top of the picture */
+@media (min-width: 720px) { .lt-star { align-items: start; } .lt-star-text { padding-top: 18px; } }
+/* short sections end sooner: no long empty band under the rules, the steps and the lore */
+:is(#lore, #how-to-buy, #rules).lt-sec { padding-bottom: clamp(20px, 3vw, 36px); }
+/* the numbers of the house: one line, like a ledger, not four boxes */
+.lt-stats { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 12px 2px 0; border-top: 1px solid var(--lt-line); }
+.lt-stats div { display: flex; flex-direction: row-reverse; align-items: baseline; gap: 6px; padding: 0; border: 0; background: none; border-radius: 0; }
+.lt-stats dd { margin: 0; font-size: 1.35rem; }
+.lt-stats dt { font-size: .9rem; }
+/* the city: its title is a neon sign over the night map */
+.lt-head.is-neon .lt-title, html.decor-truck .lt-head.is-neon .lt-title { color: #FFF0F8; text-shadow: 0 0 2px #fff, 0 0 10px var(--dt-pink, #FF4FA3), 0 0 24px var(--dt-pink, #FF4FA3), 0 0 46px color-mix(in srgb, var(--dt-pink, #FF4FA3) 70%, transparent); }
+html.ul-motion .lt-head.is-neon .lt-title { animation: lt-neon 6s steps(1) infinite; }
+@keyframes lt-neon { 0%, 91%, 94%, 100% { opacity: 1; } 92%, 95% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .lt-head.is-neon .lt-title { animation: none; } }
+/* how to buy: the title on a yellow truck plate */
+.lt-head.is-plate { display: inline-block; padding: 18px 24px 20px; border: 3px solid var(--lt-ink); border-radius: 12px; background: var(--dt-yellow, #FFD21F);
+  box-shadow: inset 0 0 0 5px var(--dt-yellow, #FFD21F), inset 0 0 0 7px var(--lt-ink), 6px 6px 0 var(--lt-ink); transform: rotate(1deg); }
+.lt-head.is-plate .lt-title, html.decor-truck .lt-head.is-plate .lt-title { color: var(--dt-red-deep, #C8202E); text-shadow: none; }
+.lt-head.is-plate .lt-lead { color: var(--lt-ink); }
+@media (prefers-reduced-motion: reduce) { .lt-head.is-plate { transform: none; } }
+@media (max-width: 700px) { .lt-setup .lt-wishes, .lt-setup .lt-styles, .lt-setup .lt-input { clear: both; } .lt-head.is-plate .lt-title { font-size: clamp(2rem, 7vw, 2.8rem); } }
+@media (min-width: 1080px) { .lt-head.is-plate .lt-title { font-size: clamp(2rem, 3.4vw, 2.9rem); } }
+/* once the page scrolls, the bunting hangs over a dark band, so the words of the sections never show between the flags */
+html.decor-truck.ul-scrolled .lt-bar::after { background: var(--dt-bunting) 0 0 / 104px 26px repeat-x, linear-gradient(var(--lt-sky-top) 60%, transparent); }
+@media (max-width: 899px) { html.decor-truck.ul-scrolled .lt-bar::after { background-size: 80px 20px, auto; } }
+/* ---- round 4 ---- */
+:root { --lt-font-hand: 'Kalam', var(--font-body); }
+.lt-hand { font-family: var(--lt-font-hand); font-weight: 700; }
+
+/* the lamp button after tonight's lamp is lit: a quiet night outline with a cold wick, not a faded yellow button */
+.lt-light-btn:disabled { opacity: 1; filter: none; cursor: default; background: transparent; background-image: none; color: var(--lt-cream);
+  border: 2.5px dashed var(--lt-dim); box-shadow: none; }
+.lt-light-btn:disabled::before { content: ""; flex: none; width: 11px; height: 15px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: var(--lt-dim); }
+
+/* the house of the night: the owl's word at the foot of the right half */
+.lt-star-note { display: grid; grid-template-columns: 80px minmax(0, 1fr); grid-template-areas: "owl bubble" "owl go"; align-items: center; gap: 10px 16px; margin-top: 22px; }
+.lt-star-note img { grid-area: owl; width: 80px; height: auto; align-self: end; }
+.lt-star-bubble { grid-area: bubble; position: relative; justify-self: start; margin: 0; padding: 10px 16px; border: 2.5px solid var(--lt-ink); border-radius: 16px; background: var(--lt-cream); color: var(--lt-ink); font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.lt-star-bubble::before { content: ""; position: absolute; left: -10px; top: 50%; margin-top: -8px; border: 8px solid transparent; border-left: 0; border-right: 10px solid var(--lt-ink); }
+.lt-star-go { grid-area: go; justify-self: start; }
+@media (min-width: 720px) { .lt-star { align-items: stretch; } .lt-star-text { display: flex; flex-direction: column; align-items: flex-start; } .lt-star-note { margin-top: auto; padding-top: 22px; } }
+
+/* the token: a page of the owl's ledger */
+.lt-ledger { max-width: 780px; margin-inline: auto; }
+.lt-ledger-page { --m: clamp(34px, 6vw, 64px); --row: 46px; position: relative; display: grid; gap: 0 24px; padding: 22px clamp(16px, 4vw, 40px) 22px calc(var(--m) + 16px); color: var(--lt-ink);
+  background:
+    linear-gradient(90deg, transparent var(--m), var(--dt-red, var(--lt-flame)) var(--m) calc(var(--m) + 2px), transparent calc(var(--m) + 2px)),
+    repeating-linear-gradient(180deg, transparent 0 calc(var(--row) - 1px), color-mix(in srgb, var(--dt-blue, var(--lt-arch-end)) 30%, transparent) calc(var(--row) - 1px) var(--row)) 0 22px / 100% 100% no-repeat,
+    var(--lt-cream);
+  border: 2.5px solid var(--lt-ink); border-left: 12px solid var(--lt-edge); border-radius: 6px 14px 14px 6px; rotate: -.5deg;
+  box-shadow: 0 22px 44px -18px color-mix(in srgb, var(--lt-sky-top) 85%, transparent); }
+.lt-ledger-table { width: 100%; border-collapse: collapse; }
+.lt-ledger-table th, .lt-ledger-table td { height: var(--row); padding: 0 0 6px; vertical-align: bottom; text-align: left; }
+.lt-ledger-table thead th { font: 800 .9rem/1 var(--font-body); color: var(--dt-red, var(--lt-flame)); }
+.lt-ledger-table thead th:last-child, .lt-ledger-table td { text-align: right; }
+.lt-ledger-table tbody th { font: 600 1.05rem/1.2 var(--font-body); }
+.lt-ledger-table td { font-size: 1.55rem; line-height: 1; color: var(--dt-blue, var(--lt-arch-end)); white-space: nowrap; padding-left: 12px; }
+.lt-ledger-table .is-supply td { font-size: clamp(1.3rem, 5vw, 1.9rem); }
+.lt-ledger-stamp { display: grid; place-content: center; justify-self: center; width: 128px; height: 128px; margin: 18px 0 4px; border: 5px double var(--dt-red, var(--lt-flame)); border-radius: 50%;
+  color: var(--dt-red, var(--lt-flame)); text-align: center; line-height: 1; rotate: -14deg; }
+.lt-ledger-stamp b { font: 400 2.2rem/1 var(--font-heading); }
+.lt-ledger-stamp span { font: 800 .85rem/1.1 var(--font-body); }
+.lt-ledger-sign { margin: 10px 0 0; font-weight: 600; }
+.lt-ledger-sign b { font-size: 1.5rem; color: var(--dt-blue, var(--lt-arch-end)); }
+.lt-ledger .lt-ca { margin-top: 26px; }
+@media (min-width: 720px) {
+  .lt-ledger-page { grid-template-columns: minmax(0, 1fr) 150px; }
+  .lt-ledger-stamp { grid-column: 2; grid-row: 1; align-self: center; margin: 0; }
+  .lt-ledger-sign { grid-column: 1 / -1; }
+}
+html.ul-motion .lt-ledger.is-in .lt-ledger-stamp { animation: lt-stamp .5s .35s var(--lt-ease) both; }
+@keyframes lt-stamp { from { opacity: 0; transform: scale(1.6); } to { opacity: 1; transform: none; } }
+
+/* how to buy: four clay lamps on one painted ledge, the number in each flame */
+#how-to-buy .lt-steps-wrap { display: block; }
+#how-to-buy .lt-steps-wrap > .lt-head { position: static; margin-bottom: clamp(26px, 4vw, 44px); }
+html.ul-js.ul-motion .lt-step[data-ul-in] { opacity: 1; transform: none; }
+.lt-steps { position: relative; }
+.lt-step { display: grid; grid-template-columns: 84px minmax(0, 1fr); column-gap: 18px; align-items: start; padding: 16px 0; border: 0; }
+.lt-step h3 { margin: 6px 0 6px; }
+.lt-step p { grid-column: 2; }
+.lt-step-lamp { grid-row: 1 / span 2; position: relative; display: block; width: 84px; height: 98px; }
+.lt-step-bowl { position: absolute; left: 4px; right: 4px; bottom: 0; height: 30px; border: 3px solid var(--lt-ink); border-radius: 6px 6px 44px 44px / 6px 6px 30px 30px;
+  background: radial-gradient(circle, var(--lt-pane) 0 2.4px, transparent 3px) 4px 9px / 13px 13px repeat-x, var(--lt-clay); }
+.lt-step-bowl::before { content: ""; position: absolute; left: 50%; top: -9px; width: 3px; height: 9px; margin-left: -1.5px; border-radius: 2px; background: var(--lt-ink); }
+.lt-step-flame { position: absolute; left: 50%; bottom: 36px; display: grid; place-items: center; width: 50px; height: 50px; margin-left: -25px; border: 2.5px dashed var(--lt-dim); border-radius: 50% 0 50% 50%; rotate: -45deg; }
+.lt-step-flame::before { content: ""; position: absolute; inset: -2.5px; border-radius: inherit; opacity: 0;
+  background: radial-gradient(circle at 62% 38%, var(--lt-flame-light) 0 26%, var(--lt-pane) 48%, var(--lt-flame) 92%);
+  box-shadow: 0 0 26px 8px color-mix(in srgb, var(--lt-glow) 50%, transparent); transition: opacity .6s var(--lt-ease) calc(var(--i, 0) * 260ms + 150ms); }
+.lt-step-flame b { position: relative; rotate: 45deg; font-size: 1.55rem; font-weight: 400; line-height: 1; color: var(--lt-pane-text); transition: color .4s calc(var(--i, 0) * 260ms + 250ms); }
+.lt-step.is-in .lt-step-flame::before, html:not(.ul-js) .lt-step-flame::before, html:not(.ul-motion) .lt-step-flame::before { opacity: 1; }
+.lt-step.is-in .lt-step-flame b, html:not(.ul-js) .lt-step-flame b, html:not(.ul-motion) .lt-step-flame b { color: var(--lt-ink); }
+html.ul-motion .lt-step.is-in .lt-step-flame { animation: lt-flick 2.6s ease-in-out calc(var(--i, 0) * 260ms + 800ms) infinite alternate; }
+@keyframes lt-flick { 0% { scale: 1; } 40% { scale: 1.05 .97; } 100% { scale: .97 1.04; } }
+@media (min-width: 900px) {
+  .lt-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: clamp(20px, 3vw, 40px); }
+  .lt-steps::before { content: ""; position: absolute; left: -14px; right: -14px; top: 98px; height: 16px; border: 2.5px solid var(--lt-ink); border-radius: 4px;
+    background: repeating-linear-gradient(90deg, var(--dt-red, var(--lt-flame)) 0 18px, var(--lt-pane) 18px 36px); box-shadow: 0 8px 0 -2px var(--lt-edge); }
+  .lt-step { position: relative; grid-template-columns: minmax(0, 1fr); justify-items: center; padding: 0; text-align: center; }
+  .lt-step-lamp { grid-row: auto; margin-bottom: 36px; }
+  .lt-step p { grid-column: auto; max-width: 28ch; }
+}
+
+/* the gift: the decoration sits on a painted plate, larger */
+.lt-gift-in img { width: 196px; height: 196px; padding: 36px; border-radius: 50%; filter: none;
+  background: radial-gradient(circle, var(--lt-stage) 0 53%, var(--lt-ink) 53.5% 55%, transparent 55.5%), repeating-conic-gradient(var(--lt-flame) 0 7.5deg, var(--lt-pane) 7.5deg 15deg);
+  box-shadow: 0 0 0 3px var(--lt-ink), 0 0 36px 6px color-mix(in srgb, var(--lt-glow) 40%, transparent); }
+
+/* gallery: the arrows beside the heading */
+.lt-gallery-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.lt-gallery-top .lt-ribbon-nav { margin: 0 0 clamp(28px, 4vw, 48px); flex: none; }
+
+.lt-view-name { margin-top: 18px; }
+.lt-lead, .lt-status, .lt-star-line, .lt-step p { text-wrap: balance; }
+#house.lt-sec { padding-top: clamp(28px, 4vw, 56px); }
+.lt-follow.is-page.is-away { opacity: 0; }
+@media (min-width: 720px) { .lt-star-text .lt-star-nights { align-self: stretch; } }
+@media (max-width: 520px) { .lt-ledger-table tbody th { font-size: .95rem; } }
+@media (min-width: 1080px) { .lt-star-note { grid-template-columns: 112px minmax(0, 1fr); } .lt-star-note img { width: 112px; } }
+
+/* ---- round 5 ---- */
+/* the bar does not repeat the first screen's buttons while they are on screen; the house chip waits for a house */
+.lt-bar > a.lt-btn { transition: opacity .25s, visibility .25s; }
+html.ul-hero-btns .lt-bar > a.lt-btn { opacity: 0; visibility: hidden; }
+@media (min-width: 1040px) { .lt-chip.is-first { display: none; } }
+/* phones: a small menu with the sections */
+.lt-menu { position: relative; flex: none; }
+.lt-menu > summary { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--lt-line); color: var(--t-text); cursor: pointer; list-style: none; }
+.lt-menu > summary::-webkit-details-marker { display: none; }
+.lt-menu-icon { display: grid; gap: 4px; }
+.lt-menu-icon i { display: block; width: 16px; height: 2.5px; border-radius: 2px; background: currentColor; }
+.lt-menu-icon i:nth-child(2) { width: 11px; }
+.lt-menu[open] > summary { background: var(--t-accent); border-color: var(--t-accent); color: var(--lt-ink); }
+.lt-menu-list { position: absolute; left: 0; top: calc(100% + 10px); z-index: 60; display: grid; min-width: 210px; padding: 8px; border: 2.5px solid var(--lt-ink); border-radius: 16px; background: var(--lt-sky-top); box-shadow: 0 0 0 2px var(--t-accent), 0 18px 40px -12px var(--lt-sky-top); }
+.lt-menu-list a { padding: 12px 14px; border-radius: 10px; color: var(--lt-cream); font-weight: 700; text-decoration: none; }
+.lt-menu-list a:hover, .lt-menu-list a:focus-visible { background: color-mix(in srgb, var(--t-accent) 22%, transparent); }
+@media (min-width: 1040px) { .lt-menu { display: none; } }
+
+/* the edited decoration: the style plate steps aside */
+.lt-stage-tag { transition: opacity .2s; }
+.lt-house-sec.is-editing .lt-stage-tag { opacity: 0; }
+
+/* the house window in the city: where, then numbers */
+.lt-view-where { margin: 0 0 2px; color: var(--lt-cream); font-weight: 700; }
+
+/* the street on a computer: every other column steps down, like houses along a real street */
+@media (min-width: 1000px) {
+  .lt-street { row-gap: 40px; padding-bottom: 30px; }
+  .lt-street > li:nth-child(even) { translate: 0 24px; }
+}
+
+/* rules: the chat on the left, the owl reading over it in an arched window on the right */
+@media (min-width: 1000px) {
+  .lt-rules-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: clamp(32px, 5vw, 64px); align-items: start; }
+  .lt-rules-win { position: sticky; top: calc(var(--lt-bar-h) + 60px); display: grid; align-items: end; justify-items: center; aspect-ratio: 3 / 4; margin-top: 90px; overflow: hidden;
+    border: 3px solid var(--t-accent); border-radius: 999px 999px 18px 18px; background: radial-gradient(90% 70% at 50% 100%, var(--lt-arch-mid), var(--lt-stage) 75%);
+    box-shadow: 0 0 0 6px var(--lt-ink), 0 0 0 9px var(--dt-red, var(--lt-flame)); }
+  .lt-rules-win img { width: 86%; height: auto; display: block; }
+}
+@media (max-width: 999px) { .lt-rules-win { display: none; } }
+.lt-rules-main { min-width: 0; }
+
+/* fewer empty bands */
+#gallery.lt-sec { padding-bottom: clamp(16px, 2vw, 28px); }
+#rules.lt-sec { padding-bottom: clamp(24px, 3vw, 40px); }
+@media (min-width: 900px) {
+  .lt-footer-in { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); column-gap: 56px; align-items: start; }
+  .lt-footer-in > *, .lt-footer-in::before { grid-column: 1; }
+  .lt-footer-in > .lt-footer-note { grid-column: 2; grid-row: 1 / span 3; align-self: center; padding: 18px 20px; border: 1.5px dashed var(--lt-line); border-radius: 14px; }
+}
+
+/* ---- round 6 ---- */
+/* phones: the decorations sit right under the house: one row of tabs, and after tonight's lamp no big "see you tomorrow" button */
+.lt-house-sec.is-docked .lt-tabs { flex-wrap: nowrap; }
+.lt-house-sec.is-docked .lt-light-btn:disabled { display: none; }
+html.ul-hero-btns .lt-chip.is-first { visibility: hidden; }
+.lt-house-sec .lt-item-name, .lt-pic-sec .lt-item-name { font-size: .8rem; }
+
+/* the gift sits bigger on its plate */
+.lt-gift-in img { padding: 16px; }
+
+/* selection handles on a finger screen: small to see, big to grab */
+@media (pointer: coarse) {
+  .lt-sel i { width: 14px; height: 14px; }
+  .lt-sel i::before { inset: -15px; }
+  .lt-sel i[data-h="nw"] { left: -8px; top: -8px; } .lt-sel i[data-h="se"] { right: -8px; bottom: -8px; }
+  .lt-sel i[data-h="ne"] { right: -8px; top: -8px; } .lt-sel i[data-h="sw"] { left: -8px; bottom: -8px; }
+}
+
+/* lore: seven lamps along the top of the board */
+.lt-lore-nights { list-style: none; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 4px 0 16px; padding: 0 0 10px; border-bottom: 2px dashed var(--lt-line); }
+.lt-lore-nights li { display: grid; justify-items: center; height: 58px; }
+.lt-lore-nights .lt-step-lamp { scale: .56; transform-origin: 50% 0; }
+.lt-lore-nights li:last-child .lt-step-bowl { background-color: var(--lt-pane); }
+.lt-rules-strip.is-in .lt-lore-nights .lt-step-flame::before, html:not(.ul-js) .lt-lore-nights .lt-step-flame::before, html:not(.ul-motion) .lt-lore-nights .lt-step-flame::before { opacity: 1; }
+.lt-rules-strip.is-in .lt-lore-nights .lt-step-flame b, html:not(.ul-js) .lt-lore-nights .lt-step-flame b, html:not(.ul-motion) .lt-lore-nights .lt-step-flame b { color: var(--lt-ink); }
+.lt-rules-strip .lt-lore-nights .lt-step-flame::before { transition-delay: calc(var(--i, 0) * 180ms + 300ms); }
+
+/* two more heading looks: a red cloth banner with cut ends (gallery), a white sticker (picture tool) */
+.lt-head.is-banner .lt-title, html.decor-truck .lt-head.is-banner .lt-title { display: inline-block; padding: .18em 1.1em .22em; color: var(--lt-cream); text-shadow: 2px 2px 0 var(--lt-ink);
+  background: var(--dt-red, var(--lt-flame)); clip-path: polygon(0 0, 100% 0, calc(100% - .55em) 50%, 100% 100%, 0 100%, .55em 50%); font-size: clamp(1.9rem, 4.4vw, 3rem); }
+.lt-head.is-sticker .lt-title, html.decor-truck .lt-head.is-sticker .lt-title { display: inline-block; padding: .14em .5em .2em; border: 3px solid var(--lt-ink); border-radius: 18px; color: var(--lt-ink); text-shadow: none;
+  background: var(--lt-cream); box-shadow: 0 0 0 6px var(--lt-cream), 0 0 0 9px var(--lt-ink), 8px 10px 0 4px color-mix(in srgb, var(--lt-sky-top) 70%, transparent); rotate: -1.5deg; margin: 10px 0 6px 9px; font-size: clamp(1.9rem, 4.4vw, 3rem); }
+
+/* ---- round 7 ---- */
+/* the owl's sack: what he has not brought yet waits behind one tile */
+.lt-item-sack { align-content: center; border: 2px dashed var(--lt-line); background: transparent; color: var(--t-muted); cursor: pointer; }
+.lt-item-sack b { font-size: 1.5rem; line-height: 1; color: var(--t-accent); }
+.lt-item-sack:hover { border-color: var(--t-accent); }
+/* the gift title without a lonely last word */
+.lt-gift-in h3 { text-wrap: balance; }
+/* the painted frame with bulbs stays with the house picture and the picture canvas; the other boxes keep one quiet stripe */
+html.decor-truck :is(.lt-card, .lt-plan-card, .lt-star, .lt-rules div, .lt-rules-strip, .lt-setup) { outline: none; }
+html.decor-truck .lt-ask { outline: none; }
+/* gallery picture: round arrows on its sides, a round cross in the corner */
+.lt-round { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border-radius: 50%; border: 2px solid var(--t-accent); background: color-mix(in srgb, var(--lt-sky-top) 82%, transparent); color: var(--t-accent); cursor: pointer; }
+.lt-round:hover { background: var(--t-accent); color: var(--lt-ink); }
+.lt-view-pic .lt-view-in { position: relative; }
+.lt-lb-stage { position: relative; }
+.lt-lb-go { position: absolute; top: 50%; margin-top: -24px; }
+.lt-lb-go.is-prev { left: 10px; } .lt-lb-go.is-next { right: 10px; }
+.lt-lb-close { position: absolute; right: 8px; top: 8px; z-index: 2; margin: 0; }
+.lt-view-pic .lt-view-in { padding-top: 64px; }
+
+/* ---- round 8 ---- */
+/* the frame with bulbs only on the house picture and the picture canvas; the other boxes keep one quiet stripe, each its own colour */
+html.decor-truck.decor-truck :is(.lt-rules-strip, .lt-star, .lt-ask, .lt-card, .lt-plan-card, .lt-rules div) { outline: none; }
+html.decor-truck.decor-truck .lt-star { --s: var(--dt-green); }
+html.decor-truck.decor-truck .lt-rules-strip { --s: var(--dt-blue); }
+html.decor-truck.decor-truck .lt-ask { --s: var(--dt-pink); }
+/* fewer empty bands between sections */
+#street.lt-sec { padding-bottom: clamp(20px, 3vw, 40px); }
+:is(#picture, #city, #buy).lt-sec { padding-top: clamp(32px, 4vw, 56px); }
+#rules.lt-sec { padding-bottom: clamp(16px, 2vw, 24px); }
+/* lore: the heading sits level with the middle of its board */
+@media (min-width: 900px) { .lt-lore-duo { align-items: center; } }
+/* city counters on a phone: three in one row */
+@media (max-width: 520px) { .lt-city-stats { flex-wrap: nowrap; gap: 6px; } .lt-city-stats > * { flex: 1 1 0; min-width: 0; font-size: .78rem; padding-inline: 6px; } }
+/* the turn handle on a finger screen: smaller than the decoration */
+@media (pointer: coarse) { .lt-sel b { width: 14px; height: 14px; margin-left: -7px; top: -30px; } .lt-sel b::before { inset: -15px; } }
+.lt-view-name { margin-top: 22px; }
+
+/* ---- round 9 ---- */
+/* lore: the small lamps take their small size in the layout too */
+.lt-lore-nights .lt-step-lamp { scale: none; zoom: .56; }
+.lt-lore-nights li { height: auto; }
+/* before the three questions are answered there are no nights, no status and no story yet */
+.lt-house-sec.is-setup :is([data-ul-nights], [data-ul-status], [data-ul-story]) { display: none; }
+/* lonely last words */
+.lt-tip, .lt-gift-in p, .lt-lead, .lt-pic-sec .lt-tip { text-wrap: pretty; }
+/* phone stats: two by two */
+@media (max-width: 520px) { .lt-house-sec .lt-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; } }
+/* the questions card: a calm yellow stripe, the bulb frame stays with the pictures */
+html.decor-truck.decor-truck .lt-setup { --s: var(--dt-yellow); outline: none; }
+@media (max-width: 480px) { .lt-lore-nights .lt-step-lamp { zoom: .44; } .lt-lore-nights { gap: 2px; } }
+
+/* ---- round 10 ---- */
+.lt-undo { margin-left: 4px; padding: 2px 10px; border: 1.5px solid var(--t-accent); border-radius: 999px; background: transparent; color: var(--t-accent); font: 700 .9rem var(--font-body); cursor: pointer; }
+.lt-undo:hover { background: var(--t-accent); color: var(--lt-ink); }
+/* the house of the night: the words sit in the middle of the right half, the owl's note right under them */
+@media (min-width: 720px) { .lt-star-text { justify-content: center; } .lt-star-note { margin-top: 26px; } }
+/* once scrolled, the bunting hangs over a solid band: no section words between the flags */
+html.decor-truck.ul-scrolled .lt-bar::after { background: var(--dt-bunting) 0 0 / 104px 26px repeat-x, linear-gradient(var(--lt-sky-top) 88%, transparent); }
+@media (max-width: 899px) { html.decor-truck.ul-scrolled .lt-bar::after { background-size: 80px 20px, auto; } }
+/* the gallery ribbon fades out at its edges instead of cutting an arch in half */
+.lt-ribbon.is-ribbon { -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+/* the last lamp: when it catches, the rosette blooms and the section warms up */
+.lt-buy { position: relative; }
+.lt-buy::before { content: ""; position: absolute; z-index: -1; inset: -12% -30%; background: radial-gradient(closest-side, color-mix(in srgb, var(--lt-glow) 30%, transparent), transparent); opacity: 0; transition: opacity .9s var(--lt-ease); pointer-events: none; }
+.lt-buy-sec.is-lit .lt-buy::before { opacity: 1; }
+html.decor-truck .lt-big-diya::before { transition: opacity .6s, scale .8s var(--lt-ease), filter .6s; }
+html.decor-truck .lt-buy-sec.is-lit .lt-big-diya::before { opacity: 1; scale: 1.07; filter: brightness(1.2) saturate(1.25) drop-shadow(0 0 26px var(--lt-glow)); }
+.lt-buy-sec.is-lit .lt-big-diya { box-shadow: 0 0 90px 30px color-mix(in srgb, var(--lt-glow) 45%, transparent); }
+/* the first screen fits a laptop: the arch is never taller than the screen allows */
+@media (min-width: 900px) { .lt-hero-art { width: min(100%, 520px, calc((100svh - var(--lt-bar-h) - 200px) * .8)); } }
+.lt-footer-tag { text-wrap: balance; }
+html.decor-truck .lt-buy-sec.is-lit [data-ul-diya-hint] { margin-top: 18px; }

@@ -1,6 +1,6 @@
 ---
-// The token as a house front: the first line of the tokenomics is one big window that lights up as it scrolls into view,
-// the other lines stand in one row under it.
+// The token as a page of the owl's ledger: ruled paper, a red margin, every line of the tokenomics written by hand
+// in the amount column, and the first line (fair launch) stamped in red over the page.
 import { config } from '../../lib/project';
 import { lights } from '../../lib/lights';
 import LtHead from './LtHead.astro';
@@ -10,27 +10,25 @@ const tk = config.tokenomics || { items: [] };
 // the first line is the big window (100% fair launch); the rest (the zeros) stand in one row under it
 const [main, ...rest] = (tk.items || []) as { label: string; value: string }[];
 ---
-<section id="token" class="lt-sec">
+<section id="token" class="lt-sec lt-token-sec">
   <div class="lt-in">
     <LtHead kicker={t.kicker} title={t.title} lead={t.lead} center />
-    <div class="lt-facade" data-ul-in>
-      <div class="lt-facade-top">
-        <p class="lt-label">{t.supply || 'Supply'}</p>
-        <p class="lt-facade-supply font-heading">{tk.supply}</p>
+    <div class="lt-ledger" data-ul-in>
+      <div class="lt-ledger-page">
+        <table class="lt-ledger-table">
+          <caption class="lt-sr">{t.title || 'Tokenomics'}</caption>
+          <thead><tr><th scope="col">{t.entry || 'Entry'}</th><th scope="col">{t.amount || 'Amount'}</th></tr></thead>
+          <tbody>
+            <tr class="is-supply"><th scope="row">{t.supply || 'Supply'}</th><td class="lt-hand">{tk.supply}</td></tr>
+            {main && <tr><th scope="row">{main.label}</th><td class="lt-hand">{main.value}</td></tr>}
+            {rest.map((it: { label: string; value: string }) => (
+              <tr><th scope="row">{it.label}</th><td class="lt-hand">{it.value}</td></tr>
+            ))}
+          </tbody>
+        </table>
+        {main && <p class="lt-ledger-stamp" aria-hidden="true"><b>{main.value}</b><span>{t.stamp || 'Fair launch'}</span></p>}
+        <p class="lt-ledger-sign"><span>{t.signed || 'Checked by'}</span> <b class="lt-hand">Ullu</b></p>
       </div>
-      {main && (
-        <div class="lt-pane lt-pane-main" style="--i:0">
-          <span class="lt-pane-value font-heading">{main.value}</span>
-          <span class="lt-pane-label">{main.label}</span>
-        </div>
-      )}
-      {rest.length > 0 && (
-        <ul class="lt-facade-more">
-          {rest.map((it: { label: string; value: string }, i: number) => (
-            <li style={`--i:${i + 1}`}><b class="font-heading">{it.value}</b> <span>{it.label}</span></li>
-          ))}
-        </ul>
-      )}
       <LtCa />
     </div>
   </div>

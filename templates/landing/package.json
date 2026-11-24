@@ -5,7 +5,7 @@
   "scripts": {
     "sync": "node scripts/sync-assets.mjs",
     "dev": "npm run sync && astro dev",
-    "build": "npm run sync && astro build",
+    "build": "npm run sync && astro build && node scripts/trim-css.mjs",
     "preview": "astro preview"
   },
   "dependencies": {

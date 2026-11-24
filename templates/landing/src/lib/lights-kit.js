@@ -65,10 +65,11 @@ export function houseSvg(h, placed = {}, opts = {}) {
   const time = TIMES.includes(opts.time) ? opts.time : TIMES.includes(opts.ctx?.time) ? opts.ctx.time : 'night';
   const day = time === 'day', dusk = time === 'dusk';
   // by day the lights are on but barely seen, in the evening they start to glow
-  const g = (0.25 + 0.75 * (level / NIGHTS)) * (day ? 0.25 : dusk ? 0.7 : 1);
+  // the first lamp makes a clear difference: from a dark house to a warm glow, then it grows night by night
+  const g = (level === 0 ? 0.15 : 0.45 + 0.55 * (level / NIGHTS)) * (day ? 0.25 : dusk ? 0.7 : 1);
   const id = opts.id || 'ul';
   const fix = (str) => (id === 'ul' ? str : str.replaceAll('url(#ul-glow)', `url(#${id}-glow)`));
-  const litCount = level === 0 ? 0 : Math.max(1, Math.round((h.windows.length * level) / NIGHTS));
+  const litCount = level === 0 ? 0 : Math.max(Math.min(2, h.windows.length), Math.round((h.windows.length * level) / NIGHTS));
   const lit = new Set(h.lightOrder.slice(0, litCount));
   const size = opts.size ? ` width="${opts.size}" height="${opts.size}"` : '';
   const pad = Math.max(0, opts.pad || 0);

@@ -14,9 +14,10 @@ const c = r.chat || {};
 const open = Math.max(0, Math.min(items.length, Number(c.open ?? 0)));
 const avatar = asset(config.assets.logo);
 ---
-<section id="rules" class="lt-sec">
-  <div class="lt-in lt-narrow">
-    <LtHead kicker={r.kicker} title={r.title} lead={r.lead} center />
+<section id="rules" class="lt-sec lt-rules-sec">
+  <div class="lt-in lt-rules-wrap">
+    <div class="lt-rules-main">
+    <LtHead kicker={r.kicker} title={r.title} lead={r.lead} />
     {chat ? (
       <div class="lt-ask" data-ul-ask data-ul-in>
         <div class="lt-ask-top"><img src={avatar} alt="" width="40" height="40" /><span><b>{c.name || config.name}</b><i data-ul-ask-status data-typing={c.typing || 'typing…'}>{c.online || 'online'}</i></span></div>
@@ -56,6 +57,8 @@ const avatar = asset(config.assets.logo);
       </dl>
     )}
     {r.disclaimer !== false && config.disclaimer && <p class="lt-disclaimer">{config.disclaimer}</p>}
+  </div>
+    {c.sideMood && <div class="lt-rules-win" aria-hidden="true"><img src={asset(c.sideMood)} alt="" width="228" height="340" loading="lazy" decoding="async" /></div>}
   </div>
 </section>
 

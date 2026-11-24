@@ -34,7 +34,7 @@ const url: string = config.links.launch || buyUrl;
     let t0 = 0, raf = 0, done = false;
     const set = (k: number) => { ring.style.strokeDashoffset = String(100 - k * 100); diya.style.setProperty('--k', k.toFixed(3)); };
     const tick = () => { const k = Math.min(1, (performance.now() - t0) / NEED); set(k); if (k >= 1) light(); else raf = requestAnimationFrame(tick); };
-    const light = () => { if (done) return; done = true; cancelAnimationFrame(raf); set(1); sec.classList.add('is-lit'); hint.textContent = hint.dataset.done || ''; (window as any).ul?.fire('ul:buy-lit'); };
+    const light = () => { if (done) return; done = true; cancelAnimationFrame(raf); set(1); sec.classList.add('is-lit'); hint.textContent = hint.dataset.done || ''; (window as any).ul?.fire('ul:buy-lit'); if (!calm) { const r = diya.getBoundingClientRect(); (window as any).ul?.fire('ul:burst', { x: r.left + r.width / 2, y: r.top + r.height * 0.3 }); } };
     const start = () => { if (done) return; t0 = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); };
     const stop = () => { if (done) return; cancelAnimationFrame(raf); set(0); };
     diya.addEventListener('pointerdown', (e) => { diya.setPointerCapture?.(e.pointerId); start(); });

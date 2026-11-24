@@ -14,7 +14,15 @@ const rows = ribbon ? [items, items] : [items];
 {items.length > 0 && (
 <section id="gallery" class:list={['lt-sec', ribbon && 'has-ribbon']}>
   <div class="lt-in">
-    <LtHead kicker={g.kicker} title={g.title} lead={g.lead} />
+    <div class="lt-gallery-top">
+    <LtHead kicker={g.kicker} title={g.title} lead={g.lead} banner />
+    {ribbon && (
+      <div class="lt-ribbon-nav">
+        <button type="button" class="lt-ribbon-btn" data-ul-ribbon-go="-1" aria-label={g.prevRow || 'Earlier pictures'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="lt-ribbon-btn" data-ul-ribbon-go="1" aria-label={g.nextRow || 'More pictures'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    )}
+    </div>
     <div class:list={['lt-ribbon', ribbon && 'is-ribbon']} data-ul-ribbon={ribbon ? '' : undefined} data-ul-in>
       <ul class="lt-gallery">
         {rows.map((row, r) => row.map((it, i) => (
@@ -27,22 +35,16 @@ const rows = ribbon ? [items, items] : [items];
         )))}
       </ul>
     </div>
-    {ribbon && (
-      <div class="lt-ribbon-nav">
-        <button type="button" class="lt-ribbon-btn" data-ul-ribbon-go="-1" aria-label={g.prevRow || 'Earlier pictures'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <button type="button" class="lt-ribbon-btn" data-ul-ribbon-go="1" aria-label={g.nextRow || 'More pictures'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      </div>
-    )}
   </div>
   <dialog class="lt-view lt-view-pic" data-ul-lightbox aria-label={g.title || 'Picture'}>
     <div class="lt-view-in">
-      <img data-ul-lightbox-img alt="" width="1080" height="1080" />
-      <p data-ul-lightbox-note></p>
-      <div class="lt-actions lt-actions-center">
-        <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-lb="-1">{g.prev || 'Back'}</button>
-        <button type="button" class="lt-btn lt-btn-small lt-btn-ghost" data-ul-lb="1">{g.next || 'Next'}</button>
-        <form method="dialog"><button class="lt-btn lt-btn-small">{g.close || 'Close'}</button></form>
+      <form method="dialog" class="lt-lb-close"><button class="lt-round" aria-label={g.close || 'Close'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button></form>
+      <div class="lt-lb-stage">
+        <img data-ul-lightbox-img alt="" width="1080" height="1080" />
+        <button type="button" class="lt-round lt-lb-go is-prev" data-ul-lb="-1" aria-label={g.prev || 'Back'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="lt-round lt-lb-go is-next" data-ul-lb="1" aria-label={g.next || 'Next'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
+      <p data-ul-lightbox-note></p>
     </div>
   </dialog>
 </section>

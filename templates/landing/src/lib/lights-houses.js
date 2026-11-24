@@ -110,7 +110,7 @@ export function familyFor(seed) {
 // The wish from the first-visit questions colours the house (and, in lights-kit.js, the owl's gifts).
 export const WISHES = {
   gold:  { walls: ['#FFC94A', '#F7B32B', '#FFD27A', '#E8A33D', '#FFE08A'], accent: '#C8102E' },
-  luck:  { walls: ['#2EC4B6', '#5FAD56', '#9BE564', '#3FB68B', '#7BDFF2'], accent: '#FF9F1C' },
+  luck:  { walls: ['#3DAE6B', '#5FAD56', '#9BE564', '#3FB68B', '#6CC04A'], accent: '#FF9F1C' },
   love:  { walls: ['#FF7AA2', '#F4A6B8', '#FF5D73', '#E8C1C5', '#F78DA7'], accent: '#7A1F5C' },
   quiet: { walls: ['#A7C5EB', '#B892FF', '#9DD9D2', '#C3B1E1', '#8EA8C3'], accent: '#2440D8' },
   fame:  { walls: ['#FF3FA4', '#00D1FF', '#B6FF3B', '#FF7A00', '#8F5CFF'], accent: '#141026' },
@@ -218,7 +218,7 @@ export function houseOf(seed, family = 'mumbai', opts = {}) {
     }
   }
   h.stars = Array.from({ length: 26 }, () => [Math.round(r() * VIEW), Math.round(r() * 190), (0.6 + r() * 1.6).toFixed(1)]);
-  h.moon = [Math.round(70 + r() * 460), Math.round(52 + r() * 50)];
+  h.moon = [Math.round(310 + r() * 220), Math.round(52 + r() * 50)];   // the right half: the style tag sits top left
   h.lightOrder = h.windows.map((wd) => wd.id).sort(() => r() - 0.5);
   const tall = GROUND - h.top + h.roofH * 0.5;
   h.neighbours = [0, 1].map(() => ({ hgt: Math.max(110, Math.round(tall * (0.55 + r() * 0.45))), col: shade(pick(r, F.walls), -0.5), roof: F.neighbours, wins: Array.from({ length: 12 }, () => r()) }));
@@ -462,6 +462,33 @@ function extrasFront(h) {
   return s;
 }
 
+// ---------------------------------------------------------------- one thing every street is known by
+// so three streets with flat roofs do not look alike: Kolkata has its yellow taxi at the kerb, Varanasi its stone steps
+// down to the river, Old Delhi its pole with a knot of wires. Drawn at street level, beside the door, out of the slots.
+function signatureSvg(h) {
+  const { x0, w, top } = h;
+  if (h.family === 'kolkata') {
+    const tx = Math.max(4, x0 - 104), ty = GROUND + 4;   // on the left, clear of the chai cart on the right
+    return `<g>`
+      + `<path d="M${tx} ${ty + 22}v-14q0 -6 8 -7l14 -2l10 -12q3 -3 8 -3h30q5 0 8 4l9 11l14 2q8 1 8 8v13z" fill="#FFD21F" ${OUT}/>`
+      + `<path d="M${tx + 34} ${ty - 1}l7 -9h16v9zM${tx + 61} ${ty - 1}v-9h12l7 9z" fill="#1B2048"/>`
+      + R(tx + 52, ty - 20, 14, 6, '#141026', 'rx="1"') + `<circle cx="${tx + 24}" cy="${ty + 22}" r="8" fill="#141026"/><circle cx="${tx + 84}" cy="${ty + 22}" r="8" fill="#141026"/>`
+      + `<circle cx="${tx + 24}" cy="${ty + 22}" r="3" fill="#C9C9C9"/><circle cx="${tx + 84}" cy="${ty + 22}" r="3" fill="#C9C9C9"/></g>`;
+  }
+  if (h.family === 'varanasi') {
+    let st = ''; const n = 4;
+    for (let i = 0; i < n; i++) { const pad = 24 + i * 22; st += R(x0 - pad, GROUND + 2 + i * 11, w + pad * 2, 11, i % 2 ? '#C9B48A' : '#D8C39A', 'stroke="#141026" stroke-width="1.5"'); }
+    return st;
+  }
+  if (h.family === 'delhi') {
+    const px = Math.max(26, x0 - 26), py = top + 30;
+    let k = `<path d="M${px} ${GROUND}V${py}" stroke="#7A7486" stroke-width="7"/><path d="M${px - 18} ${py + 8}h36" stroke="#7A7486" stroke-width="5"/>`;
+    for (let i = 0; i < 6; i++) k += `<ellipse cx="${px + 4}" cy="${py + 40}" rx="${28 - i * 2}" ry="${11 + (i % 3) * 4}" transform="rotate(${i * 31} ${px + 4} ${py + 40})" fill="none" stroke="#141026" stroke-width="1.6"/>`;
+    return k;
+  }
+  return '';
+}
+
 /**
  * SVG strings of the building, split into layers so the night and the decorations can be laid between them.
  * back: neighbours and things behind the house; body: walls, windows, doors; front: balconies, roof and small things.
@@ -477,7 +504,7 @@ export function houseParts(h, level = 1, friend = null, dark = false) {
   for (const wd of h.windows) if (wd.kind !== 'shopfront') body += windowFrame(h, wd);
   for (const wd of h.windows) body += windowGlass(h, wd, wd.kind === 'shopfront' ? '#151A3E' : '#1B2048');
   body += groundSvg(h);
-  const front = balconySvg(h) + roofFront(h) + extrasFront(h) + R(-400, GROUND, 1400, 0.1, 'none');
+  const front = balconySvg(h) + roofFront(h) + extrasFront(h) + signatureSvg(h) + R(-400, GROUND, 1400, 0.1, 'none');
   return { back, body, front };
 }
 
