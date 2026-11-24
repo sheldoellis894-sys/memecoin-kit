@@ -44,11 +44,12 @@ const data = JSON.stringify({
           <div class="lt-bases" data-ul-bases>
             <label class="lt-base lt-base-up">
               <input type="file" accept="image/*" data-ul-file class="lt-sr" data-ul-track="picture" data-ul-track-once />
+              <svg class="lt-base-ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <span>{l.upload || 'My picture'}</span>
             </label>
-            <button type="button" class="lt-base" data-base="house" data-ul-track="picture" data-ul-track-once><span>{l.myHouse || 'My house'}</span></button>
+            <button type="button" class="lt-base" data-base="house" data-ul-track="picture" data-ul-track-once><svg class="lt-base-ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M4 11l8-6 8 6M6 10v9h12v-9M10 19v-5h4v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>{l.myHouse || 'My house'}</span></button>
             {bases.map((b, i) => <button type="button" class="lt-base" data-base={`b${i}`} data-ul-track="picture" data-ul-track-once><img src={b.src} alt="" width="56" height="56" loading="lazy" /><span>{b.label}</span></button>)}
-            <button type="button" class="lt-base" data-base="night" data-ul-track="picture" data-ul-track-once><span>{l.blank || 'Just the night'}</span></button>
+            <button type="button" class="lt-base" data-base="night" data-ul-track="picture" data-ul-track-once><svg class="lt-base-ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>{l.blank || 'Just the night'}</span></button>
           </div>
           <label class="lt-range"><span>{l.night || 'Night'}</span><input type="range" min="0" max="100" value="60" data-ul-night /></label>
         </div>
@@ -78,6 +79,8 @@ const data = JSON.stringify({
           <div class="lt-caps" data-ul-caps>
             {captions.map((t) => <button type="button" class="lt-cap" data-cap={t}>{t}</button>)}
           </div>
+          <details class="lt-fold">
+          <summary>{l.styleFold || 'Font and colour'}</summary>
           <div class="lt-tstyle" data-ul-tstyle>
             <p class="lt-label">{l.font || 'Font'}</p>
             <div class="lt-fonts">{FONTS.map((f) => <button type="button" data-font={f.name} style={`font-family:'${f.name}'`} aria-pressed="false">{f.label}</button>)}</div>
@@ -87,12 +90,13 @@ const data = JSON.stringify({
             <div class="lt-swatches">{OUTLINES.map((o) => <button type="button" data-outline={o.c} style={`--c:${o.c || 'transparent'}`} aria-label={o.label} aria-pressed="false" class:list={[!o.c && 'is-none']}></button>)}</div>
             <label class="lt-switch lt-switch-small"><input type="checkbox" role="switch" data-ul-shadow /><span class="lt-switch-track" aria-hidden="true"><i></i></span><span>{l.shadow || 'Shadow'}</span></label>
           </div>
+          </details>
         </div>
 
         <div class="lt-actions lt-actions-tight">
           <button type="button" class="lt-btn" data-ul-save data-ul-track="save">{l.save || 'Save the picture'}</button>
           <button type="button" class="lt-btn lt-btn-ghost" data-ul-pshare data-ul-track="share">{l.share || 'Share on X'}</button>
-          <button type="button" class="lt-btn lt-btn-ghost" data-ul-clear>{l.clear || 'Start over'}</button>
+          <button type="button" class="lt-btn lt-btn-small lt-btn-ghost lt-btn-quiet" data-ul-clear>{l.clear || 'Start over'}</button>
         </div>
         <p class="lt-note" data-ul-pnote aria-live="polite">{l.privacy || 'Your picture stays on your phone. Nothing is uploaded.'}</p>
         <label class="lt-switch">
@@ -282,7 +286,7 @@ const data = JSON.stringify({
         ctx.restore();
       }
       const lv = level();
-      ($<HTMLElement>('[data-ul-meter]')).style.width = `${lv}%`;
+      ($<HTMLElement>('[data-ul-meter]')).style.transform = `scaleX(${Math.max(0, Math.min(100, lv)) / 100})`;   // the bar grows by transform, smooth on phones
       $<HTMLElement>('[data-ul-meter-text]').textContent = `${lv}%`;
       root.classList.toggle('is-full', lv >= 100);
     };

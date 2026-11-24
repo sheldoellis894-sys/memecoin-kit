@@ -107,7 +107,7 @@ for (let i = 0; i < 4000; i++) {
   for (let i = 0; i < 1500; i++) {
     const proof = pick([any(), { challenge: pick([str(any()), real, cut(real)]), nonce: pick([any(), str(any()), 'a1', 'zz']) }, { challenge: cut(real), nonce: '0' }]);
     const body = { id: `fuzzproof${String(i).padStart(8, '0')}`, name: 'Raju', code: K.encodeHouse(60000 + i, {}), nights: 9, gifts: 9, best: 7, landings: 1, streak: 2, proof };
-    const req = new Request('https://x/api/street', { method: 'POST', headers: { 'x-forwarded-for': `3.3.${i % 250}.${i % 7}` }, body: JSON.stringify(body) });
+    const req = new Request('https://x/api/street', { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': `3.3.${i % 250}.${i % 7}` }, body: JSON.stringify(body) });
     let res; try { res = await handle(req, PENV, { store, now: () => t + i }); } catch (e) { fails.push('proof threw: ' + e.message); continue; }
     const out = await res.json().catch(() => null);
     // a random nonce for the real challenge is a right answer once in 256 tries (8 bits): that one is taken, rightly

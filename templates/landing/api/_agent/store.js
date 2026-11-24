@@ -32,14 +32,21 @@ const safePath = (dir, p) => {
 
 export const fileStore = {
   async read(env, p) {
-    try { return await fs.readFile(safePath(env.DATA_DIR || 'data', p), 'utf8'); }
+    let text;
+    try { text = await fs.readFile(safePath(env.DATA_DIR || 'data', p), 'utf8'); }
     catch (e) { if (e.code === 'ENOENT') return null; throw e; }
+    // an empty file is a damaged file, not "no file yet": the next write must not start the street again from nothing
+    if (!text.trim()) throw Object.assign(new Error(`${p} is empty`), { code: 'damaged' });
+    return text;
   },
   async write(env, p, body) {
     const full = safePath(env.DATA_DIR || 'data', p);
     await fs.mkdir(path.dirname(full), { recursive: true });
     const tmp = `${full}.${process.pid}.${Date.now()}.tmp`;
-    await fs.writeFile(tmp, body, 'utf8');
+    // the new text reaches the disk before it takes the old file's place, so a power cut leaves the old file or the new
+    // one, never an empty file
+    const fh = await fs.open(tmp, 'w');
+    try { await fh.writeFile(body, 'utf8'); await fh.sync(); } finally { await fh.close(); }
     await fs.rename(tmp, full);
   },
 };

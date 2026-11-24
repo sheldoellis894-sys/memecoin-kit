@@ -37,7 +37,8 @@ const MAX_BODY = 4000;
 export { resetMemory as resetAdminLimits } from './_agent/limits.js';
 
 const sha = (t) => createHash('sha256').update(String(t)).digest();
-const bearer = (request) => (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+// "Bearer " with nothing after it reaches the server as "Bearer" (headers are trimmed): that is no password, not a wrong one
+const bearer = (request) => (request.headers.get('authorization') || '').replace(/^Bearer(?:\s+|$)/i, '').trim();
 const passOk = (env, got) => got.length > 0 && timingSafeEqual(sha(String(env.ADMIN_PASSWORD || '')), sha(got));
 
 // ---- tokens: "adm1.<until, base 36>.<generation>.<signature>"
@@ -109,6 +110,9 @@ export async function handle(request, env = process.env, deps = {}) {
     try { signedIn = gen === (await generation(env, store)); } catch { return json({ error: 'storage' }, 503, noindex); }
     if (!signedIn) return json({ error: 'password' }, 401, noindex);   // a token ended by "log out everywhere"
   } else {
+    // no password at all is not a wrong password: it does not count towards the wait, so nobody behind the same address
+    // can lock the moderator out by sending empty requests
+    if (!given) return json({ error: 'password' }, 401, noindex);
     const wait = await waiting(env, ip, now, deps);
     if (wait > 0) return json({ error: 'wait', seconds: Math.ceil(wait / 1000) }, 429, { ...noindex, 'retry-after': String(Math.ceil(wait / 1000)) });
     if (!passOk(env, given)) {
@@ -138,6 +142,8 @@ export async function handle(request, env = process.env, deps = {}) {
   if (!b || typeof b !== 'object' || Array.isArray(b)) return json({ error: 'bad' }, 400, noindex);
   // signing in and out
   if (b.action === 'login') {
+    // a new sign-in only for the password: a token cannot make itself a new one, so a lost token ends on its own
+    if (gen >= 0) return json({ error: 'password' }, 401, noindex);
     console.info(`[admin] signed in from ${ip}`);
     try { const g = await generation(env, store); const until = now + TOKEN_HOURS * 3600000; return json({ ok: true, token: tokenOf(env, until, g), until: new Date(until).toISOString() }, 200, noindex); }
     catch { return json({ error: 'storage' }, 503, noindex); }

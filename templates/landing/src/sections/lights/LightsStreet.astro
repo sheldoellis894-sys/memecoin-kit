@@ -20,6 +20,8 @@ const data = JSON.stringify({
         <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{l.star || 'House of the night'}</p>
         <h3 class="font-heading" data-ul-star-name></h3>
         <p data-ul-star-line></p>
+        <ol class="lt-nights lt-star-nights" data-ul-star-nights aria-hidden="true">{Array.from({ length: 7 }, () => <li></li>)}</ol>
+        <p class="lt-star-gifts" data-ul-star-gifts></p>
       </div>
     </div>
     <div class="lt-street-tabs" role="tablist" aria-label={l.sortLabel || 'Sort the street'}>
@@ -82,12 +84,13 @@ const data = JSON.stringify({
     };
     const lineOf = (x: H) => x.dark
       ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', x as any)
-      : fill(x.streak >= K.NIGHTS ? L.lineLanded || 'Night {streak} in a row, the owl is on the roof' : L.line || 'Night {streak} in a row, {gifts} owl visits', x as any);
+      : fill(x.streak >= K.NIGHTS ? L.lineLanded || 'Night {streak} in a row, the owl is on the roof' : x.streak === 1 ? L.lineFirst || 'First night, the owl came by' : L.line || 'Night {streak} in a row, {gifts} owl visits', x as any);
     // the visitor's own house on the street: the name it was put there with and its house number
     const isMine = (x: H) => Boolean(!x.sample && ul.houseName && ul.onStreet?.() && x.name === ul.houseName() && (x as any).no === ul.houseNo?.());
+    let starSn = 0;   // the house of the night is shown large above the row, so the row does not show it again
     const draw = () => {
       // the visitor's own house stands first, then the real houses, then the examples
-      const list = [...houses].sort((a, b) => Number(isMine(b)) - Number(isMine(a)) || Number(Boolean(a.sample)) - Number(Boolean(b.sample)) || (sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light));
+      const list = [...houses].filter((x) => !(starSn && !x.sample && (x as any).sn === starSn && !isMine(x))).sort((a, b) => Number(isMine(b)) - Number(isMine(a)) || Number(Boolean(a.sample)) - Number(Boolean(b.sample)) || (sort === 'best' ? b.best - a.best || b.light - a.light : sort === 'new' ? String(b.updated || '').localeCompare(String(a.updated || '')) : b.light - a.light));
       row.innerHTML = '';
       moreBox.hidden = list.length <= shown;
       list.slice(0, shown).forEach((x, i) => {
@@ -109,10 +112,15 @@ const data = JSON.stringify({
     };
     const star = (x: H | null) => {
       const box = $<HTMLElement>('[data-ul-star]');
+      starSn = x && !x.sample && Number.isInteger((x as any).sn) ? (x as any).sn : 0;
       box.hidden = !x; if (!x) return;
       $<HTMLElement>('[data-ul-star-art]').innerHTML = svgOf(x);
       $<HTMLElement>('[data-ul-star-name]').textContent = x.name;
       $<HTMLElement>('[data-ul-star-line]').textContent = fill(L.starLine || '{light}% bright, night {streak} in a row', x as any);
+      // its run of nights as seven lamps, and what the owl has brought it
+      const run = x.dark ? 0 : Math.min(7, Number(x.streak) || 0);
+      $<HTMLElement>('[data-ul-star-nights]').querySelectorAll('li').forEach((li, i) => li.classList.toggle('is-on', i < run));
+      $<HTMLElement>('[data-ul-star-gifts]').textContent = Number(x.gifts) > 0 ? fill(L.starGifts || 'Owl visits: {gifts}, best run: {best} nights', x as any) : '';
     };
     const samples = (): H[] => cfg.samples.map((s: any) => {
       const fam = K.FAMILY_IDS.includes(s.style) ? s.style : 'mumbai';
@@ -153,7 +161,7 @@ const data = JSON.stringify({
       note.textContent = [real.length
         ? fill(n === 1 ? L.countOne || 'One house on the street so far.' : L.count || '{n} houses on the street.', { n })
         : live ? L.empty || 'No real houses yet. Yours can be the first.' : L.offline || 'The street is not open yet.',
-        some ? L.samplesNote || 'Houses marked Example are here so the street is not empty. Real houses take their place.' : ''].filter(Boolean).join(' ');
+        some ? L.samplesNote || 'Houses marked Example are here so the street is not empty. Real houses take their place.' : ''].filter(Boolean).map((t) => String(t).replace(/\.$/, '')).join('. ');  // sentences without the last dot, as all copy
       draw();
     };
     root.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((b) => b.addEventListener('click', () => {

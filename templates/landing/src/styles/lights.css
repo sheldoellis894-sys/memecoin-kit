@@ -242,7 +242,7 @@ html.ul-motion .lt-gift[open] .lt-gift-in { animation: lt-pop .45s var(--lt-ease
 .lt-pic-stage { position: relative; }
 .lt-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; border-radius: var(--t-radius-card); border: 3px solid var(--t-accent); background: var(--lt-stage); touch-action: pan-y; box-shadow: 0 30px 60px -30px rgb(0 0 0 / .8); }
 .lt-meter { margin-top: 12px; height: 12px; border-radius: 999px; background: var(--lt-track2); overflow: hidden; border: 1px solid var(--lt-line); }
-.lt-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--lt-flame), var(--lt-glow), var(--lt-flame-light)); box-shadow: 0 0 14px color-mix(in srgb, var(--lt-glow) 80%, transparent); transition: width .3s var(--lt-ease); }
+.lt-meter i { display: block; height: 100%; width: 100%; transform: scaleX(0); transform-origin: left center; background: linear-gradient(90deg, var(--lt-flame), var(--lt-glow), var(--lt-flame-light)); box-shadow: 0 0 14px color-mix(in srgb, var(--lt-glow) 80%, transparent); transition: transform .3s var(--lt-ease); }
 .lt-meter-text { margin: 6px 2px 0; display: flex; justify-content: space-between; font-size: .88rem; color: var(--t-muted); }
 .lt-meter-text b { color: var(--t-accent); }
 .lt-pic-sec.is-full .lt-meter-text b { color: var(--lt-flame-light); text-shadow: 0 0 10px var(--lt-glow); }
@@ -748,7 +748,7 @@ body:has(.lt-city:hover) .lt-follow.is-page { opacity: 0; }
 /* nine pictures to light: three rows of three on every screen */
 .lt-bases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 /* the owl keeps to the margin below the first screen; where the margin is narrow he is faint */
-.lt-follow.is-page.is-faint { opacity: .3; }
+.lt-follow.is-page.is-faint { opacity: 0; }
 @media (pointer: coarse) {
   .lt-soc-btn { width: 44px; height: 44px; }
   .lt-btn-small, .lt-chip, .lt-brand, .lt-street-tabs button, .lt-tabs button, .lt-cap, .lt-city-tools button, .lt-city-start { min-height: 44px; }
@@ -765,3 +765,67 @@ body:has(.lt-city:hover) .lt-follow.is-page { opacity: 0; }
 .lt-house-sec.is-docked.is-setup :is(.lt-inv-box, .lt-edit) { display: none; }
 /* the last lamp, once lit, lights the Buy button too */
 .lt-buy-sec.is-lit .lt-buy-open .lt-btn { box-shadow: 0 0 0 3px var(--lt-ink), 0 0 34px 6px color-mix(in srgb, var(--lt-glow) 60%, transparent); }
+/* the picture tool: font and colour of the words fold away until asked for */
+.lt-fold { margin-top: 12px; border-top: 1px solid var(--lt-line); }
+.lt-fold summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 44px; font-weight: 800; color: var(--t-muted); }
+.lt-fold summary::-webkit-details-marker { display: none; }
+.lt-fold summary::after { content: "+"; color: var(--t-accent); font-size: 1.3rem; line-height: 1; }
+.lt-fold[open] summary::after { content: "–"; }
+.lt-fold summary:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; border-radius: 6px; }
+.lt-fold .lt-tstyle { margin-top: 0; }
+.lt-fold .lt-tstyle > .lt-label:first-child { margin-top: 2px; }
+/* a quiet secondary action: no frame, an underline instead */
+.lt-btn.lt-btn-quiet, html.decor-truck .lt-btn.lt-btn-quiet { border-color: transparent; background: none; box-shadow: none; text-decoration: underline; text-underline-offset: 4px; color: var(--t-muted); }
+.lt-btn.lt-btn-quiet:hover { color: var(--t-text); }
+.lt-btn.lt-btn-quiet:not(:focus-visible), html.decor-truck .lt-btn.lt-btn-quiet:not(:focus-visible) { outline-color: transparent; }
+/* the gallery ribbon: two round arrows under it, on the right, for a mouse; a finger swipes the row instead */
+.lt-ribbon-nav { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .lt-ribbon-nav { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+  .lt-ribbon-btn { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border-radius: 50%; border: 2px solid var(--t-accent); background: color-mix(in srgb, var(--lt-sky-top) 80%, transparent); color: var(--t-accent); cursor: pointer; transition: background-color .2s, color .2s, transform .2s; }
+  .lt-ribbon-btn:hover { background: var(--t-accent); color: var(--lt-ink); }
+  .lt-ribbon-btn:active { transform: scale(.94); }
+  .lt-ribbon-btn:focus-visible { outline: 3px solid var(--t-accent); outline-offset: 3px; }
+}
+@media (prefers-reduced-motion: reduce) { .lt-ribbon-btn { transition: none; } }
+/* ---- the review of 24.11 ---- */
+/* sections sit closer: the gap between two sections was over 220px */
+.lt-sec { padding-bottom: clamp(36px, 5vw, 64px); }
+/* the house editor and the picture tool use the same 1160px column as every other section */
+@media (min-width: 940px) { .lt-house, .lt-pic { max-width: none; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: clamp(28px, 4vw, 56px); } }
+/* the house of the night: a wide banner over the whole row, a large house */
+@media (min-width: 720px) {
+  .lt-star { max-width: none; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 48px); padding: 22px; }
+  .lt-star-text h3 { font-size: clamp(2.2rem, 4.4vw, 3.6rem); line-height: 1.05; }
+  .lt-star-text p:last-child { font-size: 1.1rem; }
+}
+/* the token: one big window for the fair launch, the zeros in one row under it */
+.lt-pane-main { max-width: 560px; margin: 0 auto 20px; min-height: 170px; }
+.lt-pane-main .lt-pane-value { font-size: clamp(3.2rem, 9vw, 5rem); line-height: 1; }
+.lt-pane-main .lt-pane-label { font-size: 1.05rem; }
+.lt-facade-more { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; color: var(--lt-cream); font-weight: 800; }
+.lt-facade-more li { display: flex; align-items: baseline; gap: 8px; }
+.lt-facade-more b { font-size: 1.7rem; font-weight: 400; color: var(--lt-pane); text-shadow: 0 2px 0 var(--lt-ink); }
+.lt-facade-more span { text-transform: lowercase; }
+/* how to buy: the heading on the left, the four steps on the right */
+@media (min-width: 1080px) {
+  .lt-steps-wrap { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 56px; align-items: start; }
+  .lt-steps-wrap > .lt-head { position: sticky; top: calc(var(--lt-bar-h) + 40px); margin-bottom: 0; }
+}
+/* a footer link that is not live yet */
+.lt-soon { margin-left: 6px; padding: 1px 8px; border-radius: 99px; background: color-mix(in srgb, var(--t-accent) 22%, transparent); font-size: .72rem; }
+/* the city counts: wrap as whole chips, the last one never alone on a phone */
+@media (max-width: 520px) { .lt-city-stats { display: flex; flex-wrap: wrap; } .lt-city-stats > * { flex: 1 1 auto; justify-content: center; text-align: center; } }
+@media (prefers-reduced-motion: reduce) { .lt-meter i { transition: none; } }
+.lt-star-nights { margin: 16px 0 8px; max-width: 360px; }
+.lt-star-gifts { margin: 0; color: var(--t-muted); }
+/* phones: while the three first questions are open, the house stays in sight above them, a little smaller, so every
+   answer shows on it at once */
+@media (max-width: 700px) {
+  .lt-house-sec.is-setup .lt-stage { position: sticky; top: calc(var(--lt-bar-h) + 26px); z-index: 3; padding-bottom: 8px; background: linear-gradient(var(--lt-sky-top) 85%, transparent); }
+  .lt-house-sec.is-setup .lt-stage-box { width: min(100%, 36svh); margin-inline: auto; }
+  .lt-house-sec.is-setup .lt-stage > .lt-tip, .lt-house-sec.is-setup .lt-stage > .lt-plate { display: none; }
+}
+/* the first sections sit closer to the house */
+#lore.lt-sec { padding-bottom: clamp(24px, 3vw, 40px); }
+.lt-base-ic { color: var(--t-accent); width: 30px; height: 30px; }

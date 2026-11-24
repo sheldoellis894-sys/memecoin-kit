@@ -60,8 +60,8 @@ const follow = h.follow !== false && owlImages.fly;
     if (art) { const r = art.getBoundingClientRect(); [x, y] = local(r.left + r.width * 0.5, r.top + r.height * 0.1); x = tx = clampX(x); y = ty = clampY(y); }
     const aim = (nx: number, ny: number) => { tx = clampX(nx); ty = clampY(ny); quietAt = performance.now(); wake(); };
     // below the first screen the owl keeps to the margin of the page, so he never sits on the words of a section;
-    // where the margin is too narrow for him he stays there faint
-    const below = () => hero.getBoundingClientRect().bottom < innerHeight * 0.5;
+    // where the margin is too narrow for him he hides. "Below" starts as soon as the next section shows on the screen
+    const below = () => hero.getBoundingClientRect().bottom < innerHeight * 0.92;
     const margin = () => {
       const r = document.querySelector<HTMLElement>('.lt-sec > .lt-in')?.getBoundingClientRect();
       if (!r) return null;

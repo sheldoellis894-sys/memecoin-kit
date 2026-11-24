@@ -40,8 +40,8 @@
 //   - the moderator takes a whole run of numbers off the street at once (api/admin.js).
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { storeFor, storeKind, update } from './_agent/store.js';
-import { ipKey } from './_agent/ip.js';
-import { count, once } from './_agent/limits.js';
+import { ipKey, netKey, foreignOrigin, notJson } from './_agent/ip.js';
+import { count, once, peek } from './_agent/limits.js';
 import { decodeHouse, encodeHouse, houseOfP, lightOf, cleanName, isBadText, NIGHTS, FAMILY_IDS, WISH_IDS } from '../src/lib/lights-kit.js';
 
 export const STREETS = { ullu: { keep: 2000, ticker: 'ULLU' } };   // keep = houses the street holds (the city map shows them all)
@@ -50,7 +50,9 @@ const CODES_MAX = 40;                    // houses one request may ask for in fu
 const PER_IP = 40;                       // posts a day from one address, updates too (mobile networks put many phones
                                          // behind one address, so it is not small). Counted in api/_agent/limits.js
 const NEW_PER_IP = 20;                   // new houses a day from one address
+const NEW_PER_NET = 200;                 // new houses a day from one network (an IPv6 /48: many /64 blocks are one owner)
 const NEW_PER_MINUTE = 60;               // new houses a minute for the whole street (updates are not counted)
+const CHALLENGES_PER_HOUR = 60;          // browser checks one address may ask for in an hour (one is needed per new house)
 const PROOF_BITS = 16;                   // the browser check: zero bits the answer's hash starts with (env STREET_PROOF_BITS)
 const PROOF_MINUTES = 10;                // a challenge is good for this long
 const MAX_BODY = 9000;                   // bytes in a post
@@ -71,10 +73,21 @@ const dayOf = (now) => Math.floor(now / 86400000);
 /** Every post from one address counts here. */
 const limited = async (env, ip, now, deps) => (await count(env, `post:${dayOf(now)}:${ip}`, 90000, deps)) > PER_IP;
 /** Only new houses count here: a day from one address and a minute for the whole street. */
-async function newLimited(env, ip, now, deps) {
+async function newLimited(env, ip, net, now, deps) {
   const mine = await count(env, `new:${dayOf(now)}:${ip}`, 90000, deps);
+  const ours = net === ip ? mine : await count(env, `new-net:${dayOf(now)}:${net}`, 90000, deps);
   const all = await count(env, `new-minute:${Math.floor(now / 60000)}`, 120, deps);
-  return mine > NEW_PER_IP || all > NEW_PER_MINUTE;
+  return mine > NEW_PER_IP || (net !== ip && ours > NEW_PER_NET) || all > NEW_PER_MINUTE;
+}
+/**
+ * When many new houses come at once (a script, not people), the browser check gets harder for a while: +2 bits (four
+ * times the work) after 20 new houses in a minute, +4 after 40. A phone still answers in a few seconds; a script that
+ * floods the street pays more for every house. Counted over this minute and the one before.
+ */
+async function surge(env, now, deps) {
+  const m = Math.floor(now / 60000);
+  const n = Math.max(await peek(env, `new-minute:${m}`, deps), await peek(env, `new-minute:${m - 1}`, deps));
+  return n >= 40 ? 4 : n >= 20 ? 2 : 0;
 }
 
 // the salt of the street exactly as set (the hashes of the houses already on the street are made with it), or '' when unset
@@ -94,8 +107,8 @@ const proofBits = (env) => {
   return t !== '' && Number.isInteger(v) && v >= 0 && v <= 24 ? v : PROOF_BITS;
 };
 const signOf = (env, body) => createHmac('sha256', `proof:${saltOf(env)}`).update(`${env.PROJECT}.${body}`).digest('base64url').slice(0, 22);
-function challengeOf(env, now) {
-  const body = `v1.${now}.${randomBytes(8).toString('hex')}.${proofBits(env)}`;
+function challengeOf(env, now, bits = proofBits(env)) {
+  const body = `v1.${now}.${randomBytes(8).toString('hex')}.${bits}`;
   return `${body}.${signOf(env, body)}`;
 }
 /** Is this a right answer to a challenge from this street, still fresh and as hard as the street asks now? */
@@ -205,8 +218,11 @@ export async function handle(request, env = process.env, deps = {}) {
     if (!live) return json({ live, houses: [], star: null, count: 0 });
     if (new URL(request.url).searchParams.has('challenge')) {
       if (!hasSalt(env)) return noSalt();
-      const bits = proofBits(env);
-      return json({ challenge: bits ? challengeOf(env, now) : '', bits });
+      const ip = ipKey((request.headers.get('x-forwarded-for') || '').split(',')[0]);
+      if ((await count(env, `challenge:${Math.floor(now / 3600000)}:${ip}`, 3700, deps)) > CHALLENGES_PER_HOUR) return json({ ok: false, error: 'busy' }, 429);
+      const base = proofBits(env);
+      const bits = base ? Math.min(24, base + (await surge(env, now, deps))) : 0;
+      return json({ challenge: bits ? challengeOf(env, now, bits) : '', bits });
     }
     try {
       const seenNow = visibleOf(await readStreet(env, store), env, conf);
@@ -233,6 +249,8 @@ export async function handle(request, env = process.env, deps = {}) {
   if (!live) return json({ ok: false, error: 'off' }, 503);
   // without STREET_SALT nothing is written: houses tied to no salt would be lost the day it is set
   if (!hasSalt(env)) return noSalt();
+  // only this site's page posts houses, and only as JSON
+  if (foreignOrigin(request)) return json({ ok: false, error: 'origin' }, 403);
   if (Number(request.headers.get('content-length') || 0) > MAX_BODY) return json({ ok: false, error: 'big' }, 413);
   let b;
   try {
@@ -241,6 +259,7 @@ export async function handle(request, env = process.env, deps = {}) {
     b = JSON.parse(text);
   } catch { return json({ ok: false, error: 'bad' }, 400); }
   if (!b || typeof b !== 'object') return json({ ok: false, error: 'bad' }, 400);
+  if (notJson(request)) return json({ ok: false, error: 'bad' }, 415);
 
   // who: a random id from the browser, kept only as a hash
   if (typeof b.id !== 'string' || !/^[a-z0-9]{16,32}$/.test(b.id)) return json({ ok: false, error: 'bad' }, 400);
@@ -298,13 +317,15 @@ export async function handle(request, env = process.env, deps = {}) {
     const { houses } = st;
     // a visitor the moderator banned does not get on the street again
     if (st.bans.some((x) => x.key === key)) return stop(json({ ok: false, error: 'banned' }, 403));
-    // one house per visitor. Codes are public, so a copy must not push the real house off the street: a house (seed and
-    // style) that another visitor keeps lit is not taken. Once it has gone dark (two days), a moved house may take its place.
-    const same = (x) => x.key !== key && x.seed === entry.seed && (x.family || 'mumbai') === entry.family;
-    if (houses.some((x) => same(x) && !isDark(x, now))) return stop(json({ ok: false, error: 'taken' }, 409));
-    const others = houses.filter((x) => x.key !== key && !same(x));
-    // the house keeps its number while it is on the street (an update, a move); a new house gets the next one
+    // one house per visitor. Codes are public, so a copy never pushes the real house off the street: the visitor who has
+    // the house keeps it and can always light it again; a copy of a house that another visitor keeps lit is not taken, and
+    // a copy of a dark one comes in as a new house of its own (its own number, the check and the limits of new houses).
+    // Moving to a new phone keeps the same visitor id (the moving code carries it), so a move is an update, not a copy.
     const mine = houses.find((x) => x.key === key);
+    const same = (x) => x.key !== key && x.seed === entry.seed && (x.family || 'mumbai') === entry.family;
+    if (!mine && houses.some((x) => same(x) && !isDark(x, now))) return stop(json({ ok: false, error: 'taken' }, 409));
+    const others = houses.filter((x) => x.key !== key);
+    // the house keeps its number while it is on the street (an update, a move); a new house gets the next one
     // a new house: the browser check (one house per challenge) and the limits of new houses
     if (!mine && bits > 0 && !proofGood) return stop(json({ ok: false, error: 'proof' }, 403));
     let lastSn = st.lastSn;
@@ -318,7 +339,7 @@ export async function handle(request, env = process.env, deps = {}) {
       if (gone.size < extra && !mine) return stop(json({ ok: false, error: 'full' }, 503));
       next = next.filter((x) => !gone.has(x)).slice(0, conf.keep);
     }
-    if (!mine) { if (fresh === null) fresh = !(await newLimited(env, ip, now, deps)); if (!fresh) return stop(json({ ok: false, error: 'busy' }, 429)); }
+    if (!mine) { if (fresh === null) fresh = !(await newLimited(env, ip, netKey((request.headers.get('x-forwarded-for') || '').split(',')[0]), now, deps)); if (!fresh) return stop(json({ ok: false, error: 'busy' }, 429)); }
     return { st: { ...st, houses: next, lastSn }, result: json({ ok: true, house: publicOf(entry, now) }) };
     });
   } catch (e) {

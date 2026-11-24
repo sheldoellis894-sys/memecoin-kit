@@ -14,7 +14,7 @@
 // browser name) are not counted, one address may report 400 times an hour, and one report adds little, so numbers
 // cannot be pushed far. Two reports at the same moment never undo each other (api/_agent/store.js update()).
 import { storeFor, storeKind, update } from './_agent/store.js';
-import { ipKey } from './_agent/ip.js';
+import { ipKey, foreignOrigin, notJson } from './_agent/ip.js';
 import { count } from './_agent/limits.js';
 
 export const EVENTS = ['visit', 'visitor', 'play', 'picture', 'share', 'save', 'buy', 'ca', 'city'];
@@ -80,6 +80,9 @@ export async function handle(request, env = process.env, deps = {}) {
   if (request.method !== 'POST') return none(405, { allow: 'POST' });
   if (!env.PROJECT || !storeKind(env)) return none();               // no storage: the site works, nothing is counted
   if (BOT.test(request.headers.get('user-agent') || '')) return none();
+  // only this site's page reports, and only as JSON (a form or a beacon from another site does not count)
+  if (foreignOrigin(request)) return none(403);
+  if (notJson(request)) return none(415);
   if (Number(request.headers.get('content-length') || 0) > MAX_BODY) return none(413);
   let report;
   try {

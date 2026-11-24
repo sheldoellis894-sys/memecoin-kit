@@ -828,4 +828,106 @@ console.log('8 ok: country and city from any host');
   for (const name of [123, null, ['Raju'], { toString: () => 'Raju' }]) assert.equal((await call('POST', { ...good, id: 'objnameobjname0000', name }, { store: st }, ENV, '9.8.99.1')).status, 400);
 }
 console.log('14 ok: hostile names: emoji, invisible and right-to-left characters, look-alike letters, tags, links');
+// ---- 15. the review of 24.11: another site's page, a flood from one network, harder checks under a flood, copies of
+// a dark house, the admin sign-in, and safe writes of the street file
+{
+  const { handle: admin, resetAdminLimits } = await import(new URL('../api/admin.js', import.meta.url));
+  const { handle: stats } = await import(new URL('../api/stats.js', import.meta.url));
+  const { netKey, ipKey } = await import(new URL('../api/_agent/ip.js', import.meta.url));
+  const { fileStore } = await import(new URL('../api/_agent/store.js', import.meta.url));
+  resetLimits(); resetAdminLimits();
+  const st = memoryStore();
+  const body = (i, more = {}) => ({ id: `reviewvisitor${String(i).padStart(7, '0')}`, name: `Rev ${i}`, code: K.encodeHouse(91000 + i, {}), nights: 3, gifts: 3, best: 3, landings: 0, streak: 3, ...more });
+  const raw = async (b, headers, env = ENV) => { const r = await handle(new Request('https://ullu.vercel.app/api/street', { method: 'POST', headers, body: JSON.stringify(b) }), env, { now, store: st }); return { status: r.status, out: await r.json() }; };
+  // another site's page cannot post a house, a plain-text post is not taken; this site's own page can
+  assert.equal((await raw(body(1), { 'content-type': 'application/json', origin: 'https://evil.example', 'x-forwarded-for': '6.1.1.1' })).status, 403);
+  assert.equal((await raw(body(1), { 'content-type': 'text/plain', 'x-forwarded-for': '6.1.1.1' })).status, 415);
+  assert.equal(st.state.writes, 0, 'nothing written for them');
+  assert.ok((await raw(body(1), { 'content-type': 'application/json', origin: 'https://ullu.vercel.app', 'x-forwarded-for': '6.1.1.1' })).out.ok);
+  // the counter of visits takes reports only from this site's page, as JSON
+  const sreport = (headers) => stats(new Request('https://ullu.vercel.app/api/stats', { method: 'POST', headers: { 'user-agent': 'Mozilla/5.0 (iPhone) Safari', 'x-forwarded-for': '6.2.2.2', ...headers }, body: JSON.stringify({ e: { visit: 1 } }) }), ENV, { now, store: memoryStore() });
+  assert.equal((await sreport({ 'content-type': 'application/json', origin: 'https://evil.example' })).status, 403);
+  assert.equal((await sreport({ 'content-type': 'text/plain' })).status, 415);
+  assert.equal((await sreport({ 'content-type': 'application/json', origin: 'https://ullu.vercel.app' })).status, 204);
+  // IPv6: a /64 is one address, a /48 is one network
+  assert.equal(ipKey('2001:db8:abcd:12:1::5'), '2001:db8:abcd:12::/64'); assert.equal(netKey('2001:db8:abcd:12:1::5'), '2001:db8:abcd::/48');
+  assert.equal(netKey('2001:db8:abcd:ff00::9'), netKey('2001:db8:abcd:12::1')); assert.equal(netKey('5.6.7.8'), '5.6.7.8');
+  // a flood of new houses from many /64 blocks of one /48 stops at 200 a day (40 a minute, so the street limit never hits)
+  {
+    resetLimits(); const fl = memoryStore(); let ok = 0, last = null;
+    for (let i = 0; i < 205; i++) {
+      if (i % 40 === 0) clock += 61000;
+      const r = await handle(new Request('https://ullu.vercel.app/api/street', { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': `2001:db8:77:${(i + 1).toString(16)}::1` }, body: JSON.stringify(body(1000 + i)) }), ENV, { now, store: fl });
+      last = { status: r.status, out: await r.json() }; if (last.out.ok) ok += 1;
+    }
+    assert.equal(ok, 200, 'two hundred from one network'); assert.equal(last.status, 429); assert.equal(last.out.error, 'busy');
+    // another network is not held back by it
+    const other = await handle(new Request('https://ullu.vercel.app/api/street', { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': '2001:db8:78:1::1' }, body: JSON.stringify(body(1300)) }), ENV, { now, store: fl });
+    assert.equal(other.status, 200);
+  }
+  // under a flood the browser check gets harder: +2 bits after 20 new houses in a minute, +4 after 40
+  {
+    resetLimits(); clock += 120000; const fl = memoryStore(); const B = { ...ENV, STREET_PROOF_BITS: '6' };
+    const bitsNow = async (ip = '6.9.9.9') => (await (await handle(new Request('https://ullu.vercel.app/api/street?challenge=1', { headers: { 'x-forwarded-for': ip } }), B, { now, store: fl })).json()).bits;
+    assert.equal(await bitsNow(), 6);
+    const P2 = await import(new URL('../src/lib/street-proof.js', import.meta.url));
+    const add = async (i) => { const b = body(2000 + i); const c = await (await handle(new Request('https://ullu.vercel.app/api/street?challenge=1', { headers: { 'x-forwarded-for': `6.8.${i}.1` } }), B, { now, store: fl })).json();
+      const r = await handle(new Request('https://ullu.vercel.app/api/street', { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': `6.8.${i}.1` }, body: JSON.stringify({ ...b, proof: { challenge: c.challenge, nonce: await P2.solveProof(c.challenge, b.id, c.bits) } }) }), B, { now, store: fl });
+      assert.equal(r.status, 200, `house ${i}`); };
+    for (let i = 0; i < 20; i++) await add(i);
+    assert.equal(await bitsNow(), 8, 'twenty new houses this minute: two bits more');
+    for (let i = 20; i < 40; i++) await add(i);
+    assert.equal(await bitsNow(), 10, 'forty: four bits more');
+    clock += 125000; assert.equal(await bitsNow(), 6, 'quiet again two minutes later');
+    // an easier answer than asked is still good: a phone that got its challenge just before the flood is not turned away
+    // one address cannot collect challenges without end
+    resetLimits(); let last = 0; for (let i = 0; i < 61; i++) last = (await handle(new Request('https://ullu.vercel.app/api/street?challenge=1', { headers: { 'x-forwarded-for': '6.7.7.7' } }), B, { now, store: fl })).status;
+    assert.equal(last, 429, 'sixty challenges an hour from one address');
+  }
+  // a copy of a house that went dark does not push the owner off: it comes in as a new house, and the owner can still
+  // light the original again
+  {
+    resetLimits(); const cp = memoryStore();
+    const owner = { ...body(3000), code: K.encodeHouse(424242, {}, 'haveli') };
+    const r1 = await call('POST', owner, { store: cp }, ENV, '6.3.3.3'); assert.ok(r1.out.ok); const ownSn = r1.out.house.sn;
+    // while it is lit, a copy is turned away
+    const copy = { ...owner, id: 'copycatcopycat000001', name: 'Copy' };
+    assert.equal((await call('POST', copy, { store: cp }, ENV, '6.4.4.4')).status, 409);
+    clock += 49 * 3600000;   // the owner's house goes dark
+    const r2 = await call('POST', copy, { store: cp }, ENV, '6.4.4.4'); assert.ok(r2.out.ok, JSON.stringify(r2.out)); assert.notEqual(r2.out.house.sn, ownSn, 'the copy is a new house');
+    const j = JSON.parse(cp.state.text); assert.ok(j.houses.some((h) => h.sn === ownSn), 'the owner is still on the street');
+    const r3 = await call('POST', { ...owner, nights: 4, gifts: 4, best: 4, streak: 1 }, { store: cp }, ENV, '6.3.3.3');
+    assert.ok(r3.out.ok, JSON.stringify(r3.out)); assert.equal(r3.out.house.sn, ownSn, 'the owner lights it again and keeps the number');
+  }
+  // the admin: requests without a password do not lock the moderator out, and a token cannot make itself a new one
+  {
+    resetAdminLimits(); const as = memoryStore();
+    const AENV = { ...ENV, ADMIN_PASSWORD: 'a-long-moderator-password-123' };
+    const areq = (pass, body, ip = '6.5.5.5') => admin(new Request('https://ullu.vercel.app/api/admin', { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', authorization: `Bearer ${pass}`, 'x-forwarded-for': ip }, body: body ? JSON.stringify(body) : undefined }), AENV, { now, store: as });
+    for (let i = 0; i < 12; i++) assert.equal((await areq('')).status, 401);
+    const login = await areq(AENV.ADMIN_PASSWORD, { action: 'login' }); assert.equal(login.status, 200, 'empty requests did not lock the password out');
+    const token = (await login.json()).token;
+    assert.equal((await areq(token)).status, 200, 'the token works');
+    assert.equal((await areq(token, { action: 'login' })).status, 401, 'a token does not renew itself');
+    resetAdminLimits();
+  }
+  // the street file on disk: an empty file is damaged, not "no street", and a write goes through a synced temporary file
+  {
+    const fs = await import('node:fs/promises'); const os = await import('node:os'); const path = await import('node:path');
+    const d = await fs.mkdtemp(path.join(os.tmpdir(), 'ullu-review-'));
+    const FE = { PROJECT: 'ullu', DATA_DIR: d };
+    assert.equal(await fileStore.read(FE, 'ullu/street.json'), null, 'no file: no street yet');
+    await fileStore.write(FE, 'ullu/street.json', '{"houses":[]}');
+    assert.equal(await fileStore.read(FE, 'ullu/street.json'), '{"houses":[]}');
+    await fs.writeFile(path.join(d, 'ullu/street.json'), '');
+    await assert.rejects(() => fileStore.read(FE, 'ullu/street.json'), (e) => e.code === 'damaged');
+    const fe = await call('POST', body(4000), {}, { ...ENV, BLOB_READ_WRITE_TOKEN: undefined, STORE: 'file', DATA_DIR: d }, '6.6.6.6');
+    assert.equal(fe.status, 503, 'a post does not start the street again over a damaged file');
+    assert.equal(await fs.readFile(path.join(d, 'ullu/street.json'), 'utf8'), '', 'the damaged file is left for the owner');
+    assert.deepEqual((await fs.readdir(path.join(d, 'ullu'))).filter((f) => f.endsWith('.tmp')), [], 'no temporary files left');
+    await fs.rm(d, { recursive: true, force: true });
+  }
+  resetLimits();
+  console.log('15 ok: other sites and plain-text posts, a flood from one network, harder checks under a flood, copies of a dark house, admin sign-in, safe file writes');
+}
 console.log('street: all ok');

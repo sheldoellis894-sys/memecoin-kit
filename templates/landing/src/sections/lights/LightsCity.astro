@@ -173,7 +173,7 @@ const data = JSON.stringify({
       const some = real < cfg.min;
       note.textContent = [hs.length ? '' : live ? L.empty || 'No real houses yet. Yours can be the first.' : L.offline || 'The street is not open yet.',
         some ? L.citySamples || 'Houses marked Example show how the city will look. Real houses take their place' : '',
-        on ? L.hintOn || 'Drag to move, pinch or scroll to come closer. Your house is in the middle, new houses grow the city outwards' : ''].filter(Boolean).join(' ');
+        on ? L.hintOn || 'Drag to move, pinch or scroll to come closer. Your house is in the middle, new houses grow the city outwards' : ''].filter(Boolean).map((t) => String(t).replace(/\.$/, '')).join('. ');  // sentences without the last dot, as all copy
       $<HTMLButtonElement>('[data-ul-city-home]').textContent = spots[0]?.kind === 'you' ? L.homeFree || 'Find my lot' : L.home || 'Find my house';
     }
 

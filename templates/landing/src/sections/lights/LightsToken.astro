@@ -1,28 +1,36 @@
 ---
-// The token as a house front: every line of the tokenomics is a window that lights up as it scrolls into view.
+// The token as a house front: the first line of the tokenomics is one big window that lights up as it scrolls into view,
+// the other lines stand in one row under it.
 import { config } from '../../lib/project';
 import { lights } from '../../lib/lights';
 import LtHead from './LtHead.astro';
 import LtCa from './LtCa.astro';
 const t = lights.token || {};
 const tk = config.tokenomics || { items: [] };
+// the first line is the big window (100% fair launch); the rest (the zeros) stand in one row under it
+const [main, ...rest] = (tk.items || []) as { label: string; value: string }[];
 ---
 <section id="token" class="lt-sec">
   <div class="lt-in">
-    <LtHead kicker={t.kicker} title={t.title} lead={t.lead} />
+    <LtHead kicker={t.kicker} title={t.title} lead={t.lead} center />
     <div class="lt-facade" data-ul-in>
       <div class="lt-facade-top">
         <p class="lt-label">{t.supply || 'Supply'}</p>
         <p class="lt-facade-supply font-heading">{tk.supply}</p>
       </div>
-      <ul class="lt-facade-grid">
-        {tk.items.map((it: { label: string; value: string }, i: number) => (
-          <li class="lt-pane" style={`--i:${i}`}>
-            <span class="lt-pane-value font-heading">{it.value}</span>
-            <span class="lt-pane-label">{it.label}</span>
-          </li>
-        ))}
-      </ul>
+      {main && (
+        <div class="lt-pane lt-pane-main" style="--i:0">
+          <span class="lt-pane-value font-heading">{main.value}</span>
+          <span class="lt-pane-label">{main.label}</span>
+        </div>
+      )}
+      {rest.length > 0 && (
+        <ul class="lt-facade-more">
+          {rest.map((it: { label: string; value: string }, i: number) => (
+            <li style={`--i:${i + 1}`}><b class="font-heading">{it.value}</b> <span>{it.label}</span></li>
+          ))}
+        </ul>
+      )}
       <LtCa />
     </div>
   </div>

@@ -6,8 +6,9 @@ import LtHead from './LtHead.astro';
 const s = lights.steps || {};
 const steps: { title: string; text: string }[] = config.howToBuy || [];
 ---
-<section id="how-to-buy" class="lt-sec">
+<section id="how-to-buy" class="lt-sec lt-steps-sec">
   <div class="lt-in">
+    <div class="lt-steps-wrap">
     <LtHead kicker={s.kicker} title={s.title} lead={s.lead} />
     <ol class="lt-steps">
       {steps.map((st, i) => (
@@ -19,5 +20,6 @@ const steps: { title: string; text: string }[] = config.howToBuy || [];
         </li>
       ))}
     </ol>
+    </div>
   </div>
 </section>

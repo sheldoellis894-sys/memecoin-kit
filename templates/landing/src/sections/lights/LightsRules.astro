@@ -16,7 +16,7 @@ const avatar = asset(config.assets.logo);
 ---
 <section id="rules" class="lt-sec">
   <div class="lt-in lt-narrow">
-    <LtHead kicker={r.kicker} title={r.title} lead={r.lead} />
+    <LtHead kicker={r.kicker} title={r.title} lead={r.lead} center />
     {chat ? (
       <div class="lt-ask" data-ul-ask data-ul-in>
         <div class="lt-ask-top"><img src={avatar} alt="" width="40" height="40" /><span><b>{c.name || config.name}</b><i data-ul-ask-status data-typing={c.typing || 'typing…'}>{c.online || 'online'}</i></span></div>

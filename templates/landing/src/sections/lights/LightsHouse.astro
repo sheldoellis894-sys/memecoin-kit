@@ -33,7 +33,7 @@ const iv: Record<string, string> = c.invite || {};
         <div class="lt-stage-box">
           <div class="lt-stage-svg" data-ul-svg aria-hidden="true"></div>
           <div class="lt-slots" data-ul-slots></div>
-          <p class="lt-stage-tag"><span>{l.house || 'House'}</span> <b data-ul-no>No. —</b></p>
+          <p class="lt-stage-tag"><b data-ul-no></b></p>
         </div>
         <p class="lt-plate" data-ul-plate></p>
         <p class="lt-tip" data-ul-tip aria-live="polite">{l.tipStart}</p>
@@ -257,7 +257,9 @@ const iv: Record<string, string> = c.invite || {};
     const ownFree = () => (p.free || []).filter((f: any) => !isHolderItem(f.i));
     const shownFree = () => (ul.holder ? p.free || [] : ownFree());
     const ownPaint = () => (p.paint && !isHolderItem(p.paint) ? p.paint : '');
-    const drawCtx: Record<string, any> = { ticker: cfg.ticker, ...cfg.night, time: K.timeOfDay() };
+    // the house is never shown by daylight: its lights are the point, so by day it is drawn as in the evening
+    const sceneTime = () => { const t = K.timeOfDay(); return t === 'day' ? 'dusk' : t; };
+    const drawCtx: Record<string, any> = { ticker: cfg.ticker, ...cfg.night, time: sceneTime() };
 
     const view = () => {
       const s = K.statusOf(p, today);
@@ -266,8 +268,9 @@ const iv: Record<string, string> = c.invite || {};
     };
     const levelShown = (s: any) => (s.first && s.due ? 0 : s.level);
     const owlFor = (s: any) => {
-      // by day the owl sleeps on the roof (unless he has landed for night seven); he flies only in the evening and at night
-      if (drawCtx.time === 'day' && !s.landed && owlSrc.sleep) { const pp = K.owlPlace(h, K.NIGHTS, true); return { ...pp, size: 120, pose: 'sleep', href: owlSrc.sleep }; }
+      // by day the owl is asleep somewhere else on the page (the page's hide-and-seek), so he is not at the house: on the
+      // roof he would look as if he had landed already. He comes to the house in the evening and at night
+      if (K.timeOfDay() === 'day' && !s.landed && owlSrc.sleep) return null;
       const pos = s.landed ? K.owlPlace(h, K.NIGHTS, true) : K.owlPlace(h, s.litTonight ? s.streak : Math.max(1, s.streak), false);
       return { ...pos, href: owlSrc[pos.pose] };
     };
@@ -281,9 +284,8 @@ const iv: Record<string, string> = c.invite || {};
     // a line slot on a balcony (id b1-line, b2-line…) is the balcony rail, not the roof edge
     const slotLabel = (sl: any) => { const k = sl.kind === 'line' && /^b\d/.test(sl.id) ? 'balcony' : sl.kind; return cfg.slotNames[k] || SLOT_NAMES[k] || k; };
 
-    const timeName = (t: string) => (t === 'day' ? L.timeDay || 'Day' : t === 'dusk' ? L.timeDusk || 'Evening' : L.timeNight || 'Night');
     const drawHouse = () => {
-      drawCtx.time = K.timeOfDay();
+      drawCtx.time = sceneTime();
       const s = view();
       const setupLevel = setupOn ? 2 : levelShown(s);
       const scene = setupOn || peek ? '' : K.sceneOf(K.tonightOf(p, today)?.event || '');
@@ -319,7 +321,9 @@ const iv: Record<string, string> = c.invite || {};
         slotsBox.appendChild(b);
       }
       drawFrame();
-      $<HTMLElement>('[data-ul-no]').textContent = `No. ${h.no}, ${styleName(h.family)}, ${timeName(drawCtx.time).toLowerCase()}`;
+      // the plate: the number of the house on the street (the same as on the street and the city map) once it is there
+      const sn = ul.houseSn ? ul.houseSn() : 0;
+      $<HTMLElement>('[data-ul-no]').textContent = sn ? `#${String(sn).padStart(4, '0')}, ${styleName(h.family)}` : styleName(h.family);
       $<HTMLElement>('[data-ul-plate]').textContent = plateText();
     };
 
@@ -666,9 +670,9 @@ const iv: Record<string, string> = c.invite || {};
       $<HTMLElement>('[data-ul-gift-note]').textContent = res.landedNow ? fill(L.landedNote || 'Seven nights in a row. He brought the whole sack: {n} gifts.', { item: gi.name, n: (res.gifts || []).length }) : many ? '' : gi.note;
       const last = p.log[p.log.length - 1];
       $<HTMLElement>('[data-ul-gift-event]').textContent = eventText(last);
-      const extra = [res.bonus && Object.keys(res.bonus).length ? fill(L.bonusLine || 'Bonus tonight: {items}.', { items: itemsText(res.bonus) }) : '',
+      const extra = [res.bonus && Object.keys(res.bonus).length ? fill(L.bonusLine || 'Bonus tonight: {items}.', { items: Object.entries(res.bonus as Record<string, number>).map(([id, n]) => (id === res.gift && !many ? `${n > 1 ? `${n} more` : 'one more'} ${itemName(id).toLowerCase()}` : itemsText({ [id]: n }))).join(', ') }) : '',
         res.loan ? fill(L.loanLine || 'Borrowed by the monkey: {item}. Back on your next night.', { item: itemName(res.loan) }) : '',
-        res.returned ? fill(L.returnedLine || 'The monkey brought back your {item}.', { item: itemName(res.returned).toLowerCase() }) : ''].filter(Boolean).join(' ');
+        res.returned ? fill(L.returnedLine || 'The monkey brought back your {item}.', { item: itemName(res.returned).toLowerCase() }) : ''].filter(Boolean).map((t) => String(t).replace(/\.$/, '')).join('. ');  // sentences without the last dot, as all copy
       $<HTMLElement>('[data-ul-gift-bonus]').textContent = extra;
       $<HTMLElement>('[data-ul-gift-ok]').textContent = many ? L.giftsOk || 'Hang them on the house' : L.giftOk || 'Hang it on the house';
       root.classList.toggle('is-landed', res.landedNow);
@@ -749,7 +753,8 @@ const iv: Record<string, string> = c.invite || {};
       const bot = ctx.createLinearGradient(0, S - 150, 0, S); bot.addColorStop(0, 'rgba(8,10,34,0)'); bot.addColorStop(1, 'rgba(8,10,34,.9)');
       ctx.fillStyle = bot; ctx.fillRect(0, S - 150, S, 150);
       ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#FFFFFF';
-      const line = [p.name, fill(L.cardHouse || 'House No. {no}', { no: h.no }), p.city, fill(L.cardNights || '{nights} nights', { nights: p.nights })].filter(Boolean).join(' · ');
+      const sn = ul.houseSn ? ul.houseSn() : 0;
+      const line = [p.name, sn ? fill(L.cardHouse || 'House #{no}', { no: String(sn).padStart(4, '0') }) : '', p.city, fill(L.cardNights || '{nights} nights', { nights: p.nights })].filter(Boolean).join(', ');
       const room = S - 96 - (cfg.watermark && !ul.holder ? 300 : 0);
       for (const fs of [34, 30, 27, 24]) { ctx.font = `800 ${fs}px ${body}`; if (ctx.measureText(line).width <= room) break; }
       ctx.fillText(line, 48, S - 52);
@@ -827,6 +832,7 @@ const iv: Record<string, string> = c.invite || {};
         ul.store.set(STREET_KEY, clean);
         if (Number.isInteger(out.house?.sn)) ul.store.set(SN_KEY, String(out.house.sn));
         ul.fire('ul:street', { refresh: true });
+        refresh();   // the plate shows the street number now
         return { ok: true };
       } catch {
         postNote.textContent = cfg.streetErrors.offline || 'The street is not reachable from here.';
@@ -855,6 +861,7 @@ const iv: Record<string, string> = c.invite || {};
         if (!res.ok || !out.ok) return { ok: false, text: cfg.streetErrors[out.error] || cfg.streetErrors.failed || 'The street did not answer. Try later.' };
         ul.store.set(STREET_KEY, ''); ul.store.set(SN_KEY, '');
         ul.fire('ul:street', { refresh: true });
+        refresh();
         return { ok: true, text: L.removedStreet || 'Your house is off the street. It stays here with you, and you can put it back any time.' };
       } catch { return { ok: false, text: cfg.streetErrors.offline || 'The street is not reachable from here.' }; }
     };
@@ -885,7 +892,7 @@ const iv: Record<string, string> = c.invite || {};
       h = houseFor(p); save(); sel = '';
       // the street id from the old phone: this browser now updates the same house on the street
       if (sid && /^[a-z0-9]{16,32}$/.test(sid)) ul.store.set(ID_KEY, sid);
-      codeNote.textContent = fill(L.movedIn || 'Welcome home. House No. {no}.', { no: h.no }); refresh();
+      codeNote.textContent = fill(L.movedIn || 'Welcome home', { no: h.no }); refresh();
       return true;
     };
     $<HTMLButtonElement>('[data-ul-restore]').addEventListener('click', () => moveIn(($<HTMLInputElement>('[data-ul-code-in]')).value));
@@ -894,7 +901,7 @@ const iv: Record<string, string> = c.invite || {};
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !pinnedDay) { const t = K.dayKey(); if (t !== today) { today = t; refresh(); } } });
     ul.on('ul:holder', () => { if (sel && isHolderItem(sel) && !ul.holder) sel = ''; refresh(); });
     // day, evening and night follow the visitor's clock: the house changes when the hour comes
-    setInterval(() => { if (!document.hidden && !gesture && K.timeOfDay() !== drawCtx.time) refresh(); }, 60000);
+    setInterval(() => { if (!document.hidden && !gesture && sceneTime() !== drawCtx.time) refresh(); }, 60000);
 
     // ---- the first visit: three questions build the house -------------------------------------
     // Name on the door, the wish (colours and gifts), the street (style; suggested from the city or the time zone).
@@ -949,6 +956,8 @@ const iv: Record<string, string> = c.invite || {};
       root.querySelectorAll<HTMLElement>('[data-step]').forEach((el) => { el.hidden = Number(el.dataset.step) !== n; });
       $<HTMLElement>('[data-ul-setup-count]').textContent = fill(SU.count || 'Step {n} of 3', { n });
       backBtn.hidden = n === 1;
+      // on the last question "Build my house" does the same as skipping, so the skip button goes away
+      $<HTMLButtonElement>('[data-ul-setup-skip]').hidden = n === 3;
       nextBtn.textContent = n === 3 ? SU.build || 'Build my house' : SU.next || 'Next';
       setupMsg.textContent = '';
       if (n === 2) drawWishes();

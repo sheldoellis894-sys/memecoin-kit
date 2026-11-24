@@ -21,13 +21,19 @@ export const blobStore = {
     if (!res || res.statusCode !== 200 || !res.stream) return { text: null, etag: '' };
     return { text: await new Response(res.stream).text(), etag: res.blob?.etag || res.headers?.get?.('etag') || '' };
   },
-  /** opts.ifMatch: write only if the file still has this ETag (else an error with code 'conflict'). */
+  /**
+   * opts.ifMatch: write only if the file still has this ETag. opts.create: write only if there is no file yet (two first
+   * writes at the same moment: the second one is told). Either way a lost race is an error with code 'conflict'.
+   */
   async write(env, path, body, opts = {}) {
+    const create = Boolean(opts.create) && !opts.ifMatch;
     try {
-      await put(path, body, { access: accessOf(env), token: env.BLOB_READ_WRITE_TOKEN, addRandomSuffix: false, allowOverwrite: true,
+      await put(path, body, { access: accessOf(env), token: env.BLOB_READ_WRITE_TOKEN, addRandomSuffix: false, allowOverwrite: !create,
         contentType: 'application/json; charset=utf-8', cacheControlMaxAge: 60, ...(opts.ifMatch ? { ifMatch: opts.ifMatch } : {}) });
     } catch (e) {
       if (e instanceof BlobPreconditionFailedError) throw Object.assign(new Error('changed since read'), { code: 'conflict' });
+      // a first write that failed because the file is there now: somebody else wrote it first, read it and try again
+      if (create && (await this.readTagged(env, path).then((x) => x.text !== null, () => false))) throw Object.assign(new Error('created meanwhile'), { code: 'conflict' });
       throw e;
     }
   },

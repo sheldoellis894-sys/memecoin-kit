@@ -27,6 +27,12 @@ const rows = ribbon ? [items, items] : [items];
         )))}
       </ul>
     </div>
+    {ribbon && (
+      <div class="lt-ribbon-nav">
+        <button type="button" class="lt-ribbon-btn" data-ul-ribbon-go="-1" aria-label={g.prevRow || 'Earlier pictures'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="lt-ribbon-btn" data-ul-ribbon-go="1" aria-label={g.nextRow || 'More pictures'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    )}
   </div>
   <dialog class="lt-view lt-view-pic" data-ul-lightbox aria-label={g.title || 'Picture'}>
     <div class="lt-view-in">
@@ -64,6 +70,21 @@ const rows = ribbon ? [items, items] : [items];
     dlg.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(at + 1); if (e.key === 'ArrowLeft') show(at - 1); });
   }
 
+  // The two arrows under the ribbon move it by one window, for a mouse that has no sideways wheel. Before the start of the row
+  // the ribbon first jumps forward by one copy, so the row never ends this way either.
+  const ribbon = document.querySelector<HTMLElement>('[data-ul-ribbon]');
+  if (ribbon) document.querySelectorAll<HTMLButtonElement>('[data-ul-ribbon-go]').forEach((b) => b.addEventListener('click', () => {
+    const dir = Number(b.dataset.ulRibbonGo);
+    const li = ribbon.querySelector('li');
+    const w = li ? li.getBoundingClientRect().width + parseFloat(getComputedStyle(li.parentElement!).columnGap || '0') : 340;
+    const half = ribbon.scrollWidth / 2;
+    if (dir < 0 && ribbon.scrollLeft < w && half) ribbon.scrollLeft += half;
+    if (dir > 0 && half && ribbon.scrollLeft + w >= half * 2 - ribbon.clientWidth) ribbon.scrollLeft -= half;
+    ribbon.dataset.hand = String(performance.now()); // the drift waits, so it does not stop the move halfway
+    const smooth = document.documentElement.classList.contains('ul-motion');
+    ribbon.scrollBy({ left: dir * w, behavior: smooth ? 'smooth' : 'auto' });
+  }));
+
   // The ribbon: the row drifts to the left on its own, 28 px a second. It is a normal scrolling box, so a finger, a trackpad or
   // the wheel move it as usual; the drift waits while the mouse is over it, while a finger holds it and for two seconds
   // after a scroll by hand. The row is drawn twice: past the end of the first copy it jumps back by one copy, and before
@@ -79,7 +100,7 @@ const rows = ribbon ? [items, items] : [items];
     const step = (now: number) => {
       raf = 0;
       const dt = Math.min(64, now - (last || now)) / 1000; last = now;
-      const idle = !hover && !held && now - handAt > 2000 && seen && !document.hidden;
+      const idle = !hover && !held && now - handAt > 2000 && now - Number(rib.dataset.hand || 0) > 2000 && seen && !document.hidden;
       if (idle) { pos += SPEED * dt; if (pos >= 1) { const n = Math.floor(pos); pos -= n; setLeft(rib.scrollLeft + n); wrap(); } }
       else pos = 0;
       if (seen && !document.hidden) raf = requestAnimationFrame(step); else last = 0;
