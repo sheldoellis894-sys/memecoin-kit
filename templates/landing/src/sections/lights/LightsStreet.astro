@@ -78,11 +78,11 @@ const data = JSON.stringify({
       const got = x.seed ? { seed: x.seed, family: x.family || 'mumbai', wish: (x as any).wish || '', placed: x.placed || {}, free: [], paint: '' } : K.decodeHouse(x.code);
       if (!got) return '';
       const h = K.houseOfP(got);
-      return K.houseSvg(h, got.placed, { free: got.free, ctx: { ticker: cfg.ticker, ...cfg.night, time: K.timeOfDay() }, level: x.dark ? 1 : Math.max(1, Math.min(K.NIGHTS, x.streak)), owl: owl(h, x.dark ? 0 : x.streak), id: `uls${n++}`, size });
+      return K.houseSvg(h, got.placed, { free: got.free, ctx: { ticker: cfg.ticker, ...cfg.night, time: 'night' }, level: x.dark ? 1 : Math.max(1, Math.min(K.NIGHTS, x.streak)), owl: owl(h, x.dark ? 0 : x.streak), id: `uls${n++}`, size });
     };
     const lineOf = (x: H) => x.dark
       ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', x as any)
-      : fill(x.streak >= K.NIGHTS ? L.lineLanded || 'Night {streak} in a row · the owl is on the roof' : L.line || 'Night {streak} in a row · {gifts} owl visits', x as any);
+      : fill(x.streak >= K.NIGHTS ? L.lineLanded || 'Night {streak} in a row, the owl is on the roof' : L.line || 'Night {streak} in a row, {gifts} owl visits', x as any);
     // the visitor's own house on the street: the name it was put there with and its house number
     const isMine = (x: H) => Boolean(!x.sample && ul.houseName && ul.onStreet?.() && x.name === ul.houseName() && (x as any).no === ul.houseNo?.());
     const draw = () => {
@@ -112,7 +112,7 @@ const data = JSON.stringify({
       box.hidden = !x; if (!x) return;
       $<HTMLElement>('[data-ul-star-art]').innerHTML = svgOf(x);
       $<HTMLElement>('[data-ul-star-name]').textContent = x.name;
-      $<HTMLElement>('[data-ul-star-line]').textContent = fill(L.starLine || '{light}% bright · night {streak} in a row. The owl looks here first.', x as any);
+      $<HTMLElement>('[data-ul-star-line]').textContent = fill(L.starLine || '{light}% bright, night {streak} in a row', x as any);
     };
     const samples = (): H[] => cfg.samples.map((s: any) => {
       const fam = K.FAMILY_IDS.includes(s.style) ? s.style : 'mumbai';
@@ -123,7 +123,7 @@ const data = JSON.stringify({
     });
     // fresh = right after the visitor posted: past the 30-second cache, so their house is there at once
     const load = async (fresh = false) => {
-      let real: H[] = [], top: H | null = null, live = false;
+      let real: H[] = [], top: H | null = null, live = false, total = 0;
       if (cfg.endpoint) {
         try {
           const url = fresh ? `${cfg.endpoint}${cfg.endpoint.includes('?') ? '&' : '?'}t=${Date.now()}` : cfg.endpoint;
@@ -132,6 +132,7 @@ const data = JSON.stringify({
           // only houses this site can draw (a house from an older version of the site is left out)
           real = (Array.isArray(out.houses) ? out.houses : []).filter((x: H) => x && typeof x.code === 'string' && K.decodeHouse(x.code));
           top = out.star && K.decodeHouse(out.star.code) ? out.star : null;
+          total = Number.isInteger(out.count) && out.count > 0 ? out.count : 0;
         } catch { /* the street is shown with samples */ }
         // the row shows the brightest sixty; the visitor's own house is in it always: when it is not among them, it is asked for by its number
         const sn = ul.houseSn?.() || 0;
@@ -148,8 +149,9 @@ const data = JSON.stringify({
       // the house of the night is always a real house: an example never wins
       star(top);
       const some = real.length < cfg.min;
+      const n = Math.max(total, real.length);
       note.textContent = [real.length
-        ? fill(real.length === 1 ? L.countOne || 'One house on the street so far.' : L.count || '{n} houses on the street.', { n: real.length })
+        ? fill(n === 1 ? L.countOne || 'One house on the street so far.' : L.count || '{n} houses on the street.', { n })
         : live ? L.empty || 'No real houses yet. Yours can be the first.' : L.offline || 'The street is not open yet.',
         some ? L.samplesNote || 'Houses marked Example are here so the street is not empty. Real houses take their place.' : ''].filter(Boolean).join(' ');
       draw();
@@ -163,8 +165,8 @@ const data = JSON.stringify({
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-i]'); if (!b) return;
       const x = houses[Number(b.dataset.i)];
       $<HTMLElement>('[data-ul-view-art]').innerHTML = svgOf(x);
-      $<HTMLElement>('[data-ul-view-name]').textContent = Number.isInteger((x as any).sn) && !x.sample ? `${x.name} · #${String((x as any).sn).padStart(4, '0')}` : x.name;
-      $<HTMLElement>('[data-ul-view-line]').textContent = `${lineOf(x)} · ${fill(L.best || 'best run {best}', x as any)} · ${x.light}%`;
+      $<HTMLElement>('[data-ul-view-name]').textContent = Number.isInteger((x as any).sn) && !x.sample ? `${x.name}, #${String((x as any).sn).padStart(4, '0')}` : x.name;
+      $<HTMLElement>('[data-ul-view-line]').textContent = `${lineOf(x)}, ${fill(L.best || 'best run {best}', x as any)}, ${x.light}% bright`;
       if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
     });
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });

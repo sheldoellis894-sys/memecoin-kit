@@ -1,15 +1,14 @@
 ---
-// The last screen: hold the diya to light it, and the buy link appears. The contract address with its Copy button is
-// always there under it (before the launch: "Not available yet"). Keyboard: hold Space or Enter. The plain link is always there too.
+// The last screen: hold the diya to light it (the owl sees it). The Buy link is always there under it; the contract
+// address is on the first screen and in the token section. Keyboard: hold Space or Enter.
 import { config, buyUrl } from '../../lib/project';
 import { lights } from '../../lib/lights';
-import LtCa from './LtCa.astro';
 const b = lights.buy || {};
 const url: string = config.links.launch || buyUrl;
 ---
 <section id="buy" class="lt-sec lt-buy-sec">
   <div class="lt-in lt-buy" data-ul-in>
-    <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{b.kicker || 'Last lamp'}</p>
+    {('kicker' in b ? b.kicker : 'Last lamp') && <p class="lt-kicker"><span class="lt-flame" aria-hidden="true"></span>{'kicker' in b ? b.kicker : 'Last lamp'}</p>}
     <h2 class="lt-title font-heading">{b.title || 'Light the last lamp'}</h2>
     <p class="lt-lead">{b.lead}</p>
     <button type="button" class="lt-big-diya" data-ul-diya aria-describedby="ul-diya-hint">
@@ -21,7 +20,6 @@ const url: string = config.links.launch || buyUrl;
     <div class="lt-buy-open" data-ul-buy-open>
       <a class="lt-btn lt-btn-big" data-ul-track="buy" href={url} target={url.startsWith('#') ? undefined : '_blank'} rel="noopener noreferrer">{b.cta || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
     </div>
-    <LtCa />
   </div>
 </section>
 

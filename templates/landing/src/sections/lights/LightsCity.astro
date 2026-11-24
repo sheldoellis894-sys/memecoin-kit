@@ -25,7 +25,7 @@ const data = JSON.stringify({
 ---
 <section id="city" class="lt-sec lt-city-sec" data-ul-city={data}>
   <div class="lt-in">
-    <LtHead kicker={c.kicker || 'The city'} title={c.title || 'The city we lit'} lead={c.lead || 'Every light is a house. Tap one to look inside'} />
+    <LtHead kicker={'kicker' in c ? c.kicker : 'The city'} title={c.title || 'The city we lit'} lead={c.lead || 'Every light is a house. Tap one to look inside'} />
     <p class="lt-city-stats" data-ul-city-stats aria-live="polite"></p>
     <div class="lt-city" data-ul-city-map data-ul-in>
       <canvas data-ul-city-canvas tabindex="0" role="img" aria-label={l.mapLabel || 'A map of the houses on the street'}></canvas>
@@ -173,7 +173,7 @@ const data = JSON.stringify({
       const some = real < cfg.min;
       note.textContent = [hs.length ? '' : live ? L.empty || 'No real houses yet. Yours can be the first.' : L.offline || 'The street is not open yet.',
         some ? L.citySamples || 'Houses marked Example show how the city will look. Real houses take their place' : '',
-        on ? L.hintOn || 'Drag to move · pinch or scroll to come closer · your house is in the middle, new houses grow the city outwards' : ''].filter(Boolean).join(' ');
+        on ? L.hintOn || 'Drag to move, pinch or scroll to come closer. Your house is in the middle, new houses grow the city outwards' : ''].filter(Boolean).join(' ');
       $<HTMLButtonElement>('[data-ul-city-home]').textContent = spots[0]?.kind === 'you' ? L.homeFree || 'Find my lot' : L.home || 'Find my house';
     }
 
@@ -544,8 +544,8 @@ const data = JSON.stringify({
       const meBox = meSeen && me !== star ? houseBox(meAt![0], meAt![1]) : null;
       let starBox: number[] | null = null;
       // the labels of the two houses: where each stands, or null when there is no free place for it
-      const starText = star ? `${L.cityStar || 'Brightest tonight'} · ${sn4(star.sn)}` : '';
-      const meText = !me ? '' : me.kind === 'you' ? L.yourLotTag || 'Your lot' : `${L.yourHouse || 'Your house'} · ${sn4(me.sn)}`;
+      const starText = star ? `${L.cityStar || 'Brightest tonight'}: ${sn4(star.sn)}` : '';
+      const meText = !me ? '' : me.kind === 'you' ? L.yourLotTag || 'Your lot' : `${L.yourHouse || 'Your house'}: ${sn4(me.sn)}`;
       let starTagAt: number[] | null = null, meTagAt: number[] | null = null, starTagBox: number[] | null = null, meTagBox: number[] | null = null;
       if (starSeen && !close) {
         const [x, y] = starAt!;
@@ -669,7 +669,7 @@ const data = JSON.stringify({
       $<HTMLElement>('[data-ul-city-card-no]').textContent = sp.kind === 'house' ? sn4(sp.sn) : L.sample || 'Example';
       $<HTMLElement>('[data-ul-city-card-name]').textContent = sp.name;
       const nights = !lit(sp) ? L.cardDark || 'Dark tonight' : fill(sp.streak > K.NIGHTS ? L.cardRun || 'Night {n} in a row' : L.cardNight || 'Night {n} of {of}', { n: sp.streak, of: K.NIGHTS });
-      $<HTMLElement>('[data-ul-city-card-line]').textContent = `${districtName(sp.family)} · ${nights} · ${fill(L.cardBright || '{light}% bright', { light: Math.round(sp.light) })}`;
+      $<HTMLElement>('[data-ul-city-card-line]').textContent = `${districtName(sp.family)}, ${nights}, ${fill(L.cardBright || '{light}% bright', { light: Math.round(sp.light) })}`;
       card.hidden = false; placeCard(); paint();
       const got = await fullOf(sp);
       if (id !== cardId || picked !== sp || !got) return;
@@ -781,11 +781,11 @@ const data = JSON.stringify({
       const got = await fullOf(sp); if (!got) return;
       const h = K.houseOfP(got), f = sp.full || {};
       const owl = landed(sp) ? { ...K.owlPlace(h, K.NIGHTS, true), href: cfg.owl.landed || K.owlPlaceholder('landed') } : null;
-      $<HTMLElement>('[data-ul-city-view-art]').innerHTML = K.houseSvg(h, got.placed, { free: got.free, ctx: { ...drawCtx(), time: K.timeOfDay() }, level: lit(sp) ? Math.min(K.NIGHTS, sp.streak) : 1, owl, id: `ulv${vid++}` });
-      $<HTMLElement>('[data-ul-city-view-name]').textContent = sp.kind === 'house' ? `${sp.name} · ${sn4(sp.sn)}` : sp.name;
+      $<HTMLElement>('[data-ul-city-view-art]').innerHTML = K.houseSvg(h, got.placed, { free: got.free, ctx: drawCtx(), level: lit(sp) ? Math.min(K.NIGHTS, sp.streak) : 1, owl, id: `ulv${vid++}` });
+      $<HTMLElement>('[data-ul-city-view-name]').textContent = sp.kind === 'house' ? `${sp.name}, ${sn4(sp.sn)}` : sp.name;
       const v = { streak: sp.streak, gifts: f.gifts ?? 0, best: f.best ?? sp.streak, light: sp.light };
-      const line = !lit(sp) ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', v) : fill(landed(sp) ? L.lineLanded || 'Night {streak} in a row · the owl is on the roof' : L.line || 'Night {streak} in a row · {gifts} owl visits', v);
-      $<HTMLElement>('[data-ul-city-view-line]').textContent = `${line} · ${fill(L.best || 'best run {best}', v)} · ${sp.light}%`;
+      const line = !lit(sp) ? fill(L.lineDark || 'Went dark. Best run: {best} nights.', v) : fill(landed(sp) ? L.lineLanded || 'Night {streak} in a row, the owl is on the roof' : L.line || 'Night {streak} in a row, {gifts} owl visits', v);
+      $<HTMLElement>('[data-ul-city-view-line]').textContent = `${line}, ${fill(L.best || 'best run {best}', v)}, ${sp.light}% bright`;
       if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
     }
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });

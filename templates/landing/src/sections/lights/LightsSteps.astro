@@ -1,5 +1,5 @@
 ---
-// How to buy: four diyas in a row, each lights up with its step.
+// How to buy: one list, a diya and a large number for each step (the label "Lamp {n}" stays for screen readers).
 import { lights } from '../../lib/lights';
 import { config } from '../../lib/project';
 import LtHead from './LtHead.astro';
@@ -13,8 +13,8 @@ const steps: { title: string; text: string }[] = config.howToBuy || [];
       {steps.map((st, i) => (
         <li class="lt-step" style={`--i:${i}`} data-ul-in>
           <span class="lt-step-diya" aria-hidden="true"><i></i></span>
-          <p class="lt-step-no">{(s.step || 'Step {n}').replace('{n}', String(i + 1))}</p>
-          <h3 class="font-heading">{st.title}</h3>
+          <span class="lt-step-num font-heading" aria-hidden="true">{i + 1}</span>
+          <h3 class="font-heading"><span class="lt-sr">{(s.step || 'Step {n}').replace('{n}', String(i + 1))}: </span>{st.title}</h3>
           <p>{st.text}</p>
         </li>
       ))}

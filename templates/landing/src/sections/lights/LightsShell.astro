@@ -42,7 +42,7 @@ const hide = (houseCfg as any).hide !== false && owlImages.sleep
     })}
   </div>}
   <a class="lt-chip" href="#house" data-ul-chip><span class="lt-chip-dot" aria-hidden="true"></span><span data-ul-chip-text>{bar.chip || 'My house'}</span></a>
-  <a class="lt-btn lt-btn-small" href="#buy">{bar.buy || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+  <a class="lt-btn lt-btn-small" href="#token">{bar.buy || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
 </header>
 
 <script>
@@ -81,7 +81,8 @@ const hide = (houseCfg as any).hide !== false && owlImages.sleep
     queued = false;
     root.classList.toggle('ul-scrolled', scrollY > 12);
     const mid = innerHeight * 0.45; let on = '';
-    for (const m of marks) if (m.el && m.el.getBoundingClientRect().top < mid) on = m.a.dataset.ulNav!;
+    // a menu item is lit only while its own section is on the screen (the city, the rules and the last lamp have no item)
+    for (const m of marks) { const r = m.el?.getBoundingClientRect(); if (r && r.top < mid && r.bottom > mid) on = m.a.dataset.ulNav!; }
     if (on !== lastNav) { lastNav = on; marks.forEach((m) => m.a.classList.toggle('is-on', m.a.dataset.ulNav === on)); }
   };
   addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(paint); } }, { passive: true });

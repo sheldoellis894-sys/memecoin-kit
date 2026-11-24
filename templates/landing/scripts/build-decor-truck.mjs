@@ -3,7 +3,7 @@
 // Every rule is scoped to html.decor-truck (theme.json "decor": "truck"), so other themes stay exactly as they are.
 import fs from 'node:fs';
 const OUT = process.argv[2] || new URL('../src/styles/decor-truck.css', import.meta.url);
-const K = '#120A2A', R = '#E8343B', Y = '#FFD21F', G = '#16A34A', B = '#2453D6', P = '#FF4FA3', O = '#FF8A1F', W = '#FFF8E1', L = '#E5A82E';   // L: the number medallions, in the buttons' mustard
+const K = '#120A2A', R = '#E8343B', RD = '#C8202E', Y = '#FFD21F', G = '#16A34A', B = '#2453D6', P = '#FF4FA3', O = '#FF8A1F', W = '#FFF8E1', L = '#E5A82E';   // L: the number medallions, in the buttons' mustard
 const url = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg.replace(/\s+/g, ' ').trim())}")`;
 const r = (n) => Math.round(n * 100) / 100;
 const ring = (cx, cy, n, rad, f) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; return f(r(cx + Math.cos(a) * rad), r(cy + Math.sin(a) * rad), (a * 180) / Math.PI, i); }).join('');
@@ -76,7 +76,7 @@ const css = `/* ================================================================
    Colours of the painting are fixed: red ${R}, yellow ${Y}, green ${G}, blue ${B}, pink ${P}, marigold ${O}.
    ===================================================================== */
 html.decor-truck {
-  --dt-red: ${R}; --dt-yellow: ${Y}; --dt-green: ${G}; --dt-blue: ${B}; --dt-pink: ${P}; --dt-dots: color-mix(in srgb, ${W} 82%, transparent);
+  --dt-red: ${R}; --dt-red-deep: ${RD}; --dt-yellow: ${Y}; --dt-green: ${G}; --dt-blue: ${B}; --dt-pink: ${P}; --dt-dots: color-mix(in srgb, ${W} 82%, transparent);
   --dt-bunting: ${url(bunting)};
   --dt-band: ${url(band)};
   --dt-flower: ${url(flower)};
@@ -94,12 +94,13 @@ html.decor-truck {
 html.decor-truck .lt-bar::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 26px; background: var(--dt-bunting) 0 0 / 104px 26px repeat-x; pointer-events: none; }
 html.decor-truck .lt-brand img { box-shadow: 0 0 0 2.5px var(--lt-ink), 0 0 0 5px var(--dt-red), 0 0 0 7px var(--lt-ink); }
 
-/* ---- Painted band with bells between the sections ---- */
-html.decor-truck .lt-sec { padding-top: calc(clamp(56px, 9vw, 112px) + 34px); }
-html.decor-truck .lt-sec::before, html.decor-truck .lt-footer::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 60px; background: var(--dt-band) 0 0 / 96px 60px repeat-x; pointer-events: none; }
+/* ---- Painted band with bells: it opens the three parts of the page (the game, the owl's city, the coin) and the footer ---- */
+html.decor-truck :is(#gallery, #token).lt-sec { padding-top: calc(clamp(56px, 9vw, 112px) + 34px); }
+html.decor-truck :is(#gallery, #token).lt-sec::before, html.decor-truck .lt-footer::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 60px; background: var(--dt-band) 0 0 / 96px 60px repeat-x; pointer-events: none; }
 html.decor-truck .lt-street-strip { height: 60px; margin-top: 34px; opacity: 1; filter: none; background: var(--dt-band) 0 0 / 96px 60px repeat-x; }
-html.decor-truck .lt-hero + .lt-sec::before { display: none; }
-html.decor-truck .lt-hero + .lt-sec { padding-top: clamp(40px, 6vw, 80px); }
+@media (min-width: 940px) { html.decor-truck .lt-street-strip { margin-top: 0; } }   /* the first screen ends with the band at 1440 x 900 */
+html.decor-truck #lore.lt-sec { padding-top: clamp(40px, 6vw, 80px); }
+html.decor-truck #how-to-buy.lt-sec { padding-top: clamp(16px, 3vw, 40px); }
 
 /* ---- Lettering: letters in the button colour with a black outline and a red painted shadow ---- */
 html.decor-truck .lt-hero-title { color: var(--t-primary); letter-spacing: .02em;
@@ -116,17 +117,17 @@ html.decor-truck .lt-kicker { width: fit-content; max-width: 100%; padding: .55e
   background-image: radial-gradient(circle, var(--dt-dots) 1.1px, transparent 1.6px), radial-gradient(circle, var(--dt-dots) 1.1px, transparent 1.6px);
   background-size: 8px 6px, 8px 6px; background-position: 0 0, 0 100%; background-repeat: repeat-x;
   clip-path: polygon(0 0, 100% 0, calc(100% - .75em) 50%, 100% 100%, 0 100%, .75em 50%); text-shadow: 1px 1px 0 var(--lt-ink); }
+html.decor-truck .lt-kicker { background-color: var(--dt-red-deep); }   /* the deeper red keeps the cream letters readable (4.8:1) */
 html.decor-truck :is(.lt-head.is-center, .lt-buy, .lt-gift-in, .lt-facade-top) .lt-kicker { margin-inline: auto; }
 
 /* ---- Truck panels: black frame, a coloured stripe with white dots, a flower in the corners ---- */
-html.decor-truck :is(.lt-card, .lt-step, .lt-plan-card, .lt-rules-strip, .lt-setup, .lt-star, .lt-rules div) {
+html.decor-truck :is(.lt-card, .lt-plan-card, .lt-setup, .lt-star, .lt-rules div) {
   --s: var(--dt-red); position: relative; border: 3px solid var(--lt-ink); border-radius: 16px; padding: 28px 28px 26px;
   background: var(--lt-card) var(--dt-flower) right 13px top 13px / 17px no-repeat;
   box-shadow: inset 0 0 0 7px var(--s), inset 0 0 0 9.5px var(--lt-ink);
   outline: 2.4px dotted var(--dt-dots); outline-offset: -6.8px; }
-html.decor-truck :is(.lt-card, .lt-step, .lt-plan-card, .lt-rules div):nth-child(3n + 2) { --s: var(--dt-blue); }
-html.decor-truck :is(.lt-card, .lt-step, .lt-plan-card, .lt-rules div):nth-child(3n) { --s: var(--dt-green); }
-html.decor-truck .lt-rules-strip { --s: var(--dt-blue); background-color: color-mix(in srgb, var(--t-surface) 70%, var(--t-bg)); }
+html.decor-truck :is(.lt-card, .lt-plan-card, .lt-rules div):nth-child(3n + 2) { --s: var(--dt-blue); }
+html.decor-truck :is(.lt-card, .lt-plan-card, .lt-rules div):nth-child(3n) { --s: var(--dt-green); }
 html.decor-truck .lt-star { --s: var(--dt-green); }
 html.decor-truck .lt-plan-card:first-child { box-shadow: inset 0 0 0 7px var(--s), inset 0 0 0 9.5px var(--lt-ink), 0 0 40px -12px color-mix(in srgb, var(--t-primary) 55%, transparent); }
 html.decor-truck .lt-card-no { width: 58px; height: 58px; border: 0; border-radius: 0; background: var(--dt-medal) center / contain no-repeat; box-shadow: none; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--t-primary) 45%, transparent)); }
@@ -134,8 +135,7 @@ html.decor-truck .lt-night-dot { width: 18px; height: 18px; border-radius: 0; ba
 html.decor-truck .lt-plan-card li::marker { content: "✿ "; color: var(--dt-yellow); }
 
 /* small boxes: a black frame and a row of dots inside */
-html.decor-truck :is(.lt-stats div, .lt-more, .lt-box, .lt-story, .lt-ca) { border: 2.5px solid var(--lt-ink); border-radius: 12px; outline: 2px dotted color-mix(in srgb, var(--t-accent) 45%, transparent); outline-offset: -6px; }
-html.decor-truck .lt-story { border-left: 6px solid var(--dt-red); }
+html.decor-truck :is(.lt-more, .lt-story, .lt-ca) { border: 2.5px solid var(--lt-ink); border-radius: 12px; outline: 2px dotted color-mix(in srgb, var(--t-accent) 45%, transparent); outline-offset: -6px; }
 html.decor-truck .lt-door-btn { border: 3px solid var(--lt-ink); border-radius: 14px; padding: 11px 11px 14px; box-shadow: inset 0 0 0 5px var(--s, var(--dt-red)), inset 0 0 0 7px var(--lt-ink); }
 html.decor-truck .lt-door:nth-child(3n + 2) .lt-door-btn { --s: var(--dt-blue); }
 html.decor-truck .lt-door:nth-child(3n) .lt-door-btn { --s: var(--dt-green); }
@@ -158,6 +158,8 @@ html.decor-truck .lt-window::after { content: ""; position: absolute; inset: 0; 
 html.decor-truck .lt-window:hover { box-shadow: none; filter: drop-shadow(0 0 22px color-mix(in srgb, var(--t-primary) 55%, transparent)); }
 
 /* ---- The house picture and the "Light a picture" canvas: a painted frame with white dots ---- */
+/* the frame reaches about 18px out of the box: the lines under the house start below it */
+html.decor-truck .lt-stage-box + .lt-plate, html.decor-truck .lt-stage-box + .lt-plate:empty + .lt-tip { margin-top: 24px; }
 html.decor-truck :is(.lt-stage-box, .lt-canvas) { border: 3px solid var(--t-accent); border-radius: 18px;
   box-shadow: 0 0 0 3px var(--lt-ink), 0 0 0 11px var(--dt-red), 0 0 0 14px var(--lt-ink), 0 30px 60px -30px rgb(0 0 0 / .8), 0 0 80px -10px color-mix(in srgb, var(--t-primary) 35%, transparent);
   outline: 3px dotted var(--dt-dots); outline-offset: 5.5px; }
@@ -189,7 +191,7 @@ html.decor-truck .lt-footer-in::before { content: "LIGHT OK PLEASE"; content: "L
 
 @media (max-width: 520px) {
   html.decor-truck .lt-bar::after { height: 20px; background-size: 80px 20px; }
-  html.decor-truck :is(.lt-card, .lt-step, .lt-plan-card, .lt-rules-strip, .lt-setup, .lt-star, .lt-rules div) { padding: 24px 22px 22px; }
+  html.decor-truck :is(.lt-card, .lt-plan-card, .lt-setup, .lt-star, .lt-rules div) { padding: 24px 22px 22px; }
 }
 `;
 fs.writeFileSync(OUT, css);

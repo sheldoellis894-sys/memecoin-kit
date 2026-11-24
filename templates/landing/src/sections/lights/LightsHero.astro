@@ -14,10 +14,10 @@ const follow = h.follow !== false && owlImages.fly;
       <h1 class="lt-hero-title font-heading">{config.name}</h1>
       <p class="lt-hero-ticker font-ticker">${config.ticker}</p>
       <p class="lt-hero-tag">{config.tagline}</p>
-      <p class="lt-hero-lead">{config.hero.text}</p>
+      {config.hero.text && <p class="lt-hero-lead">{config.hero.text}</p>}
       <div class="lt-actions">
         <a class="lt-btn lt-btn-big" href="#house" data-ul-perch>{h.cta || 'Light my house'}</a>
-        <a class="lt-btn lt-btn-big lt-btn-ghost" href="#buy">{h.buy || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
+        <a class="lt-btn lt-btn-big lt-btn-ghost" href="#token">{h.buy || 'Buy'} <span class="font-ticker">${config.ticker}</span></a>
       </div>
       <LtCa inline />
     </div>
@@ -59,12 +59,25 @@ const follow = h.follow !== false && owlImages.fly;
     let x = W * 0.62, y = Math.max(140, H * 0.18), vx = 0, vy = 0, tx = x, ty = y, face = 1, last = performance.now(), quietAt = 0;
     if (art) { const r = art.getBoundingClientRect(); [x, y] = local(r.left + r.width * 0.5, r.top + r.height * 0.1); x = tx = clampX(x); y = ty = clampY(y); }
     const aim = (nx: number, ny: number) => { tx = clampX(nx); ty = clampY(ny); quietAt = performance.now(); wake(); };
+    // below the first screen the owl keeps to the margin of the page, so he never sits on the words of a section;
+    // where the margin is too narrow for him he stays there faint
+    const below = () => hero.getBoundingClientRect().bottom < innerHeight * 0.5;
+    const margin = () => {
+      const r = document.querySelector<HTMLElement>('.lt-sec > .lt-in')?.getBoundingClientRect();
+      if (!r) return null;
+      const right = innerWidth - r.right, left = r.left;
+      owl.classList.toggle('is-faint', Math.max(right, left) < ow * 0.9);
+      return right >= left ? r.right + right / 2 : left / 2;
+    };
     const wander = () => {
       if (!fine && art) {   // the phone: over the picture and the sky around it, never over the words
         const a = art.getBoundingClientRect(), h = hero.getBoundingClientRect();
         const x0 = a.left - h.left - a.width * 0.12, x1 = a.right - h.left + a.width * 0.12, y0 = a.top - h.top - 10, y1 = a.top - h.top + a.height * 0.5;
         tx = clampX(x0 + Math.random() * (x1 - x0)); ty = clampY(y0 + Math.random() * (y1 - y0)); return;
       }
+      const gx = fine && below() ? margin() : null;
+      if (gx !== null) { tx = clampX(gx); ty = clampY(H * (0.2 + Math.random() * 0.55)); return; }
+      owl.classList.remove('is-faint');
       tx = clampX(W * (0.08 + Math.random() * 0.84)); ty = clampY(H * (0.12 + Math.random() * 0.4));
     };
     if (fine) {
@@ -75,7 +88,10 @@ const follow = h.follow !== false && owlImages.fly;
           const r = perch.getBoundingClientRect(); const [px, py] = local(r.right, r.top);
           return aim(px + ow * 0.45, py - oh * 0.35);
         }
-        const [px, py] = local(e.clientX, e.clientY); aim(px + ow * 0.55, py - oh * 0.6);   // up and to the right of the cursor, never under it
+        const [px, py] = local(e.clientX, e.clientY);
+        if (e.clientY > hero.getBoundingClientRect().bottom) { const gx = margin(); if (gx !== null) return aim(gx, py); }
+        owl.classList.remove('is-faint');
+        aim(px + ow * 0.55, py - oh * 0.6);   // up and to the right of the cursor, never under it
       }, { passive: true });
     } else {
       hero.addEventListener('pointerdown', (e) => {

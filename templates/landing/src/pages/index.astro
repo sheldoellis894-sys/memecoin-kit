@@ -140,7 +140,17 @@ const registry: Record<string, any> = {
 };
 const unknown = layout.sections.filter((s) => !registry[s]);
 if (unknown.length) throw new Error(`Layout "${layout.name}": неизвестные секции: ${unknown.join(', ')}`);
+// страница «lights» держит свои секции внутри <main> (верхняя полоса до него, подвал после), чтобы экранные читалки находили саму страницу
+const wrap = layout.name === 'lights';
 ---
 <Base>
-  {layout.sections.map((name) => { const Section = registry[name]; return <Section />; })}
+  {wrap ? (
+    <>
+      {layout.sections.filter((n) => /Shell$/.test(n)).map((name) => { const Section = registry[name]; return <Section />; })}
+      <main id="main">
+        {layout.sections.filter((n) => !/(Shell|Footer)$/.test(n)).map((name) => { const Section = registry[name]; return <Section />; })}
+      </main>
+      {layout.sections.filter((n) => /Footer$/.test(n)).map((name) => { const Section = registry[name]; return <Section />; })}
+    </>
+  ) : layout.sections.map((name) => { const Section = registry[name]; return <Section />; })}
 </Base>

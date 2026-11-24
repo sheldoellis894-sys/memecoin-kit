@@ -22,8 +22,8 @@
     "og": "exports/ullu_og.jpg"
   },
   "hero": {
-    "kicker": "The owl of the lights",
-    "text": "The owl brings luck and lands on the brightest roof. Every house on the street wants it to be theirs. Get yours and light it"
+    "kicker": "",
+    "text": ""
   },
   "about": {
     "title": "",
@@ -64,23 +64,10 @@
       "note": "He does not knock. He looks for the light"
     },
     "lore": {
-      "kicker": "Who is Ullu",
+      "kicker": "",
       "title": "Brightest light gets the owl",
       "lead": "Ullu means owl. In Hindi it also means a fool. He is both, and he is never wrong about money",
-      "cards": [
-        {
-          "title": "He comes at night",
-          "text": "Every night the owl looks for the brightest window in the city. Names on doors don't matter"
-        },
-        {
-          "title": "Lights everywhere",
-          "text": "The whole street hangs lamps and lights. Nobody wants to be the dark house"
-        },
-        {
-          "title": "Don't skip a night",
-          "text": "Light up seven nights in a row and the owl lands on your roof with the whole sack"
-        }
-      ],
+      "cards": [],
       "rulesTitle": "The seven nights",
       "rules": [
         "First visit: the street builds you a house. Only one like it",
@@ -91,7 +78,7 @@
       ]
     },
     "gallery": {
-      "kicker": "Ullu at night",
+      "kicker": "",
       "title": "Seen from the windows",
       "lead": "",
       "open": "Open",
@@ -100,9 +87,9 @@
       "close": "Close"
     },
     "token": {
-      "kicker": "The token",
+      "kicker": "",
       "title": "Tokenomics",
-      "lead": "No presale, no team wallet, no tax. Just the house and the lights",
+      "lead": "",
       "supply": "Supply",
       "ca": "Contract address",
       "copy": "Copy",
@@ -111,7 +98,7 @@
       "caFake": "Any address before the launch is fake"
     },
     "steps": {
-      "kicker": "How to buy",
+      "kicker": "",
       "title": "How to get $ULLU",
       "lead": "",
       "step": "Lamp {n}"
@@ -122,7 +109,8 @@
       "lead": ""
     },
     "rules": {
-      "kicker": "Honest rules",
+      "kicker": "",
+      "disclaimer": false,
       "chat": { "name": "Ullu", "online": "online, as always at night", "typing": "typing…", "open": 0, "helloTitle": "Ask me anything", "hello": "Tap a question below. I'm up all night anyway", "helloMood": "stickers/ullu_laughing.png", "done": "That's everything. Now go light your house", "doneBtn": "Get my house", "reset": "Clear the chat" },
       "title": "What the street does and does not do",
       "lead": "",
@@ -172,21 +160,21 @@
       ]
     },
     "buy": {
-      "kicker": "The last lamp",
+      "kicker": "",
       "title": "Light the last lamp",
-      "lead": "The owl is watching. Hold the lamp until it burns.",
+      "lead": "The owl is watching. Hold the lamp until it burns",
       "hold": "Hold the lamp to light it",
-      "done": "Lit. The owl saw it.",
+      "done": "Lit. The owl saw it",
       "cta": "Buy"
     },
     "footer": {
-      "tag": "The owl who brings fortune to the brightest house.",
-      "note": "Ullu is a meme and a game. It is not financial advice and it promises nothing. Only buy what you can afford to lose.",
+      "tag": "The owl who brings fortune to the brightest house",
+      "note": "$ULLU is a meme coin with no promise of value or profit. The house, the nights and the owl's gifts are a game on this website, not rewards. Crypto is risky: only use money you can afford to lose. Nothing here is financial advice",
       "launchLabel": "guru.fun"
     }
   },
   "house": {
-    "kicker": "My house",
+    "kicker": "",
     "title": "Your house on the owl's street",
     "lead": "One house, one owl, seven nights",
     "owl": {
@@ -504,7 +492,7 @@
     }
   },
   "picture": {
-    "kicker": "Light a picture",
+    "kicker": "",
     "title": "Light up any picture",
     "lead": "Pick a picture and light it up. At 100% the owl lands",
     "watermark": "ULLU · guru.fun",
@@ -579,9 +567,9 @@
     }
   },
   "street": {
-    "kicker": "The street",
+    "kicker": "",
     "title": "The brightest houses tonight",
-    "lead": "Houses that visitors put on show. The owl looks at the top one first.",
+    "lead": "Houses that visitors put on show. The owl looks at the top one first",
     "endpoint": "/api/street",
     "minReal": 3,
     "errors": {
@@ -603,7 +591,7 @@
     },
     "labels": {
       "star": "House of the night",
-      "starLine": "{light}% bright · night {streak} in a row. The owl looks here first.",
+      "starLine": "{light}% bright, night {streak} in a row",
       "sortLabel": "Sort the street",
       "byLight": "Brightest",
       "byRun": "Longest run",
@@ -624,8 +612,8 @@
       "takeOff": "Take my house off the street",
       "mine": "Yours",
       "more": "Show more houses",
-      "line": "Night {streak} in a row · {gifts} owl visits",
-      "lineLanded": "Night {streak} in a row · the owl is on the roof",
+      "line": "Night {streak} in a row, {gifts} owl visits",
+      "lineLanded": "Night {streak} in a row, the owl is on the roof",
       "lineDark": "Went dark. Best run: {best} nights.",
       "best": "best run {best}",
       "viewLabel": "A house on the street",
@@ -692,7 +680,7 @@
     ]
   },
   "city": {
-    "kicker": "The city",
+    "kicker": "",
     "title": "The city we lit",
     "lead": "Every light is someone's house. Tap one to look inside",
     "districts": {
@@ -723,7 +711,7 @@
       "legendDark": "Dark tonight",
       "legendOwl": "Seven nights, the owl landed",
       "citySamples": "Houses marked Example show how the city will look. Real houses take their place",
-      "hintOn": "Drag to move · pinch or scroll to come closer · your house is in the middle, new houses grow the city outwards",
+      "hintOn": "Drag to move, pinch or scroll to come closer. Your house is in the middle, new houses grow the city outwards",
       "cityStar": "Brightest tonight",
       "off": "Back to the page",
       "yourHouse": "Your house",
@@ -756,7 +744,7 @@
     },
     {
       "title": "Buy $ULLU",
-      "text": "Paste the contract address from this page, pick the amount and confirm in your wallet. Anything else is fake"
+      "text": "Paste the contract address from this page, pick the amount and confirm in your wallet"
     }
   ],
   "tokenomics": {
@@ -777,10 +765,6 @@
       {
         "label": "Presale",
         "value": "0%"
-      },
-      {
-        "label": "Nights to land the owl",
-        "value": "7"
       }
     ]
   },

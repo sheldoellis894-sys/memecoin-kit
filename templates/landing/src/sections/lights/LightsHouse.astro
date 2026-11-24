@@ -319,7 +319,7 @@ const iv: Record<string, string> = c.invite || {};
         slotsBox.appendChild(b);
       }
       drawFrame();
-      $<HTMLElement>('[data-ul-no]').textContent = `No. ${h.no} · ${styleName(h.family)} · ${timeName(drawCtx.time)}`;
+      $<HTMLElement>('[data-ul-no]').textContent = `No. ${h.no}, ${styleName(h.family)}, ${timeName(drawCtx.time).toLowerCase()}`;
       $<HTMLElement>('[data-ul-plate]').textContent = plateText();
     };
 
@@ -442,7 +442,7 @@ const iv: Record<string, string> = c.invite || {};
       }
       if (!inv.children.length) inv.innerHTML = `<p class="lt-note">${L.invEmpty || ''}</p>`;
       const total = Object.entries(free).reduce((a: number, [i, b]: [string, any]) => a + (K.isOpen(i) ? 0 : b), 0);
-      $<HTMLElement>('[data-ul-inv-count]').textContent = total ? `· ${total}` : '';
+      $<HTMLElement>('[data-ul-inv-count]').textContent = total ? `(${total})` : '';
     };
     tabs.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]'); if (!b) return; tab = b.dataset.tab!; drawInv(); });
     inv.addEventListener('click', (e) => {
@@ -561,14 +561,14 @@ const iv: Record<string, string> = c.invite || {};
         const ids = all.filter((i: string) => (K.ITEMS as any)[i].cat === c);
         const sec = document.createElement('section');
         sec.innerHTML = `<h4></h4><ul></ul>`;
-        sec.querySelector('h4')!.textContent = `${catName(c)} · ${ids.filter((i: string) => seen[i]).length}/${ids.length}`;
+        sec.querySelector('h4')!.textContent = `${catName(c)}: ${ids.filter((i: string) => seen[i]).length}/${ids.length}`;
         const ul2 = sec.querySelector('ul')!;
         for (const id of ids) {
           const it = (K.ITEMS as any)[id], got = Boolean(seen[id]);
           const li = document.createElement('li'); li.className = `is-${it.rarity}${got ? '' : ' is-missing'}${it.holder ? ' is-holder' : ''}`;
           li.innerHTML = `<img src="${thumb(id)}" alt="" width="48" height="48" loading="lazy"><span></span>`;
           li.querySelector('span')!.textContent = got ? itemName(id) : (cfg.rarityNames[it.rarity] || it.rarity);
-          li.title = got ? `${itemName(id)} · ${cfg.rarityNames[it.rarity] || it.rarity}` : (it.holder ? L.albumHolder || 'For holders' : L.albumMissing || 'Not found yet');
+          li.title = got ? `${itemName(id)}, ${cfg.rarityNames[it.rarity] || it.rarity}` : (it.holder ? L.albumHolder || 'For holders' : L.albumMissing || 'Not found yet');
           ul2.appendChild(li);
         }
         albumBox.appendChild(sec);
@@ -632,8 +632,8 @@ const iv: Record<string, string> = c.invite || {};
         const li = document.createElement('li');
         const d = new Date(`${e.date}T12:00:00`);
         li.innerHTML = '<b></b><span></span><p></p>';
-        li.querySelector('b')!.textContent = `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · ${fill(L.diaryNight || 'Night {n}', { n: e.night })}`;
-        li.querySelector('span')!.textContent = [e.gift ? fill(L.diaryGift || 'Gift: {item}', { item: itemName(e.gift) }) : '', e.bonus ? itemsText(e.bonus) : ''].filter(Boolean).join(' · ');
+        li.querySelector('b')!.textContent = `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, ${fill(L.diaryNight || 'Night {n}', { n: e.night })}`;
+        li.querySelector('span')!.textContent = [e.gift ? fill(L.diaryGift || 'Gift: {item}', { item: itemName(e.gift) }) : '', e.bonus ? itemsText(e.bonus) : ''].filter(Boolean).join(', ');
         li.querySelector('p')!.textContent = eventText(e);
         list.appendChild(li);
       }
@@ -914,7 +914,7 @@ const iv: Record<string, string> = c.invite || {};
       if (p.born) { const d = new Date(p.born); if (!isNaN(+d)) bits.push(fill(L.plateBuilt || 'built {date}', { date: d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) })); }
       if (p.city) bits.push(p.city);
       if (p.neighbour) bits.push(fill(L.plateNext || 'next door: {name}', { name: p.neighbour.name || fill(L.plateNextNo || 'house No. {no}', { no: friend?.no || '' }) }));
-      return bits.filter(Boolean).join(' · ');
+      return bits.filter(Boolean).join(', ');
     }
     function showSetup(on: boolean) { setupOn = on; setupBox.hidden = !on; mainBox.hidden = on; root.classList.toggle('is-setup', on); if (on) say(SU.tip || 'This is your house. Answer three questions, and it changes as you go.'); }
     const wishBox = $<HTMLElement>('[data-ul-wishes]');

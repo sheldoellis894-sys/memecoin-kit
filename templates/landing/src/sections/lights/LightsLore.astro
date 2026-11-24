@@ -1,5 +1,6 @@
 ---
-// The lore in three cards and the rules of the seven nights.
+// The lore in three cards and the rules of the seven nights. Without cards (config lore.cards: []) the heading and the
+// rules stand side by side on a wide screen.
 import { lights } from '../../lib/lights';
 import LtHead from './LtHead.astro';
 const l = lights.lore || {};
@@ -7,9 +8,9 @@ const cards: { title: string; text: string }[] = l.cards || [];
 const rules: string[] = l.rules || [];
 ---
 <section id="lore" class="lt-sec">
-  <div class="lt-in">
+  <div class:list={['lt-in', !cards.length && rules.length > 0 && 'lt-lore-duo']}>
     <LtHead kicker={l.kicker} title={l.title} lead={l.lead} />
-    <ol class="lt-cards">
+    {cards.length > 0 && <ol class="lt-cards">
       {cards.map((c, i) => (
         <li class="lt-card" style={`--i:${i}`} data-ul-in>
           <span class="lt-card-no font-heading">{i + 1}</span>
@@ -17,7 +18,7 @@ const rules: string[] = l.rules || [];
           <p>{c.text}</p>
         </li>
       ))}
-    </ol>
+    </ol>}
     {rules.length > 0 && (
       <div class="lt-rules-strip" data-ul-in>
         <p class="lt-rules-title font-heading">{l.rulesTitle || 'The seven nights'}</p>

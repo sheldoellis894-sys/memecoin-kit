@@ -55,7 +55,7 @@ const avatar = asset(config.assets.logo);
         {items.map((it) => (<div data-ul-in><dt class="font-heading">{it.title}</dt><dd>{it.text}</dd></div>))}
       </dl>
     )}
-    {config.disclaimer && <p class="lt-disclaimer">{config.disclaimer}</p>}
+    {r.disclaimer !== false && config.disclaimer && <p class="lt-disclaimer">{config.disclaimer}</p>}
   </div>
 </section>
 
